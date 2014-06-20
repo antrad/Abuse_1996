@@ -1,0 +1,56 @@
+.TH abuse-tool 6 Abuse\ @VERSION@
+.SH NAME
+abuse-tool \- Minimal data editor for the Abuse game files.
+
+.SH SYNOPSIS
+.B abuse-tool
+file.spe
+.B command
+[options]
+
+.SH DESCRIPTION
+.B abuse-tool
+allows to dump and edit the contents of Abuse SPEC (.spe) files.
+
+.SH COMMANDS
+
+.TP
+.B list
+list the contents of a SPEC file.
+
+.TP
+.B get <id>
+dump the raw contents of entry <id> to the standard output.
+
+.TP
+.B getpcx <id>
+dump entry <id> reformated as a PCX image to the standard output.
+
+.TP
+.B put <id> <type> <name>
+insert the raw contents of file <name> at position <id> in the SPEC file,
+with file type <type>.
+
+.TP
+.B putpcx <id> <type> <name>
+insert the contents of PCX image <name> at position <id> in the SPEC file,
+with file type <type>.
+
+.TP
+.B rename <id> <name>
+set name of entry <id> to <name>.
+
+.TP
+.B move <id1> <id2>
+move entry <id1> to position <id2>.
+
+.TP
+.B del <id>
+delete entry <id> from the SPEC file.
+
+.SH SEE ALSO
+abuse(6)
+
+.SH AUTHORS
+Sam Hocevar <sam@hocevar.net>
+

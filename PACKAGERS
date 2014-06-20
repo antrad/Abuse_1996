@@ -1,0 +1,30 @@
+Notes for Abuse packagers
+-------------------------
+
+1.) Non-free data
+
+By default Abuse tarballs ship with all available data. This is for simplicity
+but may pose problems to distributions that only ship free data. You can easily
+create a stripped down tarball which has all the non-free data removed:
+
+    ./configure --disable-nonfree
+    make dist
+
+
+2.) Assets directory
+
+The default assets directory is ${datadir}/games/abuse. With the default prefix
+value, this expands to /usr/local/share/games/abuse.
+
+To override the assets directory, use the `--with-assetdir' configure flag,
+for instance:
+
+    ./configure --with-assetdir=/opt/abuse
+
+
+List of Abuse packagers
+-----------------------
+
+Debian: Sam Hocevar <sam@hocevar.net>
+OpenBSD: Antti Harri <iku@openbsd.fi>
+

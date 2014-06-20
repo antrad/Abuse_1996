@@ -1,0 +1,42 @@
+Requirements for compiling
+--------------------------
+
+- SDL 1.1.6 <http://www.libsdl.org>
+- SDL-Mixer
+- GL libraries and headers are required for OpenGL support.
+
+
+Compiling
+---------
+
+1. Untar the abuse-x.x.tar.gz file.
+
+     tar xzf abuse-x.x.tar.gz
+
+   This will create an abuse-x.x directory with the source in it.
+
+2. Run  './configure'
+   This will create the Makefiles required to build Abuse.
+
+   If you wish to specify a location for the datafiles instead of using the
+   default of '/usr/local/share/games/abuse', you can do so by passing the
+   following argument to the configure script:
+
+     --datadir=<location>
+
+   where <location> is the directory where the datafiles will be installed.
+
+3. Run  'make'
+   This will start the build.
+
+4. Run 'make install'
+   This will install Abuse.
+
+
+Mac OS X
+--------
+
+A Project Builder project is included in the 'osx' directory and can be used
+if desired.  Using project Builder is currently the only way to get OpenGL
+support compiled in.
+

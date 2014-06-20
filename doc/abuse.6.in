@@ -1,0 +1,145 @@
+.\" Abuse-SDL is (C) 2000-2001 Anthony Kruize <trandor@labyrinth.net.au>
+.\" Abuse is (C) Dave Taylor and Jonathan Clarke
+.\"
+.TH abuse 6 Abuse\ @VERSION@
+.SH NAME
+abuse \- The Abuse game, by Crack dot Com and the Abuse community.
+
+.SH SYNOPSIS
+.B abuse
+[options]
+
+.SH DESCRIPTION
+.B Abuse
+is a port of the classic Crack dot Com side-scroller shoot-em-up Abuse.
+It uses the Simple DirectMedia Layer API to draw its graphics and play sound.
+.PP
+.B Abuse
+has the following additional features over the original game:
+.PP
+Stereo sound with panning.
+.br
+Runs at any colour depth from 8bpp to 32bpp.
+.br
+Can use a mousewheel for changing weapons.
+.br
+Scaling to any resolution.
+.br
+Can use OpenGL for hardware accelerated scaling and anti-aliasing.
+.br
+Customizable keys.
+
+
+.SH REQUIREMENTS
+.B Abuse
+requires the following:
+.IP
+SDL 1.1.6 or above.
+.IP
+SDL-Mixer.
+
+.SH OPTIONS
+The following command-line options are available:
+.TP
+.B -fullscreen
+Run Abuse in fullscreen mode.
+.TP
+.B -doublebuf
+Use double-buffering when blitting to the screen.
+This is slower but can reduce image tearing or other artifacts.
+Only use if you notice any display problems.
+.TP
+.B -mono
+Use mono sound like the original Abuse. This is faster.
+.TP
+.B -nosound
+Disable sound altogether.
+.TP
+.B -scale <arg>
+Scale the window by
+.I <arg>
+amount.
+.TP
+.B -gl
+Enable OpenGL support.
+.TP
+.B -antialias
+Enable anti-aliasing. (Only with -gl)
+
+.SH CONFIGURATION
+.B Abuse
+can load its settings from a configuration file stored in the user's home
+directory. The file is located at ($HOME/.abuse/abuserc).  If either the
+directory or the configuration file don't exist they will be created
+automatically with default values.
+.LP
+The configuration file contains various settings for adjusting how
+.B Abuse
+behaves.  Except for key settings, most of the options have an equivalent
+command-line option. Lines starting with a semi-colon(;) are ignored as
+comments.
+.LP
+The following options are available:
+.TP
+.B fullscreen = 1 | 0
+Set starting in fullscreen mode 'on' or 'off'.
+.TP
+.B doublebuf = 1 | 0
+Turn double buffering 'on' or 'off'.
+.TP
+.B mono = 1 | 0
+Turn mono audio to 'on' or 'off'.
+.TP
+.B grabmouse = 1 | 0
+Set locking the mouse to the window 'on' or 'off'.
+.TP
+.B scale = <amount>
+Scale the game by the specified amount.
+.TP
+.B gl = 1 | 0
+Turn OpenGL support 'on' or 'off'.
+.TP
+.B antialias = 1 | 0
+Turn anti-aliasing 'on' or 'off'.
+.TP
+.B nosdlparachute = 1 | 0
+Turn SDL handling segfaults to either 'on' or 'off'.
+For debugging purposes only.
+.LP
+The following options are for setting the keys used in the game.
+Valid values are any letter of the alphabet or number.
+Special keys like the cursor-keys include:
+.IP
+LEFT, RIGHT, UP, DOWN, CTRL_L, CTRL_R, ALT_L, ALT_R, SHIFT_L, SHIFT_R,
+BACKSPACE, INSERT, DELETE, PAGEUP, PAGEDOWN, TAB
+.TP
+.B left = <key>
+Move character left.
+.TP
+.B right = <key>
+Move character right.
+.TP
+.B up = <key>
+Jump or climb up ladders.
+.TP
+.B down = <key>
+Use switches, doors, teleports or climb down ladders.
+.TP
+.B fire = <key>
+Fire currently selected weapon.
+.TP
+.B weapprev = <key>
+Switch to the previous available weapon.
+.TP
+.B weapnext = <key>
+Switch to the next available weapon.
+
+.SH FILES
+~/.abuse/abuserc - Abuse configuration file.
+
+.SH SEE ALSO
+abuse-tool(6)
+
+.SH AUTHORS
+Sam Hocevar <sam@hocevar.net>, Anthony Kruize <trandor@labyrinth.net.au>
+See also the AUTHORS file included with Abuse.

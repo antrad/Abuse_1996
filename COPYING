@@ -1,0 +1,26 @@
+Abuse licensing information
+===========================
+
+src/lol/*:
+src/tools/*:
+   Copyright (c) 2005-2001 Sam Hocevar <sam@hocevar.net>
+   Licensed under the WTFPL. Please read COPYING.WTFPL for details.
+
+src/sdlport/*:
+   Copyright (c) 2001 Anthony Kruize <trandor@labyrinth.net.au>
+   Licensed under the GNU GPL 2+. Please read COPYING.GPL for details.
+
+src/*:
+   Copyright (c) 1995 Crack dot Com
+   These files were released in the public domain.
+
+data/sfx/*:
+data/music/*:
+   Copyright (c) 1995 Bobby Prince <bobby@bpmusic.com>
+   Bobby gave Debian permission to redistribute these files.
+
+data/*:
+   Copyright (c) 1995 Crack dot Com
+   Copyright (c) 1996-2008 Justin Cassidy <messiah15@dog.com> and others
+   These files were released in the public domain.
+
