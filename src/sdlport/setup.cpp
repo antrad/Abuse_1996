@@ -403,11 +403,11 @@ void setup( int argc, char **argv )
     PWSTR appData;
     SHGetKnownFolderPath(FOLDERID_RoamingAppData, 0, NULL, &appData);
     // Create a new chunk of memory to save the savedir in
-    size_t savedir_size = lstrlenW(appData) * 2 + 6;
+    size_t savedir_size = lstrlenW(appData) * 2 + 7;
     savedir = (char*) malloc(savedir_size);
     wcstombs(savedir, appData, savedir_size);
-    // Append "\Abuse" to end end of it
-    strcat(savedir, "\\Abuse");
+    // Append "\Abuse\" to end end of it
+    strcat(savedir, "\\Abuse\\");
     // If it doesn't exist, create it
     if ( (fd = fopen(savedir, "r")) == NULL) {
         // FIXME: Add some error checking here

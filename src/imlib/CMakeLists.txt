@@ -25,6 +25,7 @@ add_library(imlib filter.cpp filter.h
 )
 
 include_directories(${abuse_SOURCE_DIR}/src)
+add_definitions(-DNO_CHECK)
 #INCLUDES = -I$(srcdir) -I$(srcdir)/.. $(SDL_CFLAGS)
 
 #CPPFLAGS = @CPPFLAGS@ -DNO_CHECK

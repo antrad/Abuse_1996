@@ -356,7 +356,7 @@ void calc_light_table(palette *pal)
 
         bFILE *f = open_file( lightpath, "wb" );
         if( f->open_failure() )
-            dprintf( "Unable to open file light.tbl for writing\n" );
+            dprintf( "Unable to open file %s for writing\n", lightpath );
         else
         {
             f->write_uint16(calc_crc((uint8_t *)pal->addr(),768));

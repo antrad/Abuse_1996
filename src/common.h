@@ -22,6 +22,14 @@
 #define snprintf	sprintf_s
 #endif
 
+#ifdef WIN32
+# define PATH_SEPARATOR	"\\"
+# define PATH_SEPARATOR_CHAR	'\\'
+#else
+# define PATH_SEPARATOR	"/"
+# define PATH_SEPARATOR_CHAR	'/'
+#endif
+
 //
 // Lol Engine
 //

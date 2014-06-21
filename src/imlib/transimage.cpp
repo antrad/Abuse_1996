@@ -360,4 +360,3 @@ size_t TransImage::DiskUsage()
     }
     return ret + sizeof(void *) + sizeof(vec2i);
 }
-

@@ -23,10 +23,13 @@
 #endif
 
 #include <cstring>
+#include <io.h>
+#include <errno.h>
 
 #include "SDL.h"
 #include "SDL_mixer.h"
 
+#include "common.h"
 #include "sound.h"
 #include "hmi.h"
 #include "specs.h"
@@ -56,11 +59,14 @@ int sound_init( int argc, char **argv )
     // Check for the sfx directory, disable sound if we can't find it.
     datadir = get_filename_prefix();
     sfxdir = (char *)malloc( strlen( datadir ) + 5 + 1 );
-    sprintf( sfxdir, "%s/sfx/", datadir );
-    if( (fd = fopen( sfxdir,"r" )) == NULL )
+    sprintf( sfxdir, "%s" PATH_SEPARATOR "sfx", datadir );
+    if( _access( sfxdir, 0 ) != -1 && errno != EEXIST )
     {
         // Didn't find the directory, so disable sound.
-        printf( "Sound: Disabled (couldn't find the sfx directory)\n" );
+        // Do NOT ask me why _access can return failure EEXIST. But it can.
+        // It makes no sense, it SHOULD return -1 if the file exists and the
+        // mode is 0, but it - doesn't.
+        printf( "Sound: Disabled (couldn't find the sfx directory %s)\n", sfxdir );
         return 0;
     }
     free( sfxdir );
@@ -234,4 +240,3 @@ void song::set_volume( int volume )
 {
     Mix_VolumeMusic(volume);
 }
-

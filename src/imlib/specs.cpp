@@ -85,7 +85,7 @@ void set_filename_prefix(char const *prefix)
         int len = strlen( prefix );
         if( prefix[len - 1] != '\\' && prefix[len - 1] != '/')
         {
-            spec_prefix[len] = '/';
+            spec_prefix[len] = PATH_SEPARATOR_CHAR;
             spec_prefix[len + 1] = 0;
         }
     }
@@ -294,9 +294,19 @@ void jFILE::open_external(char const *filename, char const *mode, int flags)
 {
   int skip_size=0;
   char tmp_name[200];
+#ifdef WIN32
+  // Need to make sure it's not an absolute Windows path
+  if (spec_prefix && filename[0] != '/' && (filename[0] != '\0' && filename[1] != ':'))
+#else
   if (spec_prefix && filename[0] != '/')
+#endif
+  {
     sprintf(tmp_name,"%s%s",spec_prefix,filename);
-  else strcpy(tmp_name,filename);
+  }
+  else
+  {
+    strcpy(tmp_name,filename);
+  }
 
 //  int old_mask=umask(S_IRWXU | S_IRWXG | S_IRWXO);
   if (flags&O_WRONLY)
@@ -310,6 +320,7 @@ void jFILE::open_external(char const *filename, char const *mode, int flags)
     flags-=O_WRONLY;
     flags|=O_CREAT|O_RDWR;
 #ifdef WIN32
+    //printf("Opening %s for writing\n", tmp_name);
     fd=open(tmp_name,flags|O_BINARY,_S_IREAD | _S_IWRITE);
 #else
     fd=open(tmp_name,flags,S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP | S_IROTH | S_IWOTH);
@@ -319,6 +330,7 @@ void jFILE::open_external(char const *filename, char const *mode, int flags)
   {
 #ifdef WIN32
     flags |= O_BINARY;
+    //printf("Opening %s for reading\n", tmp_name);
 #endif
     fd = open(tmp_name, flags);
   }
