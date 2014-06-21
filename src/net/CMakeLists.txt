@@ -14,4 +14,7 @@ include_directories(
     ${SDL_MIXER_INCLUDE_DIR}
 )
 
-#CPPFLAGS = @CPPFLAGS@ -DNO_CHECK
+add_definitions(-DNO_CHECK)
+
+# FIXME: This is a Windows-specific dependency
+target_link_libraries(net ws2_32)

@@ -91,8 +91,8 @@ extern uint8_t chatting_enabled;
 
 // Enabled TCPIP driver
 #if !defined __CELLOS_LV2__
-//#include "tcpip.h"
-//tcpip_protocol tcpip;
+#include "tcpip.h"
+tcpip_protocol tcpip;
 #endif
 
 FILE *open_FILE(char const *filename, char const *mode)
@@ -2488,6 +2488,7 @@ int main(int argc, char *argv[])
             }
         }
 
+printf("main_net_cfg=%d\n", main_net_cfg);
         if (main_net_cfg)
             wait_min_players();
 
