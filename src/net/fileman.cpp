@@ -15,10 +15,13 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <fcntl.h>
-#include <unistd.h>
+#if defined HAVE_UNISTD_H
+# include <unistd.h>
+#endif
 #include <string.h>
 #include <signal.h>
 #include <sys/stat.h>
+#include <io.h>
 
 #include "common.h"
 
@@ -28,6 +31,9 @@
 #include "specache.h"
 
 extern net_protocol *prot;
+
+// FIXME: Where is this supposed to be coming from?
+typedef unsigned short ushort;
 
 
 file_manager *fman=NULL;
@@ -246,7 +252,11 @@ void file_manager::add_nfs_client(net_socket *sock)
     mp++;
   }
 
+#ifdef WIN32
+  int f=open(filename,flags,_S_IREAD | _S_IWRITE);
+#else
   int f=open(filename,flags,S_IRWXU | S_IRWXG | S_IRWXO);
+#endif
 
   FILE *fp=fopen("open.log","ab");
   fprintf(fp,"open file %s, fd=%d\n",filename,f);
@@ -448,7 +458,11 @@ int file_manager::rf_open_file(char const *&filename, char const *mode)
     sprintf(tmp_name,"%s%s",get_filename_prefix(),filename);
   else strcpy(tmp_name,filename);
 
+#ifdef WIN32
+  int f = open(tmp_name, flags, S_IREAD|S_IWRITE);
+#else
   int f=open(tmp_name,flags,S_IRWXU | S_IRWXG | S_IRWXO);
+#endif
   if (f>=0)
   { close(f);
     return -2;

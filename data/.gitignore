@@ -1,0 +1,5 @@
+# For the time being, let's ignore non-free data
+# Note that it's possible this data may be OK to upload to GitHub, I'm unclear
+# on the exact license
+/music
+/sfx

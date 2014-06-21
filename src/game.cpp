@@ -12,9 +12,15 @@
 #   include "config.h"
 #endif
 
+#ifdef WIN32
+# include <WinSock2.h>
+# include <Windows.h>
+#endif
 #include <ctype.h>
 #include <setjmp.h>
-#include <unistd.h>
+#ifdef HAVE_UNISTD_H
+# include <unistd.h>
+#endif
 
 #ifdef __APPLE__
 // SDL for OSX needs to override main()
@@ -85,8 +91,8 @@ extern uint8_t chatting_enabled;
 
 // Enabled TCPIP driver
 #if !defined __CELLOS_LV2__
-#include "tcpip.h"
-tcpip_protocol tcpip;
+//#include "tcpip.h"
+//tcpip_protocol tcpip;
 #endif
 
 FILE *open_FILE(char const *filename, char const *mode)
@@ -2604,4 +2610,3 @@ int main(int argc, char *argv[])
 
     return 0;
 }
-

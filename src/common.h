@@ -17,6 +17,11 @@
 #include <stdint.h>
 #include <stdio.h>
 
+#ifdef _MSC_VER
+// For simplicity sake, just make snprintf sprintf_s even though they aren't quite the same
+#define snprintf	sprintf_s
+#endif
+
 //
 // Lol Engine
 //

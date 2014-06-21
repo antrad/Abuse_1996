@@ -24,8 +24,8 @@
 
 #include <cstring>
 
-#include <SDL.h>
-#include <SDL/SDL_mixer.h>
+#include "SDL.h"
+#include "SDL_mixer.h"
 
 #include "sound.h"
 #include "hmi.h"

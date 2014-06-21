@@ -12,7 +12,12 @@
 #   include "config.h"
 #endif
 
-#include <unistd.h>
+#ifdef HAVE_UNISTD_H
+# include <unistd.h>
+#endif
+#ifdef WIN32
+# include <Windows.h>
+#endif
 
 #include "common.h"
 
@@ -185,7 +190,7 @@ void view::update_scroll()
 
 static char cur_user_name[20] = { 0 };
 
-char const *get_login()
+char const * get_login()
 {
     if (cur_user_name[0])
         return cur_user_name;
@@ -193,6 +198,17 @@ char const *get_login()
 #if defined __CELLOS_LV2__
     /* FIXME: retrieve login name */
     return "Player";
+#elif defined WIN32
+	DWORD bufferSize = 120;
+	TCHAR *login;
+	login = (TCHAR*) malloc(bufferSize * sizeof(TCHAR));
+	if (GetUserName(login, &bufferSize))
+	{
+		return (char*) login;
+	} else
+	{
+		return "unknown";
+	}
 #else
     char const *login = getlogin();
     return login ? login : "unknown";
@@ -1305,4 +1321,3 @@ int view::get_team()
 {
     return _team;
 }
-

@@ -12,7 +12,7 @@
 #define __SOUND_H__
 
 #if !defined __CELLOS_LV2__
-#   include <SDL/SDL_mixer.h>
+#   include "SDL_mixer.h"
 #endif
 
 /* options are passed via command line */

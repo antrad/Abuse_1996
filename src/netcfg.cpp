@@ -28,7 +28,7 @@
 #   include "net/sock.h"
 #endif
 
-extern char *get_login();
+extern char const *get_login();
 net_configuration *main_net_cfg = NULL;
 extern char lsf[256];
 
@@ -599,4 +599,3 @@ int net_configuration::input()   // pulls up dialog box and input fileds
 }
 
 #endif // __CELLOS_LV2__
-

@@ -27,8 +27,14 @@
 #include <string.h>
 
 #include <sys/types.h>
-#include <dirent.h>
-#include <unistd.h>
+#ifdef WIN32
+# include <Windows.h>
+#else
+# include <dirent.h>
+#endif
+#ifdef HAVE_UNISTD_H
+# include <unistd.h>
+#endif
 
 void get_directory(char *path, char **&files, int &tfiles, char **&dirs, int &tdirs)
 {
@@ -37,6 +43,30 @@ void get_directory(char *path, char **&files, int &tfiles, char **&dirs, int &td
     dirs = NULL;
     tfiles = 0;
     tdirs = 0;
+#ifdef WIN32
+	WIN32_FIND_DATA findData;
+	HANDLE d = FindFirstFile(path, &findData);
+	if (d == INVALID_HANDLE_VALUE)
+		return;
+
+	do
+	{
+		if (findData.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY)
+		{
+			tdirs++;
+			dirs = (char **)realloc(dirs, sizeof(char *)*tdirs);
+			dirs[tdirs - 1] = strdup(findData.cFileName);
+		}
+		else
+		{
+			tfiles++;
+			files = (char **)realloc(files, sizeof(char *)*tfiles);
+			files[tfiles - 1] = strdup(findData.cFileName);
+		}
+	} while( FindNextFile(d, &findData) );
+	FindClose( d );
+
+#else
     DIR *d = opendir( path );
 
     if( !d )
@@ -81,4 +111,5 @@ void get_directory(char *path, char **&files, int &tfiles, char **&dirs, int &td
     if( t )
         free( tlist );
     chdir( curdir );
+#endif
 }

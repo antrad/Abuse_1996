@@ -68,7 +68,11 @@ static void net_log(char const *st, void *buf, long size)
 int unix_fd::read(void *buf, int size, net_address **addr)
 //{{{
 {
+#ifdef WIN32
+	int tr = recv(fd, (char*)buf, size, 0);
+#else
   int tr=::read(fd,(char*)buf,size);
+#endif
 
   net_log("tcpip.cpp: unix_fd::read:", (char *) buf, (long) size);
 
@@ -83,7 +87,11 @@ int unix_fd::write(void const *buf, int size, net_address *addr)
   net_log("tcpip.cpp: unix_fd::write:", (char *) buf, (long) size);
 
   if (addr) fprintf(stderr,"Cannot change address for this socket type\n");
+#ifdef WIN32
+  return send(fd, (char*)buf, size, 0);
+#else
   return ::write(fd,(char*)buf,size);
+#endif
 }
 //}}}///////////////////////////////////
 
@@ -283,7 +291,11 @@ net_socket *tcpip_protocol::connect_to_server(net_address *addr, net_socket::soc
   if (connect(socket_fd, (struct sockaddr *) &((ip_address *)addr)->addr, sizeof( ((ip_address *)addr)->addr ))==-1)
   {
     fprintf(stderr,"unable to connect\n");
+#ifdef WIN32
+	closesocket(socket_fd);
+#else
     close(socket_fd);
+#endif
     return 0;
   }
 

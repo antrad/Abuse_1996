@@ -8,6 +8,12 @@
  *  Jonathan Clark, or by Sam Hocevar.
  */
 
+#if defined WIN32
+#   include <WinSock2.h>
+#   include <Windows.h>
+#   include <stdio.h>
+typedef int socklen_t;
+#endif
 #include <stdlib.h>
 #include <fcntl.h>
 #if defined HAVE_SYS_IOCTL_H
@@ -149,7 +155,11 @@ class unix_fd : public net_socket
   virtual int write(void const *buf, int size, net_address *addr=NULL);
   virtual int read(void *buf, int size, net_address **addr);
 
+#ifdef WIN32
+  virtual ~unix_fd()                            { read_unselectable();  write_unselectable(); closesocket(fd); }
+#else
   virtual ~unix_fd()                            { read_unselectable();  write_unselectable(); close(fd); }
+#endif
   virtual void read_selectable()                   { FD_SET(fd,&tcpip.master_set); }
   virtual void read_unselectable()                 { FD_CLR(fd,&tcpip.master_set); }
   virtual void write_selectable()                  { FD_SET(fd,&tcpip.master_write_set); }
@@ -214,17 +224,22 @@ class udp_socket : public unix_fd
     {
       *addr=new ip_address;
       socklen_t addr_size=sizeof(sockaddr_in);
-      tr=recvfrom(fd,buf,size,0, (sockaddr *) &((ip_address *)(*addr))->addr,&addr_size);
+      tr=recvfrom(fd,(char*)buf,size,0, (sockaddr *) &((ip_address *)(*addr))->addr,&addr_size);
     } else
-      tr=recv(fd,buf,size,0);
+      tr=recv(fd,(char*)buf,size,0);
     return tr;
   }
   virtual int write(void const *buf, int size, net_address *addr=NULL)
   {
     if (addr)
-      return sendto(fd,buf,size,0,(sockaddr *)(&((ip_address *)addr)->addr),sizeof(((ip_address *)addr)->addr));
-    else
+      return sendto(fd,(char*)buf,size,0,(sockaddr *)(&((ip_address *)addr)->addr),sizeof(((ip_address *)addr)->addr));
+    else {
+#ifdef WIN32
+      return send(fd, (char*)buf, size, 0);
+#else
       return ::write(fd,(char*)buf,size);
+#endif
+    }
   }
   virtual int listen(int port)
   {
@@ -242,4 +257,3 @@ class udp_socket : public unix_fd
   }
 
 } ;
-

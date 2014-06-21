@@ -19,7 +19,9 @@
 #include <string.h>
 #include <limits.h>
 #include <time.h>
-#include <unistd.h>
+#ifdef HAVE_UNISTD_H
+# include <unistd.h>
+#endif
 
 #include "common.h"
 
@@ -2231,7 +2233,7 @@ int level::save(char const *filename, int save_all)
                 }
             }
             delete bk;
-#if (defined(__MACH__) || !defined(__APPLE__))
+#if (defined(__MACH__) || !defined(__APPLE__)) && (!defined(WIN32))
             chmod( bkname, S_IRWXU | S_IRWXG | S_IRWXO );
 #endif
         }
@@ -2326,7 +2328,7 @@ int level::save(char const *filename, int save_all)
             }
 
             delete fp;
-#if (defined(__MACH__) || !defined(__APPLE__))
+#if (defined(__MACH__) || !defined(__APPLE__)) && (!defined(WIN32))
             chmod( name, S_IRWXU | S_IRWXG | S_IRWXO );
 #endif
             write_cache_prof_info();

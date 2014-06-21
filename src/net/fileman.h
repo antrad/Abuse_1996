@@ -1,7 +1,9 @@
 #ifndef __FILEMAN_HPP_
 #define __FILEMAN_HPP_
 
-#include <unistd.h>
+#ifdef HAVE_UNISTD_H
+# include <unistd.h>
+#endif
 #include "sock.h"
 #include <stdlib.h>
 #include <string.h>

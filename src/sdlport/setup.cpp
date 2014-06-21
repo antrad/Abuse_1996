@@ -42,6 +42,13 @@
 #include "keys.h"
 #include "setup.h"
 
+#ifdef WIN32
+# include <Windows.h>
+# include <ShlObj.h>
+# include <direct.h>
+# define strcasecmp _stricmp
+#endif
+
 flags_struct flags;
 keys_struct keys;
 
@@ -94,15 +101,18 @@ void createRCFile( char *rcfile )
     {
         fputs( "; Abuse-SDL Configuration file\n\n", fd );
         fputs( "; Startup fullscreen\nfullscreen=0\n\n", fd );
-        #ifdef __APPLE__
+#ifdef __APPLE__
         fputs( "; Use DoubleBuffering\ndoublebuf=1\n\n", fd );
         fputs( "; Use OpenGL\ngl=1\n\n", fd );
-        #else
+#else
         fputs( "; Use DoubleBuffering\ndoublebuf=0\n\n", fd );
         fputs( "; Use OpenGL\ngl=0\n\n", fd );
+# ifndef WIN32
+        // This doesn't really make sense under Windows
         fputs( "; Location of the datafiles\ndatadir=", fd );
         fputs( ASSETDIR "\n\n", fd );
-        #endif
+# endif
+#endif
         fputs( "; Use mono audio only\nmono=0\n\n", fd );
         fputs( "; Grab the mouse to the window\ngrabmouse=0\n\n", fd );
         fputs( "; Set the scale factor\nscale=2\n\n", fd );
@@ -388,6 +398,27 @@ void setup( int argc, char **argv )
     char *savedir;
     FILE *fd = NULL;
 
+#ifdef WIN32
+    // Grab the profile dir
+    PWSTR appData;
+    SHGetKnownFolderPath(FOLDERID_RoamingAppData, 0, NULL, &appData);
+    // Create a new chunk of memory to save the savedir in
+    size_t savedir_size = lstrlenW(appData) * 2 + 6;
+    savedir = (char*) malloc(savedir_size);
+    wcstombs(savedir, appData, savedir_size);
+    // Append "\Abuse" to end end of it
+    strcat(savedir, "\\Abuse");
+    // If it doesn't exist, create it
+    if ( (fd = fopen(savedir, "r")) == NULL) {
+        // FIXME: Add some error checking here
+        _mkdir(savedir);
+    } else {
+        fclose( fd );
+    }
+    set_save_filename_prefix(savedir);
+    CoTaskMemFree(appData);
+    free( savedir );
+#else
     if( (homedir = getenv( "HOME" )) != NULL )
     {
         savedir = (char *)malloc( strlen( homedir ) + 9 );
@@ -414,10 +445,11 @@ void setup( int argc, char **argv )
         // Hopefully they have write permissions....
         set_save_filename_prefix( "" );
     }
+#endif
 
     // Set the datadir to a default value
     // (The current directory)
-    #ifdef __APPLE__
+#ifdef __APPLE__
     UInt8 buffer[255];
     CFURLRef bundleurl = CFBundleCopyBundleURL(CFBundleGetMainBundle());
     CFURLRef url = CFURLCreateCopyAppendingPathComponent(kCFAllocatorDefault, bundleurl, CFSTR("Contents/Resources/data"), true);
@@ -428,9 +460,25 @@ void setup( int argc, char **argv )
     }
     else
         set_filename_prefix( (const char*)buffer );
-    #else
+#elif defined WIN32
+    // Under Windows, it makes far more sense to assume the data is stored
+    // relative to our executable than anywhere else.
+    char assetDirName[MAX_PATH];
+    GetModuleFileName(NULL, assetDirName, MAX_PATH);
+    // Find the first \ or / and cut the path there
+    size_t cut_at = -1;
+    for (size_t i = 0; assetDirName[i] != '\0'; i++) {
+        if (assetDirName[i] == '\\' || assetDirName[i] == '/') {
+            cut_at = i;
+        }
+    }
+    if (cut_at >= 0)
+        assetDirName[cut_at] = '\0';
+    printf("Setting data dir to %s\n", assetDirName);
+    set_filename_prefix( assetDirName );
+#else
     set_filename_prefix( ASSETDIR );
-    #endif
+#endif
 
     // Load the users configuration
     readRCFile();

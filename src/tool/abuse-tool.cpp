@@ -395,4 +395,3 @@ static void Usage()
         "   del <id>                     delete entry <id>\n"
         "See the abuse-tool(6) manual page for more information.\n");
 }
-

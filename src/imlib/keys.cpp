@@ -15,6 +15,10 @@
 #include <string.h>
 #include <ctype.h>
 
+#ifdef WIN32
+# define strcasecmp _stricmp
+#endif
+
 #include "keys.h"
 
 char const *jk_key_names[]=

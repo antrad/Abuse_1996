@@ -18,9 +18,12 @@
 #include <ctype.h>
 #include <fcntl.h>
 #include <math.h>
-#include <unistd.h>
+#if defined HAVE_UNISTD_H
+# include <unistd.h>
+#endif
 #include <sys/types.h>
 #include <sys/stat.h>
+#include <io.h>
 
 #include "common.h"
 
@@ -270,7 +273,7 @@ void set_spec_main_file(char const *filename, int Search_order)
 #if (defined(__APPLE__) && !defined(__MACH__))
   spec_main_jfile.open_external(filename,"rb",O_BINARY|O_RDONLY);
 #else
-  spec_main_jfile.open_external(filename,"rb",O_RDONLY);
+  spec_main_jfile.open_external(filename,"rb",O_BINARY|O_RDONLY);
 #endif
   spec_main_fd = spec_main_jfile.get_fd();
   if (spec_main_fd==-1)
@@ -306,10 +309,19 @@ void jFILE::open_external(char const *filename, char const *mode, int flags)
 
     flags-=O_WRONLY;
     flags|=O_CREAT|O_RDWR;
-
+#ifdef WIN32
+    fd=open(tmp_name,flags|O_BINARY,_S_IREAD | _S_IWRITE);
+#else
     fd=open(tmp_name,flags,S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP | S_IROTH | S_IWOTH);
-  } else
-    fd=open(tmp_name,flags);
+#endif
+  }
+  else
+  {
+#ifdef WIN32
+    flags |= O_BINARY;
+#endif
+    fd = open(tmp_name, flags);
+  }
 
 //  umask(old_mask);
   if (fd>=0 && !skip_size)
@@ -924,4 +936,3 @@ void list_open_fds()
 {
     printf("Total open file descriptors: %d\n", total_files_open);
 }
-

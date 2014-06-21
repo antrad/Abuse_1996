@@ -13,7 +13,12 @@
 #endif
 
 #include <string.h>
-#include <unistd.h>
+#ifdef HAVE_UNISTD_H
+# include <unistd.h>
+#endif
+#ifdef WIN32
+# include <direct.h>
+#endif
 
 #include "common.h"
 
@@ -949,7 +954,7 @@ void *l_caller(long number, void *args)
       char const *cd = "Player";
 #else
       char cd[150];
-      getcwd(cd, 100);
+      _getcwd(cd, 100);
 #endif
       return LString::Create(cd);
     } break;

@@ -1,7 +1,9 @@
 #ifndef __GCLIENT_HPP_
 #define __GCLIENT_HPP_
 
-#include <unistd.h>
+#ifdef HAVE_UNISTD_H
+# include <unistd.h>
+#endif
 #include "sock.h"
 #include "ghandler.h"
 

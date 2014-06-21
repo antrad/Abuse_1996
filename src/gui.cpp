@@ -117,7 +117,7 @@ void ico_button::draw(int active, image *screen)
 
 }
 
-extern long S_BUTTON_PRESS_SND;
+extern int32_t S_BUTTON_PRESS_SND;
 extern int sfx_volume;
 
 void ico_button::handle_event(event &ev, image *screen, InputManager *im)

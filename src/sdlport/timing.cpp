@@ -22,10 +22,16 @@
 #   include "config.h"
 #endif
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <sys/time.h>
-#include <time.h>
+#ifdef WIN32
+# include <Windows.h>
+#else
+# include <stdio.h>
+# include <stdlib.h>
+# if defined HAVE_SYS_TIME_H
+#  include <sys/time.h>
+# endif
+# include <time.h>
+#endif
 
 #include "timing.h"
 
@@ -49,10 +55,15 @@ time_marker::time_marker()
 //
 void time_marker::get_time()
 {
+#ifdef WIN32
+	// Use GetSystemTimeAsFileTime for this
+	GetSystemTimeAsFileTime(&ticks);
+#else
     struct timeval tv = { 0, 0 };
     gettimeofday( &tv, NULL );
     seconds = tv.tv_sec;
     micro_seconds = tv.tv_usec;
+#endif
 }
 
 //
@@ -61,6 +72,14 @@ void time_marker::get_time()
 //
 double time_marker::diff_time( time_marker *other )
 {
+#if defined WIN32
+	// Convert both sides to __int64
+	__int64 our_ticks = (ticks.dwHighDateTime << 32L) | ticks.dwLowDateTime;
+	__int64 other_ticks = (other->ticks.dwHighDateTime << 32L) | (other->ticks.dwLowDateTime);
+	// Note we're dividing by 10,000,000 here - ticks are in 100ns increments, not microseconds.
+	return (double)(our_ticks - other_ticks) / 10000000.0;
+#else
     return (double)(seconds - other->seconds) + (double)(micro_seconds - other->micro_seconds) / 1000000;
+#endif
 }
 
