@@ -66,9 +66,9 @@ void file_picker::note_selection(image *screen, InputManager *inm, int x)
 
       char st[200],curdir[200];
       sprintf(st,"%s/%s",cd,d[x]);
-      _getcwd(curdir,200);
-      _chdir(st);
-      _getcwd(cd,200);
+      getcwd(curdir,200);
+      chdir(st);
+      getcwd(cd,200);
       chdir(curdir);
 
       free_up();

@@ -81,6 +81,6 @@ target_link_libraries(abuse sdlport)
 target_link_libraries(abuse imlib)
 target_link_libraries(abuse net)
 target_link_libraries(abuse ${SDL_LIBRARY})
-target_link_libraries(abuse ${SDL_MIXER_LIBRARIES})
+target_link_libraries(abuse ${SDLMIXER_LIBRARY})
 
 target_link_libraries(abuse-tool imlib)

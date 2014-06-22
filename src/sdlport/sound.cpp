@@ -23,7 +23,13 @@
 #endif
 
 #include <cstring>
-#include <io.h>
+#ifdef WIN32
+# include <io.h>
+# define access _access
+#endif
+#ifdef HAVE_UNISTD_H
+# include <unistd.h>
+#endif
 #include <errno.h>
 
 #include "SDL.h"
@@ -60,7 +66,7 @@ int sound_init( int argc, char **argv )
     datadir = get_filename_prefix();
     sfxdir = (char *)malloc( strlen( datadir ) + 5 + 1 );
     sprintf( sfxdir, "%s" PATH_SEPARATOR "sfx", datadir );
-    if( _access( sfxdir, 0 ) != -1 && errno != EEXIST )
+    if( access( sfxdir, 0 ) != -1 && errno != EEXIST )
     {
         // Didn't find the directory, so disable sound.
         // Do NOT ask me why _access can return failure EEXIST. But it can.

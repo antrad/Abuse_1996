@@ -954,7 +954,7 @@ void *l_caller(long number, void *args)
       char const *cd = "Player";
 #else
       char cd[150];
-      _getcwd(cd, 100);
+      getcwd(cd, 100);
 #endif
       return LString::Create(cd);
     } break;

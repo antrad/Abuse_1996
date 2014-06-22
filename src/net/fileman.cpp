@@ -21,7 +21,9 @@
 #include <string.h>
 #include <signal.h>
 #include <sys/stat.h>
-#include <io.h>
+#ifdef WIN32
+# include <io.h>
+#endif
 
 #include "common.h"
 

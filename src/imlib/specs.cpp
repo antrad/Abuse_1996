@@ -23,7 +23,15 @@
 #endif
 #include <sys/types.h>
 #include <sys/stat.h>
-#include <io.h>
+#ifdef WIN32
+# include <io.h>
+#endif
+
+#ifndef O_BINARY
+// Assume we don't have a binary flag on this platform.
+// FIXME: This should probably be done in a less stupid way.
+#define O_BINARY 0
+#endif
 
 #include "common.h"
 

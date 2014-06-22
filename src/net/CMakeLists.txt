@@ -16,5 +16,6 @@ include_directories(
 
 add_definitions(-DNO_CHECK)
 
-# FIXME: This is a Windows-specific dependency
-target_link_libraries(net ws2_32)
+if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
+    target_link_libraries(net ws2_32)
+endif()
