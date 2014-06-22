@@ -21,7 +21,13 @@ check_include_files(bstring.h HAVE_BSTRING_H)
 
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/config.h.in ${CMAKE_CURRENT_BINARY_DIR}/config.h)
 
-set(ASSETDIR "${CMAKE_INSTALL_PREFIX}/share/games/abuse")
+if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
+    # For Windows, just use whatever CMake wants
+    set(ASSETDIR "${CMAKE_INSTALL_PREFIX}")
+else()
+    # Under Linux, match the original autotools prefix
+    set(ASSETDIR "${CMAKE_INSTALL_PREFIX}/share/games/abuse")
+endif()
 add_definitions(-DASSETDIR="${ASSETDIR}")
 add_definitions(-DPACKAGE_NAME="abuse")
 add_definitions(-DPACKAGE_VERSION="${abuse_VERSION}")

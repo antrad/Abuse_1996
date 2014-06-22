@@ -113,8 +113,17 @@ void set_mode(int mode, int argc, char **argv)
     // Set the icon for this window.  Looks nice on taskbars etc.
     SDL_WM_SetIcon(SDL_LoadBMP("abuse.bmp"), NULL);
 
-    // Create the window with a preference for 8-bit (palette animations!), but accept any depth */
-    window = SDL_SetVideoMode(flags.xres, flags.yres, 8, vidFlags | SDL_ANYFORMAT);
+    // Create the window with a preference for 8-bit (palette animations!),
+    // but accept any depth
+    int bpp = 8;
+#ifdef WIN32
+    // Except under Win32, where it won't work if we don't match.
+    if ((vidFlags & SDL_FULLSCREEN) == 0)
+    {
+        bpp = 0;
+    }
+#endif
+    window = SDL_SetVideoMode(flags.xres, flags.yres, bpp, vidFlags | SDL_ANYFORMAT);
     if(window == NULL)
     {
         printf("Video : Unable to set video mode : %s\n", SDL_GetError());
