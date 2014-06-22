@@ -22,10 +22,10 @@
 #   include "config.h"
 #endif
 
-#include <cstring>
 #ifdef WIN32
-# include <io.h>
+# include <Windows.h>
 #endif
+#include <cstring>
 #ifdef HAVE_UNISTD_H
 # include <unistd.h>
 #endif
@@ -67,11 +67,8 @@ int sound_init( int argc, char **argv )
     sprintf( sfxdir, "%ssfx", datadir );
 #ifdef WIN32
     // Attempting to fopen a directory under Windows will fail, and
-    // opendir does not exist. Use _access instead.
-    // Do NOT ask me why _access can return failure EEXIST. But it can.
-    // It makes no sense, it SHOULD return -1 if the file exists and the
-    // mode is 0, but it - doesn't.
-    if( _access( sfxdir, 0 ) != -1 && errno != EEXIST )
+    // opendir does not exist. Use GetFileAttributes instead.
+    if( GetFileAttributes( sfxdir ) == INVALID_FILE_ATTRIBUTES )
 #else
     if( (fd = fopen( sfxdir,"r" )) == NULL )
 #endif
@@ -82,7 +79,7 @@ int sound_init( int argc, char **argv )
     }
     free( sfxdir );
 
-    if (Mix_OpenAudio(44100, AUDIO_S16SYS, 2, 128) < 0)
+    if (Mix_OpenAudio(44100, AUDIO_S16SYS, 2, 1024) < 0)
     {
         printf( "Sound: Unable to open audio - %s\nSound: Disabled (error)\n", SDL_GetError() );
         return 0;

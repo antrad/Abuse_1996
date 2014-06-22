@@ -328,18 +328,15 @@ void jFILE::open_external(char const *filename, char const *mode, int flags)
     flags-=O_WRONLY;
     flags|=O_CREAT|O_RDWR;
 #ifdef WIN32
-    //printf("Opening %s for writing\n", tmp_name);
-    fd=open(tmp_name,flags|O_BINARY,_S_IREAD | _S_IWRITE);
+    //printf("Open %s flags %x\n", tmp_name, flags);
+    fd=open(tmp_name,flags,_S_IREAD | _S_IWRITE);
 #else
     fd=open(tmp_name,flags,S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP | S_IROTH | S_IWOTH);
 #endif
   }
   else
   {
-#ifdef WIN32
-    flags |= O_BINARY;
-    //printf("Opening %s for reading\n", tmp_name);
-#endif
+    //printf("Open %s flags %x\n", tmp_name, flags);
     fd = open(tmp_name, flags);
   }
 
@@ -439,8 +436,15 @@ jFILE::jFILE(char const *filename, char const *access_string)      // same as fo
     }
 
   for (s=access_string; *s; s++)
+  {
     if (toupper(*s)=='A')
       access|=O_APPEND|O_WRONLY;
+#ifdef WIN32
+    // Also check for 'b' - doesn't exist on other platforms
+    if (toupper(*s)=='B')
+      access|=O_BINARY;
+#endif
+  }
 
   file_length=start_offset=-1;
   current_offset = 0;

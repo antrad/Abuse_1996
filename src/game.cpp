@@ -99,10 +99,18 @@ FILE *open_FILE(char const *filename, char const *mode)
 {
     /* FIXME: potential buffer overflow here */
     char tmp_name[200];
+#ifdef WIN32
+    // Need to make sure it's not an absolute Windows path
+    if(get_filename_prefix() && filename[0] != '/' && (filename[0] != '\0' && filename[1] != ':'))
+#else
     if(get_filename_prefix() && filename[0] != '/')
+#endif
+    {
         sprintf(tmp_name, "%s %s", get_filename_prefix(), filename);
+    }
     else
         strcpy(tmp_name, filename);
+    //printf("open_FILE(%s)\n", tmp_name);
     return fopen(tmp_name, mode);
 }
 
