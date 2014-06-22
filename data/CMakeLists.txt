@@ -89,7 +89,12 @@ INSTALL(FILES
 DESTINATION ${ASSETDIR}/addon/pong)
 
 INSTALL(FILES
-    addon/twist/f2ai.lsp addon/twist/f2chars.lsp addon/twist/lisp/ai.lsp
+    addon/twist/f2ai.lsp addon/twist/f2chars.lsp
+    addon/twist/twist.lsp
+DESTINATION ${ASSETDIR}/addon/twist)
+
+INSTALL(FILES
+    addon/twist/lisp/ai.lsp
     addon/twist/lisp/chars.lsp addon/twist/lisp/chat.lsp
     addon/twist/lisp/dray.lsp addon/twist/lisp/english.lsp
     addon/twist/lisp/f2ai.lsp addon/twist/lisp/f2chars.lsp
@@ -99,8 +104,7 @@ INSTALL(FILES
     addon/twist/lisp/startup.lsp addon/twist/lisp/tiles.lsp
     addon/twist/lisp/tints.lsp addon/twist/lisp/title.lsp
     addon/twist/lisp/userfuns.lsp addon/twist/lisp/weapons.lsp
-    addon/twist/twist.lsp
-DESTINATION ${ASSETDIR}/addon/twist)
+DESTINATION ${ASSETDIR}/addon/twist/lisp)
 
 INSTALL(FILES
     art/ant.spe art/ball.spe art/blowups.spe art/bold.spe art/boss.spe

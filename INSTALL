@@ -1,42 +1,48 @@
 Requirements for compiling
---------------------------
+==========================
 
-- SDL 1.1.6 <http://www.libsdl.org>
-- SDL-Mixer
+- SDL 1.1.6 or higher <http://www.libsdl.org> (note that SDL2 will not work)
+- [SDL_mixer 1.2](http://www.libsdl.org/projects/SDL_mixer/release-1.2.html)
+- [CMake 2.8.9 or later](http://www.cmake.org/)
 - GL libraries and headers are required for OpenGL support.
-
 
 Compiling
 ---------
 
-1. Untar the abuse-x.x.tar.gz file.
+1. Clone this repository.
 
-     tar xzf abuse-x.x.tar.gz
+       git clone https://github.com/Xenoveritas/abuse.git
 
-   This will create an abuse-x.x directory with the source in it.
+2. Create a new directory for the build. CMake likes to build into directories
+   outside the source directory and its best not to fight it on this.
 
-2. Run  './configure'
-   This will create the Makefiles required to build Abuse.
+   Within that directory, run CMake.
 
-   If you wish to specify a location for the datafiles instead of using the
-   default of '/usr/local/share/games/abuse', you can do so by passing the
-   following argument to the configure script:
+   In order to get a build that includes all the data, you'll want to specify
+   an install directory. All told, you might setup doing something like:
 
-     --datadir=<location>
+       mkdir abuse
+       cd abuse
+       git clone https://github.com/Xenoveritas/abuse.git
+       mkdir build
+       cd build
+       cmake -DCMAKE_INSTALL_PREFIX:PATH=../final-binary ../abuse
 
-   where <location> is the directory where the datafiles will be installed.
+   Under Windows, this will probably fail because it can't find the SDL or
+   SDL_mixer libraries. Two solutions to this:
 
-3. Run  'make'
-   This will start the build.
+      1. Run `cmake-gui` and provide the paths that way
+      2. Set `SDLDIR` and `SDLMIXERDIR` to point to where you extracted the
+         Windows VC devel binaries for each library
 
-4. Run 'make install'
-   This will install Abuse.
+3. Build the files
 
+   Under Linux and Mac OS X, this is the familiar `make`.
 
-Mac OS X
---------
+   Under Windows, you'll want to use `MSBuild abuse.sln`.
 
-A Project Builder project is included in the 'osx' directory and can be used
-if desired.  Using project Builder is currently the only way to get OpenGL
-support compiled in.
+4. Build the install.
 
+   Under Linux and Mac OS X, this is the familiar `make install`.
+
+   Under Windows, it's `MSBuild INSTALL.vcxproj`.

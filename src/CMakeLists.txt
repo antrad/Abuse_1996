@@ -63,12 +63,17 @@ add_executable(abuse
     ui/volumewindow.cpp ui/volumewindow.h
 )
 
+set_target_properties(abuse PROPERTIES MACOSX_BUNDLE true)
+
 target_link_libraries(abuse lisp)
 target_link_libraries(abuse sdlport)
 target_link_libraries(abuse imlib)
 target_link_libraries(abuse net)
 target_link_libraries(abuse ${SDL_LIBRARY})
 target_link_libraries(abuse ${SDLMIXER_LIBRARY})
+if (OPENGL_FOUND)
+    target_link_libraries(abuse ${OPENGL_LIBRARIES})
+endif(OPENGL_FOUND)
 
 add_executable(abuse-tool tool/abuse-tool.cpp crc.cpp crc.h)
 
@@ -82,7 +87,7 @@ include_directories(
     ${SDL_INCLUDE_DIR}
     ${SDL_MIXER_INCLUDE_DIR}
 )
-if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
+if(PLATFORM_WIN32)
     # Under Windows, throw them into the root
     install(TARGETS abuse abuse-tool
         RUNTIME DESTINATION "."
@@ -106,5 +111,6 @@ if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
     install(FILES ${SDLMIXER_DLL_PATH}/SDL_mixer.dll DESTINATION ".")
 else()
     # Under Linux, we want the tools in bin
-    install(TARGETS abuse abuse-tool RUNTIME DESTINATION bin)
+    install(TARGETS abuse abuse-tool RUNTIME DESTINATION bin
+    BUNDLE DESTINATION "${CMAKE_INSTALL_PREFIX}")
 endif()

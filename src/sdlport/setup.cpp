@@ -459,7 +459,10 @@ void setup( int argc, char **argv )
         exit(1);
     }
     else
+    {
+        printf("Setting prefix to [%s]\n", buffer);
         set_filename_prefix( (const char*)buffer );
+    }
 #elif defined WIN32
     // Under Windows, it makes far more sense to assume the data is stored
     // relative to our executable than anywhere else.
