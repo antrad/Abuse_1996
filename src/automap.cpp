@@ -149,7 +149,7 @@ void automap::draw()
     automap_window->screen->PutPixel(vec2i(centerx,centery),27);
   automap_window->screen->Unlock();
 
-  // set the clip back to full window size because soemthing else could mess with the area
+  // set the clip back to full window size because something else could mess with the area
   automap_window->screen->SetClip(0,0,screen->Size().x,screen->Size().y);
 }
 
