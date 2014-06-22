@@ -2488,7 +2488,6 @@ int main(int argc, char *argv[])
             }
         }
 
-printf("main_net_cfg=%d\n", main_net_cfg);
         if (main_net_cfg)
             wait_min_players();
 

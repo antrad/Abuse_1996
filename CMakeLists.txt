@@ -21,10 +21,12 @@ check_include_files(bstring.h HAVE_BSTRING_H)
 
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/config.h.in ${CMAKE_CURRENT_BINARY_DIR}/config.h)
 
-add_definitions(-DASSETDIR="/usr/local/abuse")
+set(ASSETDIR "${CMAKE_INSTALL_PREFIX}/share/games/abuse")
+add_definitions(-DASSETDIR="${ASSETDIR}")
 add_definitions(-DPACKAGE_NAME="abuse")
 add_definitions(-DPACKAGE_VERSION="${abuse_VERSION}")
 add_definitions(-DHAVE_CONFIG_H)
 include_directories(${CMAKE_CURRENT_BINARY_DIR})
 
 add_subdirectory(src)
+add_subdirectory(data)

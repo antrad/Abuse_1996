@@ -25,7 +25,6 @@
 #include <cstring>
 #ifdef WIN32
 # include <io.h>
-# define access _access
 #endif
 #ifdef HAVE_UNISTD_H
 # include <unistd.h>
@@ -65,13 +64,19 @@ int sound_init( int argc, char **argv )
     // Check for the sfx directory, disable sound if we can't find it.
     datadir = get_filename_prefix();
     sfxdir = (char *)malloc( strlen( datadir ) + 5 + 1 );
-    sprintf( sfxdir, "%s" PATH_SEPARATOR "sfx", datadir );
-    if( access( sfxdir, 0 ) != -1 && errno != EEXIST )
+    sprintf( sfxdir, "%ssfx", datadir );
+#ifdef WIN32
+    // Attempting to fopen a directory under Windows will fail, and
+    // opendir does not exist. Use _access instead.
+    // Do NOT ask me why _access can return failure EEXIST. But it can.
+    // It makes no sense, it SHOULD return -1 if the file exists and the
+    // mode is 0, but it - doesn't.
+    if( _access( sfxdir, 0 ) != -1 && errno != EEXIST )
+#else
+    if( (fd = fopen( sfxdir,"r" )) == NULL )
+#endif
     {
         // Didn't find the directory, so disable sound.
-        // Do NOT ask me why _access can return failure EEXIST. But it can.
-        // It makes no sense, it SHOULD return -1 if the file exists and the
-        // mode is 0, but it - doesn't.
         printf( "Sound: Disabled (couldn't find the sfx directory %s)\n", sfxdir );
         return 0;
     }

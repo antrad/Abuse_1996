@@ -63,10 +63,17 @@ add_executable(abuse
     ui/volumewindow.cpp ui/volumewindow.h
 )
 
+target_link_libraries(abuse lisp)
+target_link_libraries(abuse sdlport)
+target_link_libraries(abuse imlib)
+target_link_libraries(abuse net)
+target_link_libraries(abuse ${SDL_LIBRARY})
+target_link_libraries(abuse ${SDLMIXER_LIBRARY})
+
 add_executable(abuse-tool tool/abuse-tool.cpp crc.cpp crc.h)
 
-#INCLUDES = -I$(srcdir) -I $(srcdir)/lisp -I$(srcdir)/imlib \
-#           -I$(srcdir)/net $(SDL_CFLAGS)
+target_link_libraries(abuse-tool imlib)
+
 include_directories(
     ${abuse_SOURCE_DIR}/src
     ${abuse_SOURCE_DIR}/src/lisp
@@ -76,11 +83,4 @@ include_directories(
     ${SDL_MIXER_INCLUDE_DIR}
 )
 
-target_link_libraries(abuse lisp)
-target_link_libraries(abuse sdlport)
-target_link_libraries(abuse imlib)
-target_link_libraries(abuse net)
-target_link_libraries(abuse ${SDL_LIBRARY})
-target_link_libraries(abuse ${SDLMIXER_LIBRARY})
-
-target_link_libraries(abuse-tool imlib)
+install(TARGETS abuse abuse-tool RUNTIME DESTINATION bin)
