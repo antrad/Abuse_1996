@@ -72,6 +72,11 @@ add_executable(abuse
 )
 
 set_target_properties(abuse PROPERTIES MACOSX_BUNDLE true)
+# Note this doesn't install the icon, that's done later
+set_target_properties(abuse PROPERTIES MACOSX_BUNDLE_ICON_FILE "abuse")
+set_target_properties(abuse PROPERTIES MACOSX_BUNDLE_BUNDLE_NAME "Abuse")
+set_target_properties(abuse PROPERTIES MACOSX_BUNDLE_SHORT_VERSION_STRING "${abuse_VERSION}")
+set_target_properties(abuse PROPERTIES MACOSX_BUNDLE_BUNDLE_VERSION "${abuse_VERSION}")
 
 target_link_libraries(abuse lisp)
 target_link_libraries(abuse sdlport)
@@ -121,4 +126,7 @@ else()
     # Under Linux, we want the tools in bin
     install(TARGETS abuse abuse-tool RUNTIME DESTINATION bin
     BUNDLE DESTINATION "${CMAKE_INSTALL_PREFIX}")
+    if(PLATFORM_MAC_OS_X)
+        install(FILES "../osx/abuse.icns" DESTINATION "${CMAKE_INSTALL_PREFIX}/abuse.app/Contents/Resources")
+    endif()
 endif()
