@@ -22,32 +22,32 @@
 #   include "config.h"
 #endif
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <sys/stat.h>
-#include <signal.h>
-#include <SDL.h>
-#ifdef HAVE_OPENGL
-#ifdef __APPLE__
-#include <Carbon/Carbon.h>
-#include <OpenGL/gl.h>
-#include <OpenGL/glu.h>
-#else
-#include <GL/gl.h>
-#include <GL/glu.h>
-#endif    /* __APPLE__ */
-#endif    /* HAVE_OPENGL */
-
-#include "specs.h"
-#include "keys.h"
-#include "setup.h"
-
 #ifdef WIN32
 # include <Windows.h>
 # include <ShlObj.h>
 # include <direct.h>
 # define strcasecmp _stricmp
 #endif
+
+#include <stdio.h>
+#include <stdlib.h>
+#include <sys/stat.h>
+#include <signal.h>
+#include <SDL.h>
+#ifdef HAVE_OPENGL
+# ifdef __APPLE__
+#  include <Carbon/Carbon.h>
+#  include <OpenGL/gl.h>
+#  include <OpenGL/glu.h>
+# else
+#  include <GL/gl.h>
+#  include <GL/glu.h>
+# endif    /* __APPLE__ */
+#endif    /* HAVE_OPENGL */
+
+#include "specs.h"
+#include "keys.h"
+#include "setup.h"
 
 flags_struct flags;
 keys_struct keys;

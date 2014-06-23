@@ -29,6 +29,9 @@
 #       include <OpenGL/gl.h>
 #       include <OpenGL/glu.h>
 #   else
+#       ifdef WIN32
+#           include <Windows.h>
+#       endif
 #       include <GL/gl.h>
 #       include <GL/glu.h>
 #   endif    /* __APPLE__ */

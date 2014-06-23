@@ -90,8 +90,8 @@ include_directories(
 if(PLATFORM_WIN32)
     # Under Windows, throw them into the root
     install(TARGETS abuse abuse-tool
-        RUNTIME DESTINATION "."
-        LIBRARY DESTINATION ".")
+        RUNTIME DESTINATION "${CMAKE_INSTALL_PREFIX}"
+        LIBRARY DESTINATION "${CMAKE_INSTALL_PREFIX}")
     # We also need to include the SDL DLLs or nothing will work
     string(FIND "${SDL_LIBRARY}" ";" INDEX)
     if (${INDEX} GREATER -1)
@@ -100,7 +100,7 @@ if(PLATFORM_WIN32)
         set(SDL_DLL_PATH "${SDL_LIBRARY}")
     endif()
     get_filename_component(SDL_DLL_PATH "${SDL_DLL_PATH}" DIRECTORY)
-    install(FILES ${SDL_DLL_PATH}/SDL.dll DESTINATION ".")
+    install(FILES ${SDL_DLL_PATH}/SDL.dll DESTINATION "${CMAKE_INSTALL_PREFIX}")
     string(FIND "${SDLMIXER_LIBRARY}" ";" INDEX)
     if (${INDEX} GREATER -1)
         string(SUBSTRING "${SDLMIXER_LIBRARY}" 0 ${INDEX} SDLMIXER_DLL_PATH)
@@ -108,7 +108,7 @@ if(PLATFORM_WIN32)
         set(SDLMIXER_DLL_PATH "${SDLMIXER_LIBRARY}")
     endif()
     get_filename_component(SDLMIXER_DLL_PATH "${SDLMIXER_DLL_PATH}" DIRECTORY)
-    install(FILES ${SDLMIXER_DLL_PATH}/SDL_mixer.dll DESTINATION ".")
+    install(FILES ${SDLMIXER_DLL_PATH}/SDL_mixer.dll DESTINATION "${CMAKE_INSTALL_PREFIX}")
 else()
     # Under Linux, we want the tools in bin
     install(TARGETS abuse abuse-tool RUNTIME DESTINATION bin
