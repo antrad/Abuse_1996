@@ -12,6 +12,7 @@
 #   include <WinSock2.h>
 #   include <Windows.h>
 #   include <stdio.h>
+// FIXME: Where is socklen_t in Windows?
 typedef int socklen_t;
 #endif
 #include <stdlib.h>

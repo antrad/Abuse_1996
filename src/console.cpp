@@ -34,30 +34,28 @@ void console::put_string(char const *st)
 
 void console::redraw()
 {
-  if (con_win)
-  {
+    if (!con_win)
+        return;
+
     con_win->clear();
-    char *s=screen;
-    int dx,dy,xa=fnt->width(),ya=fnt->height(),i,j;
-    for (j=0,dy=wy(); j<h; j++,dy+=ya)
-    {
-      for (i=0,dx=wx(); i<w; i++,s++,dx+=xa)
-      {
-    if (*s)
-      fnt->put_char(con_win->screen,dx,dy,*s);
-      }
-    }
-    fnt->put_char(con_win->screen,wx()+cx*xa,wy()+cy*ya,'_');
-  }
+    char *s = screen;
+    int xa = fnt->Size().x, ya = fnt->Size().y;
+    for (int j = 0, dy = wy(); j < h; j++, dy += ya)
+        for (int i = 0, dx = wx(); i < w; i++, s++, dx += xa)
+            if (*s)
+                fnt->PutChar(con_win->m_surf, ivec2(dx, dy), *s);
+    fnt->PutChar(con_win->m_surf, ivec2(wx() + cx * xa, wy() + cy * ya), '_');
 }
 
 void console::show()
 {
   if (!con_win)
   {
-    con_win=wm->new_window(lastx,lasty,screen_w(),screen_h(),NULL,name);
+    con_win=wm->CreateWindow(ivec2(lastx, lasty),
+                             ivec2(screen_w(), screen_h()), NULL, name);
     redraw();
-    con_win->screen->SetClip(con_win->x1(),con_win->y1(),con_win->x2()+1,con_win->y2()+1);
+    con_win->m_surf->SetClip(ivec2(con_win->x1(), con_win->y1()),
+                             ivec2(con_win->x2() + 1, con_win->y2() + 1));
   }
 }
 
@@ -65,8 +63,8 @@ void console::hide()
 {
   if (con_win)
   {
-    lastx=con_win->x;
-    lasty=con_win->y;
+    lastx=con_win->m_pos.x;
+    lasty=con_win->m_pos.y;
     wm->close_window(con_win);
     con_win=NULL;
   }
@@ -96,25 +94,28 @@ console::console(JCFont *font, int width, int height, char const *Name)
 
 void console::draw_cursor()
 {
-  if (con_win)
-    fnt->put_char(con_win->screen,cx*fnt->width()+wx(),cy*fnt->height()+wy(),'_');
+    if (!con_win)
+        return;
+
+    fnt->PutChar(con_win->m_surf,
+                 ivec2(cx, cy) * fnt->Size() + ivec2(wx(), wy()), '_');
 }
 
 
-void console::draw_char(int x, int y, char ch)
+void console::DrawChar(ivec2 pos, char ch)
 {
-  if (con_win)
-  {
-    int fw=fnt->width(),fh=fnt->height();
-    int dx=wx()+x*fw,dy=wy()+y*fh;
-    con_win->screen->bar(dx,dy,dx+fw-1,dy+fh-1,wm->black());
-    fnt->put_char(con_win->screen,dx,dy,ch);
-  }
+    if (!con_win)
+        return;
+
+    ivec2 fs = fnt->Size();
+    pos = ivec2(wx(), wy()) + pos * fs;
+    con_win->m_surf->Bar(pos, pos + fs - ivec2(1), wm->black());
+    fnt->PutChar(con_win->m_surf, pos, ch);
 }
 
 void console::do_cr()
 {
-  if (cx<w && cy<h)  draw_char(cx,cy,screen[cy*w+cx]);
+  if (cx<w && cy<h) DrawChar(ivec2(cx, cy), screen[cy*w+cx]);
   cx=0;
   cy++;
   if (cy>=h)
@@ -141,7 +142,7 @@ void console::put_char(char ch)
       if (cx)
       {
     if (con_win)
-      draw_char(cx,cy,screen[cy*w+cx]);
+      DrawChar(ivec2(cx, cy), screen[cy*w+cx]);
     cx--;
     if (con_win)
       draw_cursor();
@@ -156,7 +157,7 @@ void console::put_char(char ch)
     {
       screen[cy*w+cx]=ch;
       if (con_win)
-        draw_char(cx,cy,ch);
+        DrawChar(ivec2(cx, cy), ch);
       cx++;
       if (cx>=w) do_cr(); else
       if (con_win) draw_cursor();
@@ -194,7 +195,7 @@ void shell_term::execute(char const *st)
   put_string(" : unhandled\n");
 }
 
-int shell_term::handle_event(event &ev)
+int shell_term::handle_event(Event &ev)
 {
   if (ev.window==con_win && con_win)
   {

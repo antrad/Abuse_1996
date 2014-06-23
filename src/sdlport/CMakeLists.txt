@@ -2,7 +2,6 @@
 
 add_library(sdlport
     video.cpp
-    mouse.cpp
     event.cpp
     sound.cpp sound.h
     timing.cpp

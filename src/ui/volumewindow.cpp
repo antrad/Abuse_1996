@@ -30,8 +30,8 @@ VolumeWindow::VolumeWindow() : Jwindow("Volume")
     d_ua = cache.reg(ff, "d_ua", SPEC_IMAGE, 1),
     d_da = cache.reg(ff, "d_da", SPEC_IMAGE, 1),
     slider = cache.reg(ff, "volume_slide", SPEC_IMAGE, 1);
-    x = prop->getd("volume_x", xres / 2 - 20);
-    y = prop->getd("volume_y", yres / 2 - 50);
+    m_pos.x = prop->getd("volume_x", xres / 2 - 20);
+    m_pos.y = prop->getd("volume_y", yres / 2 - 50);
     inm->add(new ico_button(10, 27, ID_SFX_DOWN, d_u, d_d, d_ua, d_da,
                   new ico_button(21, 27, ID_SFX_UP, u_u, u_d, u_ua, u_da,
                       new info_field(15, 42, 0, symbol_str("SFXv"),
@@ -41,15 +41,14 @@ VolumeWindow::VolumeWindow() : Jwindow("Volume")
 
     //reconfigure();
     bg = cache.reg(ff, "vcontrol", SPEC_IMAGE, 1);
-    l = cache.img(bg)->Size().x;
-    h = cache.img(bg)->Size().y;
-    screen = new image(cache.img(bg)->Size(), NULL, 2);
+    m_size = cache.img(bg)->Size();
+    m_surf = new image(m_size, NULL, 2);
     redraw();
 }
 
 void VolumeWindow::redraw()
 {
-    cache.img(bg)->put_image(screen, 0, 0);
+    m_surf->PutImage(cache.img(bg), ivec2(0, 0));
     draw_music_vol();
     draw_sfx_vol();
     inm->redraw();
@@ -61,14 +60,14 @@ void VolumeWindow::draw_vol(int x1, int y1, int x2, int y2, int t,
     int dx = x1 + t * (x2 - x1) / max;
     if(t != 0)
     {
-        cache.img(slider)->put_image(screen, x1, y1);
-//      screen->bar(x1,y1,dx,y2,c1);
+        m_surf->PutImage(cache.img(slider), ivec2(x1, y1));
+//      m_surf->bar(x1,y1,dx,y2,c1);
     }
     else
         dx--;
 
     if(dx < x2)
-        screen->bar(dx + 1, y1, x2, y2, c2);
+        m_surf->Bar(ivec2(dx + 1, y1), ivec2(x2, y2), c2);
 }
 
 void VolumeWindow::draw_sfx_vol()

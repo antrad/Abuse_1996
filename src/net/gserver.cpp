@@ -21,7 +21,6 @@
 #include <sys/stat.h>
 #include <sys/types.h>
 #include <string.h>
-#include <signal.h>
 
 #include "common.h"
 
@@ -64,7 +63,7 @@ void game_server::game_start_wait()
 {
   int last_count=0;
   Jwindow *stat=NULL;
-  event ev;
+  Event ev;
   int abort=0;
   while (!abort && total_players()<main_net_cfg->min_players)
   {
@@ -73,15 +72,15 @@ void game_server::game_start_wait()
       if (stat) wm->close_window(stat);
       char msg[100];
       sprintf(msg,symbol_str("min_wait"),main_net_cfg->min_players-total_players());
-      stat=wm->new_window(100,50,-1,-1,new info_field(0, 0, ID_NULL,msg,
-                       new button(0, wm->font()->height()*2, ID_CANCEL,symbol_str("cancel_button"),NULL)  ));
+      stat = wm->CreateWindow(ivec2(100, 50), ivec2(-1), new info_field(0, 0, ID_NULL, msg,
+                       new button(0, wm->font()->Size().y * 2, ID_CANCEL,symbol_str("cancel_button"),NULL)  ));
       wm->flush_screen();
       last_count=total_players();
     }
 
-    if (wm->event_waiting())
+    if (wm->IsPending())
     {
-      do { wm->get_event(ev); }  while (ev.type==EV_MOUSE_MOVE && wm->event_waiting());
+      do { wm->get_event(ev); }  while (ev.type==EV_MOUSE_MOVE && wm->IsPending());
       wm->flush_screen();
       if (ev.type==EV_MESSAGE && ev.message.id==ID_CANCEL)
         abort=1;

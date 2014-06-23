@@ -1,4 +1,5 @@
-add_library(lisp lisp.cpp lisp.h
+add_library(lisp
+    lisp.cpp lisp.h
     lisp_opt.cpp lisp_opt.h
     lisp_gc.cpp lisp_gc.h
     trig.cpp

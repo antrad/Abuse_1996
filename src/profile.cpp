@@ -43,7 +43,7 @@ void profile_toggle()
   else profile_init();
 }
 
-int profile_handle_event(event &ev)
+int profile_handle_event(Event &ev)
 {
   if (ev.type==EV_CLOSE_WINDOW && ev.window==prof_win)
   {
@@ -59,12 +59,10 @@ void profile_init()
   profile_reset();
 
 
-  prof_win=wm->new_window(prop->getd("profile x",-1),
-              prop->getd("profile y",-1),
-              20*console_font->width(),
-              (prof_height+1)*console_font->height(),
-              NULL,
-              "PROFILE");
+  prof_win=wm->CreateWindow(ivec2(prop->getd("profile x", -1),
+                                  prop->getd("profile y", -1)),
+                            ivec2(20, prof_height + 1) * console_font->Size(),
+                            NULL, "PROFILE");
 }
 
 
@@ -121,21 +119,17 @@ void profile_update()
 
   float time_scaler=(float)max_bar_length/prof_list[0].total_time;
 
-  prof_win->screen->bar(0,prof_win->y1(),prof_win->screen->Size().x-1,prof_win->screen->Size().y,0);
+  prof_win->m_surf->Bar(ivec2(0, prof_win->y1()),
+                        ivec2(prof_win->m_surf->Size().x - 1,
+                              prof_win->m_surf->Size().y), 0);
   int dy = 0;
   for (; i<prof_height; i++)
   {
-    console_font->put_string(prof_win->screen,spliter+1,dy,object_names[prof_list[i].otype]);
-    prof_win->screen->bar(spliter-1-(int)(prof_list[i].total_time*time_scaler),dy+1,
-              spliter-1,
-              dy+console_font->height()-1,wm->bright_color());
-    dy+=console_font->height()+1;
+    console_font->PutString(prof_win->m_surf, ivec2(spliter + 1, dy), object_names[prof_list[i].otype]);
+    prof_win->m_surf->Bar(ivec2(spliter - 1 - (int)(prof_list[i].total_time * time_scaler), dy + 1),
+                          ivec2(spliter - 1, dy + console_font->Size().y - 1),
+                          wm->bright_color());
+    dy+=console_font->Size().y+1;
   }
-
 }
-
-
-
-
-
 

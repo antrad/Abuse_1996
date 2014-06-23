@@ -83,18 +83,21 @@ enum { OFUN_AI,                   // objects ai function called by the mover, sh
 extern char const *ofun_names[TOTAL_OFUNS];
 
 
-class character_type
+class CharacterType
 {
-public :
+public:
+    CharacterType(LList *args, LSymbol *name); // lisp object describes object
+    ~CharacterType();
+
   uint16_t ts,tiv,tv; // total states, total index vars, total local vars
   sequence **seq;   // [0..ts-1]
-  void **seq_syms;  // symbol describing what this state is [0..ts-1]
+  LSymbol **seq_syms;  // symbol describing what this state is [0..ts-1]
 
-  void **vars;  // symbol describing variable names    [0..tiv-1]
+  LSymbol **vars;  // symbol describing variable names    [0..tiv-1]
   short *var_index; // index into local var                [0..tiv-1]
 
   void add_var(void *symbol, void *name);
-  int add_state(void *symbol);              // returns index into seq to use
+  int add_state(LObject *symbol);           // returns index into seq to use
   int abil[TOTAL_ABILITIES];
   void *fun_table[TOTAL_OFUNS];             // pointers to lisp function for this object
   int logo,morph_mask,morph_power;
@@ -106,7 +109,6 @@ public :
   void set_cflag(int name, int x) { if (x) cflags|=(1<<name);  else cflags&=~(1<<name); }
   int total_fields;                         // used by game editor to replace field names
   named_field **fields;
-  character_type(void *args, void *name);   // lisp object describes object
 
   sequence *get_sequence(character_state s);
   void add_sequence(character_state which, sequence *new_seq);
@@ -114,11 +116,9 @@ public :
   int cache_in();    // returns false if out of cache memory
   void check_sizes();
   long isa_var_name(char *name);
-
-  ~character_type();
 } ;
 
-extern character_type **figures;
+extern CharacterType **figures;
 int flinch_state(character_state state);
 
 void *def_char(void *args);

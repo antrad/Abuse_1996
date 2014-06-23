@@ -152,7 +152,7 @@ void simple_object::clean_up()
   if (tlights) free(lights);
   if (tobjs)   free(objs);
   if (Controller)
-    Controller->focus=NULL;
+    Controller->m_focus=NULL;
 }
 
 

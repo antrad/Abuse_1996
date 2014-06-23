@@ -32,7 +32,7 @@ void *sensor_ai()
   {
     if (player_list->next)                 // find closest player
       b=current_level->attacker(current_object);
-    else b=player_list->focus;
+    else b=player_list->m_focus;
     if (abs(b->x-o->x)<o->xvel() && abs(b->y-o->y)<o->yvel())  // inside area?
     {
       if (!o->hp())
@@ -48,7 +48,7 @@ void *sensor_ai()
     {
       if (player_list->next)
         b=current_level->attacker(current_object);
-      else b=player_list->focus;
+      else b=player_list->m_focus;
       if (abs(o->x-b->x)>o->xacel() || abs(o->y-b->y)>o->yacel())
         o->set_aistate(0);
     } else o->set_aistate(o->aistate()-1);

@@ -62,8 +62,12 @@ public :
   int size();
   int decide();        // returns 0 if you want to be deleted
   int type() { return otype; }
-  ifield *make_fields(int ystart, ifield *Next) { return NULL ; }
-  void gather_input(InputManager *inm) { ; }
+  ifield *make_fields(int ystart, ifield *Next)
+  {
+    (void)ystart; (void)Next;
+    return NULL;
+  }
+  void gather_input(InputManager *inm) { (void)inm; }
   int hurt_all() { return figures[otype]->get_cflag(CFLAG_HURT_ALL); }
   int stoppable() { return figures[otype]->get_cflag(CFLAG_STOPPABLE); }
   int can_block() { return figures[otype]->get_cflag(CFLAG_CAN_BLOCK); }
@@ -86,7 +90,7 @@ public :
 
 
   void note_attack(game_object *whom);
-  void recieve_signal(long singal) { ; }
+  void receive_signal(long signal) { (void)signal; }
   int push_range();
   int can_hurt(game_object *who);     // collision checking will ask first to see if you
                               // can hurt this person before calculating weither you actually do

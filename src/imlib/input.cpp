@@ -48,7 +48,7 @@ ifield *button_box::find(int search_id)
 
 button_box::button_box(int X, int Y, int ID, int MaxDown, button *Buttons, ifield *Next)
 {
-  x=X; y=Y; id=ID; next=Next;
+  m_pos = ivec2(X, Y); id=ID; next=Next;
   buttons=Buttons;
   maxdown=MaxDown;
   if (buttons && maxdown) buttons->push();  // the first button is automatically selected!
@@ -94,12 +94,11 @@ void button_box::draw(int active, image *screen)
   return ;
 }
 
-void button_box::move(int newx, int newy)
+void button_box::Move(ivec2 pos)
 {
     for(button * b = buttons; b; b = (button *)b->next)
-        b->move(newx + b->x, newy + b->y);
-    x = newx;
-    y = newy;
+        b->Move(pos + b->m_pos);
+    m_pos = pos;
 }
 
 char *button_box::read()
@@ -112,7 +111,7 @@ char *button_box::read()
   return NULL;
 }
 
-void button_box::handle_event(event &ev, image *screen, InputManager *im)
+void button_box::handle_event(Event &ev, image *screen, InputManager *im)
 {
   switch (ev.type)
   {
@@ -168,28 +167,26 @@ void button_box::add_button(button *b)
 
 void button_box::arrange_left_right()
 {
-  button *b=buttons;
-  int x_on=x,x1,y1,x2,y2;
-  for (; b; b=(button *)b->next)
-  {
-    b->area(x1,y1,x2,y2);
-    b->x=x_on;
-    b->y=y;
-    x_on+=(x2-x1+1)+1;
-  }
+    ivec2 on = m_pos;
+    for (button *b = buttons; b; b = (button *)b->next)
+    {
+        int x1, y1, x2, y2;
+        b->area(x1, y1, x2, y2);
+        b->m_pos = on;
+        on.x += (x2 - x1 + 1) + 1;
+    }
 }
 
 void button_box::arrange_up_down()
 {
-  button *b=buttons;
-  int y_on=y,x1,y1,x2,y2;
-  for (; b; b=(button *)b->next)
-  {
-    b->area(x1,y1,x2,y2);
-    b->y=y_on;
-    b->x=x;
-    y_on+=(y2-y1+1)+1;
-  }
+    ivec2 on = m_pos;
+    for (button *b = buttons; b; b = (button *)b->next)
+    {
+        int x1, y1, x2, y2;
+        b->area(x1,y1,x2,y2);
+        b->m_pos = on;
+        on.y += (y2 - y1 + 1) + 1;
+    }
 }
 
 void button::change_visual(image *new_visual)
@@ -200,51 +197,50 @@ void button::change_visual(image *new_visual)
 
 void button::area(int &x1, int &y1, int &x2, int &y2)
 {
-  x1=x; y1=y;
-  if (pressed)
-  {
-    x2=x+pressed->Size().x-1;
-    y2=y+pressed->Size().y-1;
-  }
-  else
-  {
-    if (text)
-    {
-      x2=x+wm->font()->width()*strlen(text)+6;
-      y2=y+wm->font()->height()+6;
-    } else
-    {
-      x2=x+6+visual->Size().x;
-      y2=y+6+visual->Size().y;
-    }
-  }
+    ivec2 pos1 = m_pos;
+    ivec2 pos2 = m_pos;
+
+    if (pressed)
+        pos2 += pressed->Size() - ivec2(1);
+    else if (text)
+        pos2 += wm->font()->Size() * ivec2(strlen(text), 1) + ivec2(6);
+    else
+        pos2 += visual->Size() + ivec2(6);
+
+    x1 = pos1.x; y1 = pos1.y;
+    x2 = pos2.x; y2 = pos2.y;
 }
 
 
 button::button(int X, int Y, int ID, char const *Text, ifield *Next)
 {
-  x=X; y=Y; id=ID;
-  act_id=-1;
-  text = strdup(Text);
-  up=1; next=Next; act=0;
-  visual=NULL;
-  pressed=NULL;
+    m_pos = ivec2(X, Y);
+    id = ID;
+    act_id=-1;
+    text = strdup(Text);
+    up=1; next=Next; act=0;
+    visual=NULL;
+    pressed=NULL;
 }
 
 
 button::button(int X, int Y, int ID, image *vis, ifield *Next)
-{ x=X; y=Y; id=ID; text=NULL;
-  act_id=-1;
-  visual=vis; up=1; next=Next; act=0;
-  pressed=NULL;
+{
+    m_pos = ivec2(X, Y);
+    id=ID; text=NULL;
+    act_id=-1;
+    visual=vis; up=1; next=Next; act=0;
+    pressed=NULL;
 }
 
 button::button(int X, int Y, int ID, image *Depressed, image *Pressed, image *active, ifield *Next)
-{ x=X; y=Y; id=ID; text=NULL;
-  act_id=-1;
-  visual=Depressed; up=1; next=Next; act=0;
-  pressed=Pressed;
-  act_pict=active;
+{
+    m_pos = ivec2(X, Y);
+    id=ID; text=NULL;
+    act_id=-1;
+    visual=Depressed; up=1; next=Next; act=0;
+    pressed=Pressed;
+    act_pict=active;
 }
 
 
@@ -267,7 +263,7 @@ char *text_field::read()
   return data;
 }
 
-void text_field::handle_event(event &ev, image *screen, InputManager *im)
+void text_field::handle_event(Event &ev, image *screen, InputManager *im)
 {
   int xx;
   if (ev.type==EV_KEY)
@@ -292,7 +288,7 @@ void text_field::handle_event(event &ev, image *screen, InputManager *im)
            data[strlen(format)-1]=' ';
            draw_text(screen);
            draw_cur(wm->bright_color(),screen);
-           wm->push_event(new event(id,(char *)this));
+           wm->Push(new Event(id,(char *)this));
          } break;
       default : if (ev.key>=' ' && ev.key<='~')
          {
@@ -305,7 +301,7 @@ void text_field::handle_event(event &ev, image *screen, InputManager *im)
        data[strlen(format)]=0;
            draw_text(screen);
            draw_cur(wm->bright_color(),screen);
-           wm->push_event(new event(id,(char *)this));
+           wm->Push(new Event(id,(char *)this));
          } break;
     }
   }
@@ -315,35 +311,37 @@ void text_field::draw(int active, image *screen)
 {
   if (active)
   {
-    screen->rectangle(xstart(),y,xend(),yend(),wm->bright_color());
+    screen->Rectangle(ivec2(xstart(), m_pos.y), ivec2(xend(), yend()),
+                      wm->bright_color());
     draw_cur(wm->bright_color(),screen);
   }
   else
   {
-    screen->rectangle(xstart(),y,xend(),yend(),wm->dark_color());
+    screen->Rectangle(ivec2(xstart(), m_pos.y), ivec2(xend(), yend()),
+                      wm->dark_color());
     draw_cur(wm->dark_color(),screen);
   }
 }
 
 void text_field::area(int &x1, int &y1, int &x2, int &y2)
 {
-  x1=x; y1=y;
-  x2=xend();
-  y2=yend();
+    x1 = m_pos.x; y1 = m_pos.y;
+    x2 = xend(); y2 = yend();
 }
 
 text_field::text_field(int X, int Y, int ID, char const *Prompt,
                        char const *Format, char const *Data, ifield *Next)
 {
-  int slen=(strlen(Format)>strlen(Data) ? strlen(Format) : strlen(Data));
+    int slen=(strlen(Format)>strlen(Data) ? strlen(Format) : strlen(Data));
 
-  x=X; y=Y; id=ID;
-  prompt = strdup(Prompt);
-  format=strcpy((char *)malloc(slen+1),Format);
-  data=strcpy((char *)malloc(slen+1),Data);
-  cur=strlen(data);
-  while (cur && data[cur-1]==' ') cur--;
-  next=Next;
+    m_pos = ivec2(X, Y);
+    id=ID;
+    prompt = strdup(Prompt);
+    format=strcpy((char *)malloc(slen+1),Format);
+    data=strcpy((char *)malloc(slen+1),Data);
+    cur=strlen(data);
+    while (cur && data[cur-1]==' ') cur--;
+    next=Next;
 }
 
 text_field::text_field(int X, int Y, int ID, char const *Prompt,
@@ -352,7 +350,7 @@ text_field::text_field(int X, int Y, int ID, char const *Prompt,
   char num[20];
   sprintf(num,"%g",Data);
   int slen=(strlen(Format)>strlen(num) ? strlen(Format) : strlen(num));
-  x=X; y=Y; id=ID;
+  m_pos = ivec2(X, Y); id=ID;
   prompt = strdup(Prompt);
   format=strcpy((char *)malloc(slen+1),Format);
   data=strcpy((char *)malloc(slen+1),num);
@@ -365,7 +363,7 @@ text_field::text_field(int X, int Y, int ID, char const *Prompt,
 void button::push()
 { up=!up; }
 
-void button::handle_event(event &ev, image *screen, InputManager *im)
+void button::handle_event(Event &ev, image *screen, InputManager *im)
 {
   if ((ev.type==EV_KEY && ev.key==13) || (ev.type==EV_MOUSE_BUTTON &&
                                          ev.mouse_button))
@@ -375,7 +373,7 @@ void button::handle_event(event &ev, image *screen, InputManager *im)
     up=!up;
     draw_first(screen);
     draw(act,screen);
-    wm->push_event(new event(id,(char *)this));
+    wm->Push(new Event(id,(char *)this));
   }
 }
 
@@ -384,86 +382,84 @@ void button::draw(int active, image *screen)
   int x1,y1,x2,y2,color=(active ? wm->bright_color() : wm->medium_color());
   area(x1,y1,x2,y2);
   if (active!=act  && act_id!=-1 && active)
-    wm->push_event(new event(act_id,NULL));
+    wm->Push(new Event(act_id,NULL));
 
   if (pressed)
   {
     if (up)
     {
       if (!active)
-        visual->put_image(screen,x,y);
+        screen->PutImage(visual, m_pos);
       else
-        pressed->put_image(screen,x,y);
-    } else act_pict->put_image(screen,x,y);
+        screen->PutImage(pressed, m_pos);
+    } else screen->PutImage(act_pict, m_pos);
   }
   else
   {
-    screen->rectangle(x1+2,y1+2,x2-2,y2-2,color);
-    act=active;
+    screen->Rectangle(ivec2(x1 + 2, y1 + 2), ivec2(x2 - 2, y2 - 2), color);
+    act = active;
   }
 }
 
 void button::draw_first(image *screen)
 {
-  if (pressed)
-    draw(0,screen);
-  else
-  {
+    if (pressed)
+    {
+        draw(0, screen);
+        return;
+    }
 
     int x1,y1,x2,y2;
     area(x1,y1,x2,y2);
 
-
     if (up)
     {
-      screen->rectangle(x1,y1,x2,y2,wm->black());
+      screen->Rectangle(ivec2(x1, y1), ivec2(x2, y2), wm->black());
 //      screen->widget_bar(,wm->bright_color(),wm->medium_color(),wm->dark_color());
-      screen->widget_bar(x1+1,y1+1,x2-1,y2-1,wm->bright_color(),wm->medium_color(),wm->dark_color());
-      if (text)
-      {
-        wm->font()->put_string(screen,x+4,y+5,text,wm->black());
-        wm->font()->put_string(screen,x+3,y+4,text);
-      }
-      else visual->put_image(screen,x+3,y+3,1);
-    } else
-    {
-      screen->line(x1,y1,x2,y1,wm->dark_color());
-      screen->line(x1,y1,x1,y2,wm->dark_color());
-      screen->line(x2,y1+1,x2,y2,wm->bright_color());
-      screen->line(x1+1,y2,x2,y2,wm->bright_color());
-      screen->bar(x1+1,y1+1,x2-1,y2-1,wm->medium_color());
-      if (visual)
-        visual->put_image(screen,x1+3,y1+3,1);
-      else
-      {
-        wm->font()->put_string(screen,x+4,y+5,text,wm->black());
-        wm->font()->put_string(screen,x+3,y+4,text);
-      }
+      screen->WidgetBar(ivec2(x1 + 1, y1 + 1), ivec2(x2 - 1, y2 - 1),
+                        wm->bright_color(),wm->medium_color(),wm->dark_color());
     }
-  }
+    else
+    {
+      screen->Line(ivec2(x1, y1), ivec2(x2, y1), wm->dark_color());
+      screen->Line(ivec2(x1, y1), ivec2(x1, y2), wm->dark_color());
+      screen->Line(ivec2(x2, y1 + 1), ivec2(x2, y2), wm->bright_color());
+      screen->Line(ivec2(x1 + 1, y2), ivec2(x2, y2), wm->bright_color());
+      screen->Bar(ivec2(x1 + 1, y1 + 1), ivec2(x2 - 1, y2 - 1),
+                  wm->medium_color());
+    }
+
+    if ((up && text) || (!up && !visual))
+    {
+        wm->font()->PutString(screen, m_pos + ivec2(4, 5), text, wm->black());
+        wm->font()->PutString(screen, m_pos + ivec2(3, 4), text);
+    }
+    else if (up)
+        screen->PutImage(visual, m_pos + ivec2(3, 3), 1);
+    else
+        screen->PutImage(visual, ivec2(x1 + 3, y1 + 3), 1);
 }
 
 void text_field::draw_first(image *screen)
 {
-  wm->font()->put_string(screen,x,y+3,prompt);
-  screen->bar(xstart(),y,xend(),yend(),wm->dark_color());
-  wm->font()->put_string(screen,xstart()+1,y+3,data);
+  wm->font()->PutString(screen, m_pos + ivec2(0, 3), prompt);
+  screen->Bar(ivec2(xstart(), m_pos.y), ivec2(xend(), yend()), wm->dark_color());
+  wm->font()->PutString(screen, ivec2(xstart() + 1, m_pos.y + 3), data);
 }
 
 
 void text_field::draw_cur(int color, image *screen)
 {
-  screen->bar(xstart()+cur*wm->font()->width()+1,
-                      yend()-2,
-                      xstart()+(cur+1)*wm->font()->width(),
-                      yend()-1,color);
+  screen->Bar(ivec2(xstart() + cur * wm->font()->Size().x + 1, yend() - 2),
+              ivec2(xstart() + (cur + 1) * wm->font()->Size().x, yend() - 1),
+              color);
 }
 
 
 
 info_field::info_field(int X, int Y, int ID, char const *info, ifield *Next)
 {
-  x = X; y = Y; id = ID; next = Next;
+  m_pos = ivec2(X, Y); id = ID; next = Next;
   text = strdup(info);
   w = -1;
 }
@@ -473,7 +469,7 @@ void info_field::area(int &x1, int &y1, int &x2, int &y2)
 {
   if (w==-1)     // if we haven't calculated this yet
   {
-    int fw=wm->font()->width(),fh=wm->font()->height(),maxw=0;
+    int fw = wm->font()->Size().x, fh = wm->font()->Size().y, maxw = 0;
     char *info=text;
     for (w=fw,h=fh+1; *info; info++)
     {
@@ -487,10 +483,10 @@ void info_field::area(int &x1, int &y1, int &x2, int &y2)
     }
     w=maxw;
   }
-  x1=x;
-  y1=y;
-  x2=x+w;
-  y2=y+h;
+  x1 = m_pos.x;
+  y1 = m_pos.y;
+  x2 = m_pos.x + w;
+  y2 = m_pos.y + h;
 }
 
 void info_field::put_para(image *screen, char const *st, int dx, int dy,
@@ -506,7 +502,7 @@ void info_field::put_para(image *screen, char const *st, int dx, int dy,
     }
     else
     {
-      font->put_char(screen,dx,dy,*st,color);
+      font->PutChar(screen, ivec2(dx, dy), *st, color);
       dx+=xspace;
     }
     st++;
@@ -515,10 +511,9 @@ void info_field::put_para(image *screen, char const *st, int dx, int dy,
 
 void info_field::draw_first(image *screen)
 {
-  put_para(screen,text,x+1,y+1,wm->font()->width(),wm->font()->height(),wm->font(),wm->black());
-  put_para(screen,text,x,y,wm->font()->width(),wm->font()->height(),wm->font(),wm->bright_color());
+  put_para(screen, text, m_pos.x+1, m_pos.y+1, wm->font()->Size().x,
+           wm->font()->Size().y, wm->font(), wm->black());
+  put_para(screen, text, m_pos.x, m_pos.y, wm->font()->Size().x,
+           wm->font()->Size().y, wm->font(), wm->bright_color());
 }
-
-
-
 

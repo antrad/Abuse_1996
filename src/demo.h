@@ -39,12 +39,12 @@ class demo_manager
 
 extern demo_manager demo_man;
 
-extern void get_event(event &ev);
+extern void get_event(Event &ev);
 extern int event_waiting();
 
+extern ivec2 last_demo_mpos;
+extern int last_demo_mbut;
 
-
-extern int32_t last_demo_mx,last_demo_my,last_demo_mbut;
 //extern ulong demo_tick_on;
 #endif
 

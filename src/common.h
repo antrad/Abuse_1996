@@ -51,6 +51,9 @@ static inline unsigned long Max(unsigned long a, unsigned long b) { return a > b
 static inline float Min(float a, float b) { return a < b ? a : b; }
 static inline float Max(float a, float b) { return a > b ? a : b; }
 
+static inline ivec2 Min(ivec2 a, ivec2 b) { return ivec2(Min(a.x, b.x), Min(a.y, b.y)); }
+static inline ivec2 Max(ivec2 a, ivec2 b) { return ivec2(Max(a.x, b.x), Max(a.y, b.y)); }
+
 //
 // Byte swapping
 //
@@ -74,6 +77,11 @@ static inline uint32_t lltl(uint32_t x)
              | (((uint32_t)x & 0x0000ff00) << 8) | ((uint32_t)x << 24);
     return x;
 }
+
+#ifdef _WINDOWS_
+// Windows defines its own ERROR macro for use with GDI. We don't care.
+#undef ERROR
+#endif
 
 #define ERROR(x,st) { if (!(x)) \
    { printf("Error on line %d of %s : %s\n", \

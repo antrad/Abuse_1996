@@ -47,10 +47,10 @@ static int32_t c_state(char const *name)
   void *sym = LSymbol::Find(name);
   if (sym)
   {
-    if (item_type(((LSymbol *)sym)->value)!=L_NUMBER)
+    if (item_type(((LSymbol *)sym)->m_value)!=L_NUMBER)
       compile_error=1;
     else
-      return lnumber_value(((LSymbol *)sym)->value);
+      return lnumber_value(((LSymbol *)sym)->m_value);
   } else compile_error=1;
   return 0;
 }

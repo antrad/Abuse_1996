@@ -92,14 +92,14 @@ void *comp_optimize(void *list)
   return return_val;
 }
 
-void l_comp_init()
+void Lisp::InitConstants()
 {
     // This needs to be defined first
-    l_undefined = LSymbol::FindOrCreate(":UNDEFINED");
-
+    LSymbol *tmp = LSymbol::FindOrCreate(":UNDEFINED");
+    l_undefined = tmp;
     // Collection problems result if we don't do this
-    ((LSymbol *)l_undefined)->function = NULL;
-    ((LSymbol *)l_undefined)->value = NULL;
+    tmp->m_function = NULL;
+    tmp->m_value = NULL;
 
     true_symbol = LSymbol::FindOrCreate("T");
 

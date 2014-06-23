@@ -501,8 +501,8 @@ static int climb_off_handler(game_object *o)
   else
   {
     o->y-=28;
-    o->controller()->pan_y+=28;
-    o->controller()->last_y-=28;
+    o->controller()->pan_y += 28;
+    o->controller()->m_lastpos.y -= 28;
     o->set_state(stopped);
   }
   return 0;
@@ -580,7 +580,7 @@ static int climb_handler(game_object *o, int xm, int ym, int but)
     {
       o->y+=28;
       o->controller()->pan_y-=28;
-      o->controller()->last_y+=28;
+      o->controller()->m_lastpos.y += 28;
       o->set_state((character_state)S_climb_on);
     }
     else if (o->yvel()>=0 && (ym>0 || (ym<0 && yd>8)))
@@ -699,14 +699,14 @@ void *ladder_ai()
     game_object *other=o->get_object(0);
     for (; f; f=f->next)
     {
-      int mex=f->focus->x;
-      int mey=f->focus->y;
+      int mex=f->m_focus->x;
+      int mey=f->m_focus->y;
 
       if (o->x<=mex && o->y<=mey && other->x>=mex && other->y>=mey)
       {
-    if (f->focus->state==S_climbing)
-      f->focus->x=(o->x+other->x)/2;
-        f->focus->lvars[in_climbing_area]=mey-o->y;
+    if (f->m_focus->state==S_climbing)
+      f->m_focus->x=(o->x+other->x)/2;
+        f->m_focus->lvars[in_climbing_area]=mey-o->y;
       }
     }
   }
@@ -828,8 +828,9 @@ void *bottom_draw()
       {
     player_draw(just_fired,o->get_tint());
     if (o->controller() && o->controller()->local_player())
-      cache.img(S_health_image)->put_image(screen,o->controller()->cx2-20,
-                        o->controller()->cy1+5,1);
+      main_screen->PutImage(cache.img(S_health_image),
+                            ivec2(o->controller()->m_bb.x - 20,
+                                  o->controller()->m_aa.y + 5), 1);
       } break;
       case FAST_POWER :
       {
@@ -849,8 +850,9 @@ void *bottom_draw()
     player_draw(just_fired,o->get_tint());
     o->state=(character_state)old_state;
     if (o->controller() && o->controller()->local_player())
-      cache.img(S_fast_image)->put_image(screen,o->controller()->cx2-20,
-                        o->controller()->cy1+5,1);
+      main_screen->PutImage(cache.img(S_fast_image),
+                            ivec2(o->controller()->m_bb.x - 20,
+                                  o->controller()->m_aa.y + 5), 1);
       } break;
       case FLY_POWER :
       {
@@ -870,8 +872,9 @@ void *bottom_draw()
     o->state=(character_state)old_state;
 
     if (o->controller() && o->controller()->local_player())
-      cache.img(S_fly_image)->put_image(screen,o->controller()->cx2-20,
-                        o->controller()->cy1+5,1);
+      main_screen->PutImage(cache.img(S_fly_image),
+                            ivec2(o->controller()->m_bb.x - 20,
+                                  o->controller()->m_aa.y + 5), 1);
       } break;
       case SNEAKY_POWER :
       {
@@ -883,8 +886,9 @@ void *bottom_draw()
       o->draw_predator();
 
     if (o->controller() && o->controller()->local_player())
-      cache.img(S_sneaky_image)->put_image(screen,o->controller()->cx2-20,
-                        o->controller()->cy1+5,1);
+      main_screen->PutImage(cache.img(S_sneaky_image),
+                            ivec2(o->controller()->m_bb.x - 20,
+                                  o->controller()->m_aa.y + 5), 1);
       } break;
     }
   }
@@ -1018,8 +1022,7 @@ void *score_draw()
   {
     qsort(sorted_players,tp,sizeof(view *),compare_players);
 
-    int x=local->cx1;
-    int y=local->cy1;
+    ivec2 pos = local->m_aa;
     char msg[100];
 
     int i;
@@ -1030,8 +1033,8 @@ void *score_draw()
       if (sorted_players[i]==local)
         strcat(msg," <<");
 
-      fnt->put_string(screen,x,y,msg,color);
-      y+=fnt->height();
+      fnt->PutString(main_screen, pos, msg, color);
+      pos.y += fnt->Size().y;
     }
   }
   return NULL;
@@ -1044,25 +1047,28 @@ extern void fade_out(int steps);
 void *show_kills()
 {
   fade_out(8);
-  wm->set_mouse_position(0,0);
-  screen->clear();
+  wm->SetMousePos(ivec2(0, 0));
+  main_screen->clear();
   image *im=cache.img(cache.reg("art/frame.spe","end_level_screen",SPEC_IMAGE,1));
-  im->put_image(screen,0,0);
-  int x1=im->Size().x+1,y1=0,y2=screen->Size().y;
+  main_screen->PutImage(im, ivec2(0, 0));
+  int x1=im->Size().x+1,y1=0,y2=main_screen->Size().y;
   JCFont *fnt=wm->font();
 
   view *v=player_list; int tp=0,i;
   for (v=player_list; v; v=v->next) tp++;
 
-  int y=(y1+y2)/2-(tp+2)*fnt->height()/2,x=x1+10;
+  int y=(y1+y2)/2-(tp+2)*fnt->Size().y/2,x=x1+10;
   char const *header_str = symbol_str("score_header");
-  fnt->put_string(screen,x,y,header_str,wm->bright_color());
-  y+=fnt->height();
+  fnt->PutString(main_screen, ivec2(x, y), header_str, wm->bright_color());
+  y += fnt->Size().y;
 
-  screen->widget_bar(x,y+2,x+strlen(header_str)*fnt->width(),y+fnt->height()-3,
-             wm->bright_color(),wm->medium_color(),wm->dark_color());
-  y+=fnt->height();
-  v=player_list;
+  main_screen->WidgetBar(ivec2(x, y + 2),
+                         ivec2(x + strlen(header_str) * fnt->Size().x,
+                               y + fnt->Size().y - 3),
+                         wm->bright_color(), wm->medium_color(),
+                         wm->dark_color());
+  y += fnt->Size().y;
+  v = player_list;
   for (i=0; i<tp; i++)
   {
     enum { NAME_LEN=18 } ;
@@ -1074,10 +1080,10 @@ void *show_kills()
 
 
     sprintf(msg,"%-17s %3ld  %3ld",max_name,(long)v->kills,(long)(v->tkills+v->kills));
-    fnt->put_string(screen,x,y,msg,color);
+    fnt->PutString(main_screen, ivec2(x, y), msg, color);
 
-    y+=fnt->height();
-    v=v->next;
+    y += fnt->Size().y;
+    v = v->next;
   }
 
   wm->flush_screen();

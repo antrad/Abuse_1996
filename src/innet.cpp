@@ -22,11 +22,15 @@
 #include "game.h"
 #include "dev.h"
 #include "timing.h"
-#include "fileman.h"
 #include "netface.h"
 
-#include "gserver.h"
-#include "gclient.h"
+#if HAVE_NETWORK
+#   include "fileman.h"
+#endif
+#include "net/sock.h"
+#include "net/ghandler.h"
+#include "net/gserver.h"
+#include "net/gclient.h"
 #include "dprint.h"
 #include "netcfg.h"
 
@@ -44,11 +48,11 @@ of a abuse and therefore is a bit simpler.
 
 base_memory_struct *base;   // points to shm_addr
 base_memory_struct local_base;
-net_address *net_server=NULL;
-net_protocol *prot=NULL;
-net_socket *comm_sock=NULL,*game_sock=NULL;
+net_address *net_server = NULL;
+net_protocol *prot = NULL;
+net_socket *comm_sock = NULL, *game_sock = NULL;
+game_handler *game_face = NULL;
 extern char lsf[256];
-game_handler *game_face=NULL;
 int local_client_number=0;        // 0 is the server
 join_struct *join_array=NULL;      // points to an array of possible joining clients
 extern char const *get_login();
@@ -146,6 +150,7 @@ int net_init(int argc, char **argv)
     }
     prot=usable;
     prot->set_debug_printing((net_protocol::debug_type)db_level);
+
     if (main_net_cfg->state==net_configuration::SERVER)
         set_login(main_net_cfg->name);
 
@@ -163,8 +168,10 @@ int net_init(int argc, char **argv)
         dprintf("Server located!  Please wait while data loads....\n");
     }
 
-    fman=new file_manager(argc,argv,prot);                                       // manages remote file access
-    game_face=new game_handler;
+#if HAVE_NETWORK
+    fman = new file_manager(argc,argv,prot); // manages remote file access
+#endif
+    game_face = new game_handler;
     join_array=(join_struct *)malloc(sizeof(join_struct)*MAX_JOINERS);
     base->join_list=NULL;
     base->mem_lock=0;
@@ -179,13 +186,10 @@ int net_init(int argc, char **argv)
     return 1;
 }
 
-
-
-
 int net_start()  // is the game starting up off the net? (i.e. -net hostname)
-{   return (main_net_cfg && main_net_cfg->state==net_configuration::CLIENT);  }
-
-
+{
+    return main_net_cfg && main_net_cfg->state == net_configuration::CLIENT;
+}
 
 int kill_net()
 {
@@ -193,15 +197,17 @@ int kill_net()
   if (join_array) free(join_array);  join_array=NULL;
   if (game_sock) { delete game_sock; game_sock=NULL; }
   if (comm_sock) { delete comm_sock; comm_sock=NULL; }
+#if HAVE_NETWORK
   delete fman;  fman=NULL;
+#endif
   if (net_server) { delete net_server; net_server=NULL; }
   if (prot)
   {
-
     prot->cleanup();
     prot=NULL;
     return 1;
-  } else return 0;
+  }
+  return 0;
 }
 
 void net_uninit()
@@ -210,6 +216,7 @@ void net_uninit()
 }
 
 
+#if HAVE_NETWORK
 int NF_set_file_server(net_address *addr)
 {
   if (prot)
@@ -238,15 +245,16 @@ int NF_set_file_server(char const *name)
       delete addr;
       return ret;
     } else return 0;
-  } else return 0;
+  }
+  return 0;
 }
 
 
 int NF_open_file(char const *filename, char const *mode)
 {
-  if (prot)
-    return fman->rf_open_file(filename,mode);
-  else return -2;
+    if (prot)
+        return fman->rf_open_file(filename,mode);
+    return -2;
 }
 
 
@@ -254,40 +262,42 @@ long NF_close(int fd)
 {
   if (prot)
     return fman->rf_close(fd);
-  else return 0;
+  return 0;
 }
 
 long NF_read(int fd, void *buf, long size)
 {
   if (prot)
     return fman->rf_read(fd,buf,size);
-  else return 0;
+  return 0;
 }
 
 long NF_filelength(int fd)
 {
   if (prot)
     return fman->rf_file_size(fd);
-  else return 0;
+  return 0;
 }
 
 long NF_seek(int fd, long offset)
 {
   if (prot)
     return fman->rf_seek(fd,offset);
-  else return 0;
+  return 0;
 }
 
 long NF_tell(int fd)
 {
   if (prot)
     return fman->rf_tell(fd);
-  else return 0;
+  return 0;
 }
+#endif
 
 
 void service_net_request()
 {
+#if HAVE_NETWORK
   if (prot)
   {
     if (prot->select(0))  // anything happening net-wise?
@@ -350,6 +360,7 @@ void service_net_request()
       fman->process_net();
     }
   }
+#endif // HAVE_NETWORK
 }
 
 
@@ -374,7 +385,8 @@ int get_remote_lsf(net_address *addr, char *filename)  // filename should be 256
     delete sock;
     return 1;
 
-  } else return 0;
+  }
+  return 0;
 }
 
 void server_check() { ; }
@@ -452,21 +464,22 @@ int request_server_entry()
 
     local_client_number=cnum;
     return cnum;
-  } else return 0;
+  }
+  return 0;
 }
 
 int reload_start()
 {
   if (prot)
     return game_face->start_reload();
-  else return 0;
+  return 0;
 }
 
 int reload_end()
 {
   if (prot)
     return game_face->end_reload();
-  else return 0;
+  return 0;
 }
 
 
@@ -535,21 +548,18 @@ void net_reload()
                 else
                 current_level->add_object(o);
 
-                view *v=f->next;
-
-                v->cx1=5;
-                v->cy1=5;
-                v->cx2=319-5;
-                v->cy2=199-5;
-                join_list=join_list->next;
+                view *v = f->next;
+                v->m_aa = ivec2(5);
+                v->m_bb = ivec2(319, 199) - ivec2(5);
+                join_list = join_list->next;
       }
       base->join_list=NULL;
       current_level->save(NET_STARTFILE,1);
       base->mem_lock=0;
 
 
-      Jwindow *j=wm->new_window(0,yres/2,-1,-1,new info_field(0, 0, 0, symbol_str("resync"),
-                          new button(0, wm->font()->height() + 5, ID_NET_DISCONNECT,
+      Jwindow *j=wm->CreateWindow(ivec2(0, yres / 2), ivec2(-1), new info_field(0, 0, 0, symbol_str("resync"),
+                          new button(0, wm->font()->Size().y + 5, ID_NET_DISCONNECT,
                              symbol_str("slack"),NULL)),symbol_str("hold!"))
 ;
 
@@ -564,9 +574,9 @@ void net_reload()
       do
       {
                 service_net_request();
-                if (wm->event_waiting())
+                if (wm->IsPending())
                 {
-                  event ev;
+                  Event ev;
                   do
                   {
                     wm->get_event(ev);
@@ -576,7 +586,7 @@ void net_reload()
                       base->input_state=INPUT_PROCESSING;
                     }
 
-                  } while (wm->event_waiting());
+                  } while (wm->IsPending());
 
                   wm->flush_screen();
                 }
@@ -599,7 +609,6 @@ int client_number() { return local_client_number; }
 
 void send_local_request()
 {
-
   if (prot)
   {
     if (current_level)
@@ -654,18 +663,18 @@ int get_inputs_from_server(unsigned char *buf)
     total_retry++;
     if (total_retry==12000)    // 2 minutes and nothing
     {
-      abort=wm->new_window(0,yres/2,-1,wm->font()->height()*4,
+      abort=wm->CreateWindow(ivec2(0, yres / 2), ivec2(-1, wm->font()->Size().y*4),
                    new info_field(0, 0, 0, symbol_str("waiting"),
-                          new button(0, wm->font()->height() + 5, ID_NET_DISCONNECT,
+                          new button(0, wm->font()->Size().y + 5, ID_NET_DISCONNECT,
                              symbol_str("slack"),NULL)),symbol_str("Error"));
       wm->flush_screen();
     }
       }
       if (abort)
       {
-    if (wm->event_waiting())
+    if (wm->IsPending())
     {
-      event ev;
+      Event ev;
       do
       {
         wm->get_event(ev);
@@ -674,7 +683,7 @@ int get_inputs_from_server(unsigned char *buf)
           kill_slackers();
           base->input_state=INPUT_PROCESSING;
         }
-      } while (wm->event_waiting());
+      } while (wm->IsPending());
 
       wm->flush_screen();
     }
@@ -727,8 +736,8 @@ int become_server(char *name)
 
 void read_new_views() { ; }
 
-
 void wait_min_players()
 {
-  if (game_face) game_face->game_start_wait();
+    if (game_face)
+        game_face->game_start_wait();
 }

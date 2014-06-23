@@ -6,6 +6,13 @@ add_subdirectory(net)
 add_subdirectory(imlib)
 add_subdirectory(sdlport)
 
+if(PLATFORM_WIN32)
+    # Add the icon to the abuse.exe file
+    set(abuse_RESOURCE_FILES "win32/resources.rc")
+else()
+    set(abuse_RESOURCE_FILES "")
+endif(PLATFORM_WIN32)
+
 add_executable(abuse
     common.h
     lol/matrix.cpp lol/matrix.h
@@ -61,6 +68,7 @@ add_executable(abuse
     id.h netface.h isllist.h sbar.h
     nfserver.h
     ui/volumewindow.cpp ui/volumewindow.h
+    ${abuse_RESOURCE_FILES}
 )
 
 set_target_properties(abuse PROPERTIES MACOSX_BUNDLE true)
@@ -71,7 +79,7 @@ target_link_libraries(abuse imlib)
 target_link_libraries(abuse net)
 target_link_libraries(abuse ${SDL_LIBRARY})
 target_link_libraries(abuse ${SDLMIXER_LIBRARY})
-if (OPENGL_FOUND)
+if(OPENGL_FOUND)
     target_link_libraries(abuse ${OPENGL_LIBRARIES})
 endif(OPENGL_FOUND)
 

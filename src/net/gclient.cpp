@@ -21,7 +21,6 @@
 #include <sys/stat.h>
 #include <sys/types.h>
 #include <string.h>
-#include <signal.h>
 
 #include "common.h"
 

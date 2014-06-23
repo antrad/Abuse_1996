@@ -11,11 +11,9 @@
 #ifndef __NFSERVER_HPP_
 #define __NFSERVER_HPP_
 
-#if !defined __CELLOS_LV2__
-
 #include "specs.h"
 #include "netface.h"
-#include "sock.h"
+#include "net/sock.h"
 
 int net_init(int argc, char **argv);
 void net_uninit();
@@ -56,4 +54,4 @@ extern net_address *net_server;
 extern base_memory_struct *base;   // points to shm_addr
 
 #endif
-#endif
+

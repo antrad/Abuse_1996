@@ -53,10 +53,8 @@ tool_picker::tool_picker(int X, int Y, int ID,
 
 void tool_picker::draw_item(image *screen, int x, int y, int num, int active)
 {
-  if (!active)
-    screen->bar(x,y,x+iw-1,y+ih-1,wm->black());
-  else
-    screen->bar(x,y,x+iw-1,y+ih-1,wm->bright_color());
-  icons[num]->draw(screen,x,y,map);
+    screen->Bar(ivec2(x, y), ivec2(x + iw - 1, y + ih - 1),
+                active ? wm->bright_color() : wm->black());
+    icons[num]->draw(screen, x, y, map);
 }
 

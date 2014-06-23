@@ -159,4 +159,3 @@ void Timer::WaitMs(float deltams)
 }
 
 } /* namespace lol */
-

@@ -34,8 +34,8 @@ class file_picker : public spicker
   public:
   file_picker(int X, int Y, int ID, int Rows, ifield *Next);
   virtual int total() { return tf+td; }
-  virtual int item_width() { return wm->font()->width()*wid; }
-  virtual int item_height() { return wm->font()->height()+1; }
+  virtual int item_width() { return wm->font()->Size().x * wid; }
+  virtual int item_height() { return wm->font()->Size().y + 1; }
   virtual void draw_item(image *screen, int x, int y, int num, int active);
   virtual void note_selection(image *screen, InputManager *inm, int x);
   void free_up();
@@ -62,7 +62,7 @@ void file_picker::note_selection(image *screen, InputManager *inm, int x)
     {
       int x1,y1,x2,y2;
       area(x1,y1,x2,y2);
-      screen->bar(x1,y1,x2,y2,wm->medium_color());
+      screen->Bar(ivec2(x1, y1), ivec2(x2, y2), wm->medium_color());
 
       char st[200],curdir[200];
       sprintf(st,"%s/%s",cd,d[x]);
@@ -99,16 +99,18 @@ void file_picker::note_selection(image *screen, InputManager *inm, int x)
 
 void file_picker::draw_item(image *screen, int x, int y, int num, int active)
 {
-  if (active)
-    screen->bar(x,y,x+item_width()-1,y+item_height()-1,wm->black());
+    if (active)
+        screen->Bar(ivec2(x, y),
+                    ivec2(x + item_width() - 1, y + item_height() - 1),
+                    wm->black());
 
-  if (num<td)
-  {
-    char st[100];
-    sprintf(st,"<%s>",d[num]);
-    wm->font()->put_string(screen,x,y,st,wm->bright_color());
-  } else
-    wm->font()->put_string(screen,x,y,f[num-td],wm->bright_color());
+    char st[100], *dest;
+    if (num >= td)
+        dest = f[num - td];
+    else
+        sprintf(dest = st, "<%s>", d[num]);
+
+    wm->font()->PutString(screen, ivec2(x, y), dest, wm->bright_color());
 }
 
 file_picker::file_picker(int X, int Y, int ID, int Rows, ifield *Next)
@@ -134,15 +136,15 @@ Jwindow *file_dialog(char const *prompt, char const *def,
                      char const *cancel_name, char const *FILENAME_str,
                      int filename_id)
 {
-  int wh2 = 5 + wm->font()->height() + 5;
-  int wh3 = wh2 + wm->font()->height() + 12;
-  Jwindow *j=wm->new_window(0,0,-1,-1,
+  int wh2 = 5 + wm->font()->Size().y + 5;
+  int wh3 = wh2 + wm->font()->Size().y + 12;
+  Jwindow *j=wm->CreateWindow(ivec2(0), ivec2(-1),
                 new info_field(5, 5, 0, prompt,
                             new text_field(0, wh2, filename_id,
                        ">","****************************************",def,
                 new button(50, wh3, ok_id, ok_name,
                 new button(100, wh3, cancel_id, cancel_name,
-                new file_picker(15, wh3 + wm->font()->height() + 10, filename_id, 8,
+                new file_picker(15, wh3 + wm->font()->Size().y + 10, filename_id, 8,
                       NULL))))),
 
                 FILENAME_str);

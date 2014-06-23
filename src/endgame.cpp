@@ -128,7 +128,7 @@ void scan_map(image *screen, int sx, int sy, image *im1, image *im2, int fade256
     if (sx+n->x+x>x2) x2=sx+n->x+x;
 
   }
-  screen->AddDirty(x1, sy, x2 + 1, sy + mask_height);
+  screen->AddDirty(ivec2(x1, sy), ivec2(x2 + 1, sy + mask_height));
 }
 
 
@@ -180,11 +180,11 @@ void show_end2()
   int ey=yres/2-cache.img(mask)->Size().y/2;
   fade_out(16);
 
-  image blank(vec2i(2)); blank.clear();
-  wm->set_mouse_shape(blank.copy(),0,0);      // don't show mouse
+  image blank(ivec2(2)); blank.clear();
+  wm->SetMouseShape(blank.copy(), ivec2(0, 0));      // don't show mouse
 
 
-  screen->clear();
+  main_screen->clear();
   int c[4]={ pal->find_closest(222,222,22),
         pal->find_closest(200,200,200),
         pal->find_closest(100,100,100),
@@ -196,7 +196,7 @@ void show_end2()
     *(si++)=jrand()%320;
     *(si++)=jrand()%200;
     *(si++)=c[jrand()%4];
-    screen->PutPixel(vec2i(si[-3],si[-2]),si[-1]);
+    main_screen->PutPixel(ivec2(si[-3],si[-2]),si[-1]);
   }
   int32_t paddr[256];
   if (old_pal)
@@ -213,7 +213,7 @@ void show_end2()
   int dx=(xres+1)/2-320/2,dy=(yres+1)/2-200/2;
 
 
-  scan_map(screen,ex,ey,cache.img(planet),cache.img(planet2),0,paddr,p,cache.img(mask)->Size().y,eoff,coff);
+  scan_map(main_screen,ex,ey,cache.img(planet),cache.img(planet2),0,paddr,p,cache.img(mask)->Size().y,eoff,coff);
   image *tcopy=cache.img(planet)->copy();
   fade_in(NULL,32);
 
@@ -230,22 +230,22 @@ void show_end2()
         cache.sfx(space_snd)->play(64);
 
       old_time.get_time();
-      screen->clear();
+      main_screen->clear();
       int j;
       for (si=sinfo,j=0; j<800; j++,si+=3)
-        screen->PutPixel(vec2i(dx+si[0],dy+si[1]),si[2]);
+        main_screen->PutPixel(ivec2(dx+si[0],dy+si[1]),si[2]);
 
       if (i>=30 && i<=37)
       {
-    cache.img(planet)->put_image(tcopy,0,0);
-    cache.fig(explo_frames1[i-30])->forward->PutImage(tcopy,vec2i(100,50));
-        scan_map(screen,ex,ey,tcopy,
+    tcopy->PutImage(cache.img(planet), ivec2(0, 0));
+    cache.fig(explo_frames1[i-30])->forward->PutImage(tcopy,ivec2(100,50));
+        scan_map(main_screen,ex,ey,tcopy,
            cache.img(planet2),
            0,paddr,
            p,cache.img(mask)->Size().y,eoff,coff);
       }
       else
-        scan_map(screen,ex,ey,cache.img(planet),
+        scan_map(main_screen,ex,ey,cache.img(planet),
            cache.img(planet2),
            0,paddr,
            p,cache.img(mask)->Size().y,eoff,coff);
@@ -257,7 +257,7 @@ void show_end2()
         nh=s->Size().y*(t+2)/16;
 
 
-        scale_put_trans(s,screen,ex-(i-38)*5,ey+cache.img(mask)->Size().y/2+t*4,nw,nh);
+        scale_put_trans(s,main_screen,ex-(i-38)*5,ey+cache.img(mask)->Size().y/2+t*4,nw,nh);
     if (i==77)
       if (sound_avail&SFX_INITIALIZED)
             cache.sfx(zip_snd)->play(127);
@@ -282,13 +282,13 @@ void show_end2()
         cache.sfx(space_snd)->play(64);
 
       old_time.get_time();
-      screen->clear();
+      main_screen->clear();
       int j;
       for (si=sinfo,j=0; j<800; j++,si+=3)
-        screen->PutPixel(vec2i(dx+si[0],dy+si[1]),si[2]);
+        main_screen->PutPixel(ivec2(dx+si[0],dy+si[1]),si[2]);
 
 
-      scan_map(screen,ex,ey,cache.img(planet),
+      scan_map(main_screen,ex,ey,cache.img(planet),
            cache.img(planet2),i*256/200,paddr,p,cache.img(mask)->Size().y,eoff,coff);
 
       eoff+=2; if (eoff>=320) eoff-=320;
@@ -321,7 +321,7 @@ void show_end2()
     {
       last=c;
       if (c->char_num)
-        cache.fig(explo_frames2[c->frame])->forward->PutImage(screen,vec2i(c->x,c->y));
+        cache.fig(explo_frames2[c->frame])->forward->PutImage(main_screen,ivec2(c->x,c->y));
 
       c->x-=3;
       c=c->next;
@@ -336,12 +336,12 @@ void show_end2()
   }
   while (clist) { ex_char *p=clist; clist=clist->next; delete p; }
 
-  screen->clear();
+  main_screen->clear();
   int j;
   for (si=sinfo,j=0; j<800; j++,si+=3)
-    screen->PutPixel(vec2i(si[0],si[1]),si[2]);
+    main_screen->PutPixel(ivec2(si[0],si[1]),si[2]);
 
-  event ev;
+  Event ev;
   i=0;
   do
   {
@@ -352,7 +352,7 @@ void show_end2()
         cache.sfx(space_snd)->play(64);
 
       old_time.get_time();
-      scan_map(screen,ex,ey,cache.img(planet),
+      scan_map(main_screen,ex,ey,cache.img(planet),
            cache.img(planet2),
            256,paddr,
            p,cache.img(mask)->Size().y,eoff,coff);
@@ -362,7 +362,7 @@ void show_end2()
       i++;
     }
 
-    if (wm->event_waiting())
+    if (wm->IsPending())
       wm->get_event(ev);
 
   } while (ev.type!=EV_KEY && ev.type!=EV_MOUSE_BUTTON);
@@ -380,12 +380,12 @@ void show_end2()
   ev.type=EV_SPURIOUS;
   for (i=0; i<320 && ev.type!=EV_KEY; i++)
   {
-    screen->clear();
+    main_screen->clear();
     int j;
     for (si=sinfo,j=0; j<800; j++,si+=3)
-      screen->PutPixel(vec2i(dx+si[0],dy+si[1]),si[2]);
+      main_screen->PutPixel(ivec2(dx+si[0],dy+si[1]),si[2]);
 
-    scan_map(screen,ex,ey,cache.img(planet),
+    scan_map(main_screen,ex,ey,cache.img(planet),
          cache.img(planet2),
          256,paddr,
          p,cache.img(mask)->Size().y,eoff,coff);
@@ -393,7 +393,7 @@ void show_end2()
     wm->flush_screen();
     time_marker now; while (now.diff_time(&start)<0.18) now.get_time(); start.get_time();
 
-    while (wm->event_waiting() && ev.type!=EV_KEY) wm->get_event(ev);
+    while (wm->IsPending() && ev.type!=EV_KEY) wm->get_event(ev);
   }
 
 
@@ -411,10 +411,9 @@ void show_end2()
   current_level=NULL;
 
   fade_out(16);
-  screen->clear();
+  main_screen->clear();
 
-
-  wm->set_mouse_shape(cache.img(c_normal)->copy(),1,1);
+  wm->SetMouseShape(cache.img(c_normal)->copy(), ivec2(1, 1));
   the_game->set_state(MENU_STATE);
 }
 
@@ -423,9 +422,9 @@ void show_sell(int abortable);
 void share_end()
 {
   fade_out(16);
-  image blank(vec2i(2, 2)); blank.clear();
-  wm->set_mouse_shape(blank.copy(),0,0);      // don't show mouse
-  screen->clear();
+  image blank(ivec2(2, 2)); blank.clear();
+  wm->SetMouseShape(blank.copy(), ivec2(0, 0)); // don't show mouse
+  main_screen->clear();
 
   image *im=cache.img(cache.reg("art/fore/endgame.spe","tbc",SPEC_IMAGE,1));
 
@@ -436,8 +435,8 @@ void share_end()
   PtrRef r2(mid_plot);
 
   int dx=(xres+1)/2-im->Size().x/2,dy=(yres+1)/2-im->Size().y/2;
-  im->put_image(screen,dx,dy);
-  console_font->put_string(screen,xres/2+35,yres/2+100-console_font->height()-2,
+  main_screen->PutImage(im, ivec2(dx, dy));
+  console_font->PutString(main_screen, ivec2(xres / 2 + 35, yres / 2 + 100 - console_font->Size().y - 2),
                lstring_value(to_be));
   fade_in(NULL,32);
 
@@ -446,18 +445,18 @@ void share_end()
   for (i=0; i<32; i++)
     cmap[i]=pal->find_closest(i*256/32,i*256/32,i*256/32);
 
-  event ev; ev.type=EV_SPURIOUS;
+  Event ev; ev.type=EV_SPURIOUS;
   time_marker start;
   for (i=0; i<320 && ev.type!=EV_KEY; i++)
   {
-    im->put_image(screen,dx,dy);
-    console_font->put_string(screen,xres/2+35,yres/2+100-console_font->height()-2,
+    main_screen->PutImage(im, ivec2(dx, dy));
+    console_font->PutString(main_screen, ivec2(xres / 2 + 35, yres / 2 + 100 - console_font->Size().y - 2),
                lstring_value(to_be));
 
     text_draw(205-i,dx+10,dy,dx+319-10,dy+199,lstring_value(mid_plot),wm->font(),cmap,wm->bright_color());
     wm->flush_screen();
     time_marker now; while (now.diff_time(&start)<0.18) now.get_time(); start.get_time();
-    while (wm->event_waiting() && ev.type!=EV_KEY) wm->get_event(ev);
+    while (wm->IsPending() && ev.type!=EV_KEY) wm->get_event(ev);
   }
 
   if (ev.type!=EV_KEY)
@@ -470,18 +469,18 @@ void share_end()
   }
 
   fade_out(16);
-  wm->set_mouse_shape(blank.copy(),0,0);      // don't show mouse
+  wm->SetMouseShape(blank.copy(), ivec2(0, 0)); // don't show mouse
   show_sell(1);
-  wm->push_event(new event(ID_SHOW_SELL,NULL));
+  wm->Push(new Event(ID_SHOW_SELL,NULL));
 }
 
 
 void show_end()
 {
   fade_out(16);
-  image blank(vec2i(2, 2)); blank.clear();
-  wm->set_mouse_shape(blank.copy(),0,0);      // don't show mouse
-  screen->clear();
+  image blank(ivec2(2, 2)); blank.clear();
+  wm->SetMouseShape(blank.copy(), ivec2(0, 0));      // don't show mouse
+  main_screen->clear();
 
   image *im=cache.img(cache.reg("art/fore/endgame.spe","end.pcx",SPEC_IMAGE,1));
 
@@ -498,16 +497,16 @@ void show_end()
   for (i=0; i<32; i++)
     cmap[i]=pal->find_closest(i*256/32,i*256/32,i*256/32);
 
-  event ev; ev.type=EV_SPURIOUS;
+  Event ev; ev.type=EV_SPURIOUS;
   time_marker start;
   for (i=0; i<320 && ev.type!=EV_KEY; i++)
   {
-    im->put_image(screen,dx,dy);
+    main_screen->PutImage(im, ivec2(dx, dy));
 
     text_draw(205-i,dx+10,dy,dx+319-10,dy+199,lstring_value(end_plot),wm->font(),cmap,wm->bright_color());
     wm->flush_screen();
     time_marker now; while (now.diff_time(&start)<0.18) now.get_time(); start.get_time();
-    while (wm->event_waiting() && ev.type!=EV_KEY) wm->get_event(ev);
+    while (wm->IsPending() && ev.type!=EV_KEY) wm->get_event(ev);
   }
 
   if (ev.type!=EV_KEY)
@@ -523,11 +522,11 @@ void show_end()
   current_level=NULL;
 
   fade_out(16);
-  screen->clear();
+  main_screen->clear();
 
   show_sell(1);
 
-  wm->set_mouse_shape(cache.img(c_normal)->copy(),1,1);
+  wm->SetMouseShape(cache.img(c_normal)->copy(), ivec2(1, 1));
   the_game->set_state(MENU_STATE);
 }
 

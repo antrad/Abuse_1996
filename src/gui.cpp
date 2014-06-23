@@ -26,11 +26,12 @@ void ico_button::set_act_id(int id)
 
 ico_switch_button::ico_switch_button(int X, int Y, int ID, int start_on, ifield *butts, ifield *Next)
 {
-  x=X; y=Y; id=ID;
+  m_pos = ivec2(X, Y); id=ID;
   next=Next;
   blist=cur_but=butts;
   act=0;
-  for (ifield *b=blist; b; b=b->next) { b->x=x; b->y=y; }
+  for (ifield *b=blist; b; b=b->next)
+      b->m_pos = m_pos;
   while (cur_but && start_on--) cur_but=cur_but->next;
   if (!cur_but) cur_but=blist;
 }
@@ -50,7 +51,7 @@ void ico_switch_button::area(int &x1, int &y1, int &x2, int &y2)
     if (X2>x2) x2=X2;
     if (Y2>y2) y2=Y2;
   }
-  if (!blist) { x1=x2=x; y1=y2=y; }
+  if (!blist) { x1=x2=m_pos.x; y1=y2=m_pos.y; }
 }
 
 ifield *ico_switch_button::unlink(int id)
@@ -72,7 +73,7 @@ ifield *ico_switch_button::unlink(int id)
   return NULL;
 }
 
-void ico_switch_button::handle_event(event &ev, image *screen, InputManager *im)
+void ico_switch_button::handle_event(Event &ev, image *screen, InputManager *im)
 {
   if ((ev.type==EV_KEY && ev.key==13) || (ev.type==EV_MOUSE_BUTTON &&
                                          ev.mouse_button))
@@ -87,40 +88,37 @@ void ico_switch_button::handle_event(event &ev, image *screen, InputManager *im)
 
 void ico_button::draw(int active, image *screen)
 {
-  int x1,y1,x2,y2;
-  area(x1,y1,x2,y2);
+    int x1, y1, x2, y2;
+    area(x1, y1, x2, y2);
 
-  if (active!=act  && activate_id!=-1 && active)
-    wm->push_event(new event(activate_id,NULL));
+    if (active != act && activate_id != -1 && active)
+        wm->Push(new Event(activate_id, NULL));
 
-  if (up && !active)
-    cache.img(u)->put_image(screen,x1,y1);
-  else if (up && active)
-    cache.img(ua)->put_image(screen,x1,y1);
-  else if (!up && !active)
-    cache.img(d)->put_image(screen,x1,y1);
-  else cache.img(da)->put_image(screen,x1,y1);
+    screen->PutImage(cache.img((up && !active) ? u :
+                               (up && active) ? ua :
+                               (!up && !active) ? d : da), ivec2(x1, y1));
 
-  if (act!=active && active && activate_id!=-1)
-    wm->push_event(new event(activate_id,NULL));
-  act=active;
+    if (act != active && active && activate_id != -1)
+        wm->Push(new Event(activate_id, NULL));
+    act = active;
 
-  if (active && key[0])
-  {
-    int g=80;
-    screen->bar(0,0,144,20,0);
-    wm->font()->put_string(screen,0,0,symbol_str(key),color_table->Lookup(g>>3,g>>3,g>>3));
-  } else if (!active && key[0])
-  {
-    screen->bar(0,0,144,20,0);
-  }
-
+    if (active && key[0])
+    {
+        int g=80;
+        screen->Bar(ivec2(0, 0), ivec2(144, 20), 0);
+        wm->font()->PutString(screen, ivec2(0), symbol_str(key),
+                              color_table->Lookup(g>>3, g>>3, g>>3));
+    }
+    else if (!active && key[0])
+    {
+        screen->Bar(ivec2(0, 0), ivec2(144, 20), 0);
+    }
 }
 
 extern int32_t S_BUTTON_PRESS_SND;
 extern int sfx_volume;
 
-void ico_button::handle_event(event &ev, image *screen, InputManager *im)
+void ico_button::handle_event(Event &ev, image *screen, InputManager *im)
 {
   if ((ev.type==EV_KEY && ev.key==13) || (ev.type==EV_MOUSE_BUTTON &&
                                          ev.mouse_button))
@@ -129,7 +127,7 @@ void ico_button::handle_event(event &ev, image *screen, InputManager *im)
     area(x1,y1,x2,y2);
     up=!up;
     draw(act,screen);
-    wm->push_event(new event(id,(char *)this));
+    wm->Push(new Event(id,(char *)this));
     if (S_BUTTON_PRESS_SND)
       cache.sfx(S_BUTTON_PRESS_SND)->play(sfx_volume);
   }
@@ -137,9 +135,9 @@ void ico_button::handle_event(event &ev, image *screen, InputManager *im)
 
 void ico_button::area(int &x1, int &y1, int &x2, int &y2)
 {
-  x1=x; y1=y;
-  x2=x+cache.img(u)->Size().x-1;
-  y2=y+cache.img(u)->Size().y-1;
+  x1=m_pos.x; y1=m_pos.y;
+  x2=m_pos.x+cache.img(u)->Size().x-1;
+  y2=m_pos.y+cache.img(u)->Size().y-1;
 }
 
 ico_button::ico_button(int X, int Y, int ID, int Up, int down, int upa, int downa, ifield *Next, int act_id, char const *help_key)
@@ -152,7 +150,7 @@ ico_button::ico_button(int X, int Y, int ID, int Up, int down, int upa, int down
   else key[0]=0;
 
   up=1;
-  x=X; y=Y; id=ID;
+  m_pos = ivec2(X, Y); id=ID;
   u=Up; d=down;
   ua=upa; da=downa;
   next=Next;

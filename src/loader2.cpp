@@ -314,12 +314,8 @@ void load_data(int argc, char **argv)
     delete load;
 #endif
 
-#if defined __CELLOS_LV2__
-  if (1)
-#else
   // don't let them specify a startup file we are connect elsewhere
   if (!net_start())
-#endif
   {
     for (int i=1; i<argc; i++)
     {
@@ -335,13 +331,11 @@ void load_data(int argc, char **argv)
       }
     }
   }
-#if !defined __CELLOS_LV2__
   else if (!get_remote_lsf(net_server,lsf))
   {
     dprintf("Unable to get remote lsf from %s\n",net_server);
     exit(0);
   }
-#endif
   char prog[100];
   char const *cs;
 
@@ -360,7 +354,7 @@ void load_data(int argc, char **argv)
     exit(0);
   }
   compiled_init();
-  clear_tmp();
+  LSpace::Tmp.Clear();
 
   dprintf("Engine : Registering base graphics\n");
   for (int z=0; z<=11; z++)
@@ -371,7 +365,7 @@ void load_data(int argc, char **argv)
   }
 
 
-  image *tmp_image = new image(vec2i(192, 104), fnt6x13);
+  image *tmp_image = new image(ivec2(192, 104), fnt6x13);
   big_font=new JCFont(tmp_image);
   delete tmp_image;
 

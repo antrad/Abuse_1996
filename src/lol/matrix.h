@@ -17,6 +17,9 @@
 #define __LOL_MATRIX_H__
 
 #include <cmath>
+#if !defined __ANDROID__
+#   include <iostream>
+#endif
 
 namespace lol
 {
@@ -66,6 +69,8 @@ namespace lol
         Vec##dest<T> ret; \
         for (int n = 0; n < elems && n < dest; n++) \
             ret[n] = (*this)[n]; \
+        for (int n = elems; n < dest; n++) \
+            ret[n] = 0; \
         return ret; \
     }
 
@@ -103,6 +108,14 @@ namespace lol
         return ret; \
     } \
     \
+    inline Vec##elems<T> operator -() const \
+    { \
+        Vec##elems<T> ret; \
+        for (int n = 0; n < elems; n++) \
+            ret[n] = -(*this)[n]; \
+        return ret; \
+    } \
+    \
     inline T sqlen() const \
     { \
         T acc = 0; \
@@ -129,12 +142,17 @@ template <typename T> struct Vec2
 
     OPERATORS(2)
 
+#if !defined __ANDROID__
+    template<typename U>
+    friend std::ostream &operator<<(std::ostream &stream, Vec2<U> const &v);
+#endif
+
     union { T x; T a; T i; };
     union { T y; T b; T j; };
 };
 
 typedef Vec2<float> vec2;
-typedef Vec2<int> vec2i;
+typedef Vec2<int> ivec2;
 
 template <typename T> struct Vec3
 {
@@ -144,13 +162,18 @@ template <typename T> struct Vec3
 
     OPERATORS(3)
 
+#if !defined __ANDROID__
+    template<typename U>
+    friend std::ostream &operator<<(std::ostream &stream, Vec3<U> const &v);
+#endif
+
     union { T x; T a; T i; };
     union { T y; T b; T j; };
     union { T z; T c; T k; };
 };
 
 typedef Vec3<float> vec3;
-typedef Vec3<int> vec3i;
+typedef Vec3<int> ivec3;
 
 template <typename T> struct Vec4
 {
@@ -160,6 +183,11 @@ template <typename T> struct Vec4
 
     OPERATORS(4)
 
+#if !defined __ANDROID__
+    template<typename U>
+    friend std::ostream &operator<<(std::ostream &stream, Vec4<U> const &v);
+#endif
+
     union { T x; T a; T i; };
     union { T y; T b; T j; };
     union { T z; T c; T k; };
@@ -167,7 +195,7 @@ template <typename T> struct Vec4
 };
 
 typedef Vec4<float> vec4;
-typedef Vec4<int> vec4i;
+typedef Vec4<int> ivec4;
 
 #define SCALAR_GLOBAL(elems, op, U) \
     template<typename T> \
@@ -221,6 +249,11 @@ template <typename T> struct Mat4
     static Mat4<T> rotate(T theta, T x, T y, T z);
 
     void printf() const;
+
+#if !defined __ANDROID__
+    template<class U>
+    friend std::ostream &operator<<(std::ostream &stream, Mat4<U> const &m);
+#endif
 
     inline Mat4<T> operator +(Mat4<T> const val) const
     {
@@ -286,7 +319,7 @@ template <typename T> struct Mat4
 };
 
 typedef Mat4<float> mat4;
-typedef Mat4<int> mat4i;
+typedef Mat4<int> imat4;
 
 } /* namespace lol */
 

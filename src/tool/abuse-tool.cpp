@@ -346,7 +346,7 @@ int main(int argc, char *argv[])
                 fprintf(stderr, "abuse-tool: cannot open %s\n", argv[5]);
                 return EXIT_FAILURE;
             }
-            vec2i size = im->Size();
+            ivec2 size = im->Size();
             len = 2 * sizeof(uint16_t) + size.x * size.y;
             data = (uint8_t *)malloc(len);
             uint16_t x = lltl((uint16_t)size.x);

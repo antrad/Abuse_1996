@@ -261,12 +261,13 @@ smorph_player::smorph_player(super_morph *m, palette *pal, image *i1, image *i2,
 int smorph_player::show(image *screen, int x, int y, ColorFilter *fil, palette *pal,
             int blur_threshold)
 {
-  if (f_left)
-  {
+    if (!f_left)
+        return 0;
+
     int i,px,py,ix,iy;
-    int x1, y1, x2, y2;
-    screen->GetClip(x1, y1, x2, y2);
-    screen->AddDirty(x, y, x + w, y + h);
+    ivec2 caa, cbb;
+    screen->GetClip(caa, cbb);
+    screen->AddDirty(ivec2(x, y), ivec2(x + w, y + h));
     stepper *ss;
     memset(hole,0,w*h);
     unsigned char *paddr=(unsigned char *)pal->addr();
@@ -276,7 +277,7 @@ int smorph_player::show(image *screen, int x, int y, ColorFilter *fil, palette *
       iy=(ss->y>>(16));
       px=ix+x;
       py=iy+y;
-      if (px>=x1 && px < x2 && py>=y1 && py < y2)
+      if (px>=caa.x && px < cbb.x && py>=caa.y && py < cbb.y)
       {
         hole[ix+iy*w]=*(screen->scan_line(py)+px)=fil->Lookup(ss->r>>(19),
                                     ss->g>>(19),
@@ -297,7 +298,7 @@ int smorph_player::show(image *screen, int x, int y, ColorFilter *fil, palette *
     {
       for (ix=1; ix<w-1; ix++,ll++,tl++,nl++)
       {
-    if (x+ix>=x1 && x+ix < x2 && y+iy>=y1 && y+iy < y2)
+    if (x+ix>=caa.x && x+ix < cbb.x && y+iy>=caa.y && y+iy < cbb.y)
     {
       int t=0;
       unsigned char *pa;
@@ -334,7 +335,6 @@ int smorph_player::show(image *screen, int x, int y, ColorFilter *fil, palette *
       nl+=2;
     }
     return 1;
-  } else return 0;
 }
 
 

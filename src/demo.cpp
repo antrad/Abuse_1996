@@ -28,7 +28,8 @@
 
 
 demo_manager demo_man;
-int last_demo_mx,last_demo_my,last_demo_mbut;
+ivec2 last_demo_mpos;
+int last_demo_mbut;
 extern base_memory_struct *base;   // points to shm_addr
 extern int idle_ticks;
 
@@ -37,7 +38,7 @@ extern void net_send(int force);
 extern void fade_in(image *im, int steps);
 extern void fade_out(int steps);
 
-void get_event(event &ev)
+void get_event(Event &ev)
 { wm->get_event(ev);
   switch (ev.type)
   {
@@ -53,14 +54,13 @@ void get_event(event &ev)
     } break;
   }
 
-  last_demo_mx=ev.mouse_move.x;
-  last_demo_my=ev.mouse_move.y;
-  last_demo_mbut=ev.mouse_button;
+  last_demo_mpos = ev.mouse_move;
+  last_demo_mbut = ev.mouse_button;
   idle_ticks=0;
 }
 
 int event_waiting()
-{ return wm->event_waiting(); }
+{ return wm->IsPending(); }
 
 
 int demo_manager::start_recording(char *filename)
@@ -119,10 +119,11 @@ void demo_manager::do_inputs()
       int size;
       if (get_packet(buf,size))              // get starting inputs
       {
-        process_packet_commands(buf,size);
-    int32_t mx,my;
-    the_game->game_to_mouse(player_list->pointer_x,player_list->pointer_y,player_list,mx,my);
-    wm->set_mouse_position(small_render ? mx*2 : mx, small_render ? my*2 : my);
+        process_packet_commands(buf, size);
+        ivec2 mouse = the_game->GameToMouse(ivec2(player_list->pointer_x,
+                                                  player_list->pointer_y),
+                                            player_list);
+        wm->SetMousePos((small_render ? 2 : 1) * mouse);
       }
       else
       {
@@ -142,9 +143,10 @@ void demo_manager::reset_game()
   rand_on=0;
 
   view *v=player_list;
-  for (; v; v=v->next) { if (v->focus) v->reset_player(); }
+  for (; v; v=v->next) { if (v->m_focus) v->reset_player(); }
 
-  last_demo_mx=last_demo_my=last_demo_mbut=0;
+  last_demo_mpos = ivec2(0, 0);
+  last_demo_mbut = 0;
   current_level->set_tick_counter(0);
 
 }
@@ -167,7 +169,7 @@ int demo_manager::start_playing(char *filename)
   c=tname;
   while (*c) { if (*c=='\\') *c='/'; c++; }
 
-  bFILE *probe=open_file(tname,"rb");   // see if the level still exsist?
+  bFILE *probe=open_file(tname,"rb");   // see if the level still exists?
   if (probe->open_failure()) { delete record_file; delete probe; return 0; }
   delete probe;
 
@@ -208,11 +210,11 @@ int demo_manager::set_state(demo_state new_state, char *filename)
       delete record_file;
       l_difficulty = initial_difficulty;
       the_game->set_state(MENU_STATE);
-      wm->push_event(new event(ID_NULL,NULL));
+      wm->Push(new Event(ID_NULL,NULL));
 
       view *v=player_list;
       for (; v; v=v->next)  // reset all the players
-      { if (v->focus) { v->reset_player(); v->focus->set_aistate(0); } }
+      { if (v->m_focus) { v->reset_player(); v->m_focus->set_aistate(0); } }
       delete current_level;
       current_level=NULL;
       the_game->reset_keymap();

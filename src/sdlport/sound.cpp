@@ -26,15 +26,10 @@
 # include <Windows.h>
 #endif
 #include <cstring>
-#ifdef HAVE_UNISTD_H
-# include <unistd.h>
-#endif
-#include <errno.h>
 
 #include "SDL.h"
 #include "SDL_mixer.h"
 
-#include "common.h"
 #include "sound.h"
 #include "hmi.h"
 #include "specs.h"
@@ -51,7 +46,6 @@ static SDL_AudioSpec audioObtained;
 int sound_init( int argc, char **argv )
 {
     char *sfxdir, *datadir;
-    FILE *fd = NULL;
 
     // Disable sound if requested.
     if( flags.nosound )
@@ -70,6 +64,7 @@ int sound_init( int argc, char **argv )
     // opendir does not exist. Use GetFileAttributes instead.
     if( GetFileAttributes( sfxdir ) == INVALID_FILE_ATTRIBUTES )
 #else
+    FILE *fd = NULL;
     if( (fd = fopen( sfxdir,"r" )) == NULL )
 #endif
     {

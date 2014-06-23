@@ -92,6 +92,9 @@
 /* Name of package */
 #cmakedefine PACKAGE
 
+/* Enable to enable networking */
+#cmakedefine01 HAVE_NETWORK
+
 /* Define to the address where bug reports for this package should be sent. */
 #cmakedefine PACKAGE_BUGREPORT
 

@@ -22,69 +22,35 @@
 #include "linked.h"
 #include "sprite.h"
 
-
-void sprite::restore_background()
-{ if (x+save->Size().x>=0 && y+save->Size().y>=0 && x<=xres && y<=yres)
-      save->put_image(screen,x,y); }
-
-void sprite::get_background()
-{ if (x+visual->Size().x>=0 && y+visual->Size().y>=0 && x<=xres && y<=yres)
-   screen->put_part(save,0,0,x,y,x+save->Size().x-1,y+save->Size().y-1); }
-
-void sprite::draw()
-{ if (x+visual->Size().x>=0 && y+visual->Size().y>=0 && x<=xres && y<=yres)
-   visual->put_image(screen,x,y,1); }
-
-sprite::sprite(image *Screen, image *Visual, int X, int Y)
+Sprite::Sprite(image *screen, image *visual, ivec2 pos)
 {
-  CHECK(Visual && Screen);
-  x=X; y=Y; visual=Visual; screen=Screen;
-  save = new image(visual->Size());
-  get_background();
+    CHECK(visual && screen);
+    m_pos = pos;
+    m_visual = visual;
+    m_screen = screen;
+    m_save = new image(visual->Size());
+
+    if (m_pos + visual->Size() >= 0 && m_pos < ivec2(xres, yres))
+        m_save->PutPart(m_screen, ivec2(0,0), m_pos, m_pos + m_save->Size());
 }
 
-sprite::~sprite()
+Sprite::~Sprite()
 {
-  delete save;
+    delete m_save;
 }
 
-void sprite_controller::add_sprite(sprite *sp)
-{ sprites.add_end(sp); }
-
-#define loopt(type,controll,first,inside) { controll=(type *)(first); \
-  if (first) do { inside controll=(type *)(controll->Next()); } \
-  while (controll!=(type *)(first)); }
-
-void sprite_controller::remove_sprites()
-{ sprite *sp; loopt(sprite,sp,sprites.first(),sp->restore_background(); ); }
-
-void sprite_controller::put_sprites()
-{ sprite *sp; loopt(sprite,sp,sprites.first(),sp->draw(); ); }
-
-void sprite_controller::get_backgrounds()
-{ sprite *sp; loopt(sprite,sp,sprites.first(),sp->get_background(); ); }
-
-void sprite::change_visual(image *Visual, int delete_old)
-{ if (delete_old)
-    delete visual;
-  visual=Visual;
-  if (save->Size() != Visual->Size())
-  {
-    delete save;
-    save = new image(visual->Size());
-  }
-  get_background();
-}
-
-void sprite_controller::bring_front(sprite *sp)
+void Sprite::SetVisual(image *visual, int delete_old)
 {
-  ERROR(sprites.unlink(sp),"unlink failure");
-  sprites.add_end(sp);
-}
+    if (delete_old)
+        delete m_visual;
+    m_visual = visual;
+    if (m_save->Size() != visual->Size())
+    {
+        delete m_save;
+        m_save = new image(visual->Size());
+    }
 
-void sprite_controller::delete_sprite(sprite *sp)
-{
-  ERROR(sprites.unlink(sp),"unlink failure");
-  delete sp;
+    if (m_pos + visual->Size() >= 0 && m_pos < ivec2(xres, yres))
+        m_save->PutPart(m_screen, ivec2(0,0), m_pos, m_pos + m_save->Size());
 }
 

@@ -125,7 +125,7 @@ image *read_PCX(char const *filename, palette *&pal)
   FILE *fp=fopen(filename,"rb");
   read_PCX_header(fp);
 
-  image *im=new image(vec2i(PCX_header.xmax-PCX_header.xmin+1,
+  image *im=new image(ivec2(PCX_header.xmax-PCX_header.xmin+1,
                             PCX_header.ymax-PCX_header.ymin+1));
   int y;
   for (y=0;y<im->Size().y;y++)

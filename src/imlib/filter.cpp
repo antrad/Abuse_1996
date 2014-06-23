@@ -78,43 +78,37 @@ void Filter::Apply(image *im)
 
 /* This is only ever used in the editor, when showing the toolbar. It
  * does not look like it's very useful. */
-void Filter::PutImage(image *screen, image *im, vec2i pos)
+void Filter::PutImage(image *screen, image *im, ivec2 pos)
 {
-    int cx1, cy1, cx2, cy2, x1 = 0, y1 = 0,
-        x2 = im->Size().x, y2 = im->Size().y;
-    screen->GetClip(cx1, cy1, cx2, cy2);
+    ivec2 aa = ivec2(0), bb = im->Size(), caa, cbb;
+    screen->GetClip(caa, cbb);
 
     // See if the image gets clipped off the screen
-    if(pos.x >= cx2 || pos.y >= cy2 ||
-       pos.x + (x2 - x1) <= cx1 || pos.y + (y2 - y1) <= cy1)
+    if (!(pos < cbb && pos + (bb - aa) > caa))
         return;
 
-    x1 += Max(cx1 - pos.x, 0);
-    y1 += Max(cy1 - pos.y, 0);
-    pos.x = Max(pos.x, cx1);
-    pos.y = Max(pos.y, cy1);
-    x2 = Min(x2, cx2 - pos.x + x1);
-    y2 = Min(y2, cy2 - pos.y + y1);
+    aa += Max(caa - pos, 0);
+    pos = Max(pos, caa);
+    bb = Min(bb, cbb - pos + aa);
 
-    if(x1 >= x2 || y1 >= y2)
+    if (!(aa < bb))
         return;
 
-    int xl = x2 - x1;
-    int yl = y2 - y1;
+    ivec2 span = bb - aa;
 
-    screen->AddDirty(pos.x, pos.y, pos.x + xl, pos.y + yl);
+    screen->AddDirty(pos, pos + span);
 
     screen->Lock();
     im->Lock();
 
-    for(int j = 0; j < yl; j++)
+    for (int j = 0; j < span.y; j++)
     {
-        uint8_t *source = im->scan_line(y1 + j) + x1;
-        uint8_t *dest = screen->scan_line(pos.y + j) + pos.x;
+        uint8_t *src = im->scan_line(aa.y + j) + aa.x;
+        uint8_t *dst = screen->scan_line(pos.y + j) + pos.x;
 
-        for(int i = 0; i < xl; i++, source++, dest++)
-            if (*source)
-                *dest = m_table[*source];
+        for (int i = 0; i < span.x; i++, src++, dst++)
+            if (*src)
+                *dst = m_table[*src];
     }
 
     im->Unlock();

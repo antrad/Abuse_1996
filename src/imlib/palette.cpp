@@ -55,7 +55,7 @@ int palette::write(bFILE *fp)
   return fp->write(pal,sizeof(color)*ncolors)==ncolors;
 }
 
-int palette::find_closest(unsigned char r, unsigned char g, unsigned char b)
+int palette::find_closest(uint8_t r, uint8_t g, uint8_t b)
 {
    unsigned char *cl=(unsigned char *)addr();
    int c=0,d=0x100000,i,nd;
@@ -70,24 +70,7 @@ int palette::find_closest(unsigned char r, unsigned char g, unsigned char b)
    return c;
 }
 
-
-int palette::find_closest_non0(unsigned char r, unsigned char g, unsigned char b)
-{
-   unsigned char *cl=(unsigned char *)addr()+3;
-   int c=1,d=0x7fffffff,i,nd;
-   for (i=1; i<256; i++)
-   {
-     nd=((int)r-(int)(*cl))*((int)r-(int)(*cl)); cl++;
-     nd+=((int)g-(int)(*cl))*((int)g-(int)(*cl)); cl++;
-     nd+=((int)b-(int)(*cl))*((int)b-(int)(*cl)); cl++;
-     if (nd<d)
-     { c=i; d=nd; }
-   }
-   return c;
-}
-
-
-int palette::find_color(unsigned char r, unsigned char g, unsigned char b)
+int palette::find_color(uint8_t r, uint8_t g, uint8_t b)
 {
   int i,ub,mask,find;
   for (i=0,ub=0,mask=128,find=-1; i<ncolors && find<0; i++)
@@ -209,47 +192,6 @@ int palette::used(int color_num)
   x=color_num/8;
   b=color_num%8;
   return (usd[x]&(128>>b));
-}
-
-int palette::add_color(unsigned int r, int unsigned g, int unsigned b, int closest_only)
-{
-  int i,f,u,c;
-  if (!closest_only)
-  {
-    for (i=ncolors-1,f=-1,u=-1; i>=0 && f<0; i--)
-    {
-      if (used(i))
-      {
-        if (pal[i].red==r && pal[i].green==g && pal[i].blue==b)
-    f=i;
-      }
-      else
-        u=i;
-    }
-  } else { f=-1; u=-1; }
-  if (f<0)
-  {
-    if (u>=0)
-    { pal[u].red=r;
-      pal[u].green=g;
-      pal[u].blue=b;
-      set_used(u);
-      f=u;
-    }
-    else
-    {
-      for (i=0,f=0,u=10000; i<ncolors; i++)
-      { c=(pal[i].red-r)*(pal[i].red-r)+
-      (pal[i].green-g)*(pal[i].green-g)+
-      (pal[i].blue-b)*(pal[i].blue-b);
-    if (c<u)
-    { f=i;
-      u=c;
-    }
-      }
-    }
-  }
-  return f;
 }
 
 void palette::defaults()
@@ -429,57 +371,6 @@ void quant_palette::prune()
   f->be_childish();
 }
 
-void quant_palette::add_color(unsigned char r, unsigned char g, unsigned char b)
-{
-  quant_node **p,*fat;
-  int lev,cn,stop;
-  p=&root;
-  lev=0;
-  stop=0;
-  fat=NULL;
-  if (nc>=mx-1)
-    prune();
-  while (!stop)
-  {
-    lev++;
-    if (!(*p))
-    {
-      if (lev>2 && !fat)
-    printf("h");
-      (*p)=new quant_node(lev,fat);
-      level[lev-1].add_end(*p);
-    }
-
-    if (!(*p)->is_leaf())
-    {
-      cn=((r&(256>>lev))!=0)<<2;
-      cn+=((g&(256>>lev))!=0)<<1;
-      cn+=((b&(256>>lev))!=0);
-      fat=(*p);
-      p=&((*p)->children[cn]);
-    } else stop=1;
-
-  }
-  (*p)->set(r,g,b);
-  if (!(*p)->tot)
-    nc++;
-  (*p)->tot++;
-}
-
-palette *quant_palette::create_pal()
-{
-  palette *p;
-  int i,x;
-  quant_node *pn;
-  p=new palette(mx);
-  for (x=0,i=7; i>=0; i++)
-    for (pn=(quant_node *)level[i].first();
-     pn!=(quant_node *)level[i].first(); pn=(quant_node *)pn->Next())
-      if (pn->is_leaf())
-    p->set(x++,pn->red,pn->green,pn->blue);
-  return p;
-}
-
 quant_palette::~quant_palette()
 {
   if (root)
@@ -489,8 +380,8 @@ quant_palette::~quant_palette()
   }
 }
 
-unsigned char palette::brightest(int all)
-{ unsigned char r,g,b,bri;
+uint8_t palette::brightest(int all)
+{ uint8_t r,g,b,bri;
   unsigned i;
   long brv;
   brv=0; bri=0;
@@ -509,8 +400,8 @@ unsigned char palette::brightest(int all)
   return bri;
 }
 
-unsigned char palette::darkest(int all, int noblack)
-{ unsigned char r,g,b,bri;
+uint8_t palette::darkest(int all, int noblack)
+{ uint8_t r,g,b,bri;
   unsigned i;
   long brv,x;
   brv=(long)258*(long)258*(long)258; bri=0;

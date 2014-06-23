@@ -58,16 +58,11 @@ public :
   int used(int color_num);
   void set_all_used();
   void set_all_unused();
-  void set_background(unsigned char b)  { bg=b; }
-  int background(unsigned char b)  { return bg; }
-  int add_color(unsigned int r, unsigned int g, unsigned int b,
-             int closest_only=0);
-  int find_color(unsigned char r, unsigned char g, unsigned char b);
-  int find_closest(unsigned char r, unsigned char g, unsigned char b);
-  int find_closest_non0(unsigned char r, unsigned char g, unsigned char b);
+  int find_color(uint8_t r, uint8_t g, uint8_t b);
+  int find_closest(uint8_t r, uint8_t g, uint8_t b);
   palette *copy();
-  unsigned char brightest(int all=0);
-  unsigned char darkest(int all=0, int noblack=1);
+  uint8_t brightest(int all=0);
+  uint8_t darkest(int all=0, int noblack=1);
   int write(bFILE *fp);
   int size();
   ~palette();
@@ -100,9 +95,7 @@ class quant_palette
   void prune();
   void re_delete(quant_node *who, int lev);
 public :
-  void add_color(unsigned char r, unsigned char g, unsigned char b);
   quant_palette(int max_colors=256);
-  palette *create_pal();
   ~quant_palette();
 } ;
 

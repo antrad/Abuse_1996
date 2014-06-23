@@ -54,13 +54,13 @@ game_object *level::attacker(game_object *who)
   view *f=the_game->first_view;
   for (; f; f=f->next)
   {
-    if (f->focus)
+    if (f->m_focus)
     {
-      int32_t tmp_d=abs(f->focus->x-who->x)+abs(f->focus->y-who->y);
+      int32_t tmp_d=abs(f->m_focus->x-who->x)+abs(f->m_focus->y-who->y);
       if (tmp_d<d)
       {
     d=tmp_d;
-    c=f->focus;
+    c=f->m_focus;
       }
     }
   }
@@ -78,7 +78,7 @@ int level::is_attacker(game_object *who)
 
 game_object *level::main_character()
 {
-  return the_game->first_view->focus;
+  return the_game->first_view->m_focus;
 }
 
 void level::load_fail()
@@ -90,8 +90,8 @@ void level::load_fail()
   first_active=NULL;
   view *f=player_list;
   for (; f; f=f->next)
-    if (f->focus)
-      current_level->remove_object(f->focus);
+    if (f->m_focus)
+      current_level->remove_object(f->m_focus);
 
   while (first)
   {
@@ -132,28 +132,28 @@ void level::restart()
   f=the_game->first_view;
   for (o=first; f && o; o=o->next)
   {
-    while (f && !f->focus) f=f->next;
+    while (f && !f->m_focus) f=f->next;
     if (f)
     {
       if (!strcmp(object_names[o->otype],"START"))
       {
     if (!found) found=o;
-    f->focus->x=o->x;
-    f->focus->y=o->y;
-    f->focus->set_hp(get_ability(f->focus->otype,start_hp));
-    f->focus->set_state(stopped);
+    f->m_focus->x=o->x;
+    f->m_focus->y=o->y;
+    f->m_focus->set_hp(get_ability(f->m_focus->otype,start_hp));
+    f->m_focus->set_state(stopped);
     f=f->next;
       }
     }
   }
   while (f)
   {
-    if (f->focus)
+    if (f->m_focus)
     {
-      f->focus->x=found->x;
-      f->focus->y=found->y;
-      f->focus->set_hp(get_ability(f->focus->otype,start_hp));
-      f->focus->set_state(stopped);
+      f->m_focus->x=found->x;
+      f->m_focus->y=found->y;
+      f->m_focus->set_hp(get_ability(f->m_focus->otype,start_hp));
+      f->m_focus->set_state(stopped);
     }
     f=f->next;
   }
@@ -164,7 +164,7 @@ void level::next_focus()
 {
 /*  int i;
   for (i=0; i<total_objs; i++)
-    if (obj[i]==the_game->first_view->focus)
+    if (obj[i]==the_game->first_view->m_focus)
     {
       int tries=total_objs;
       do
@@ -172,9 +172,9 @@ void level::next_focus()
     i++;
     if (i==total_objs)
       i=0;
-    the_game->first_view->focus=obj[i];
-      }  while ((!the_game->first_view->focus->is_playable() ||
-         the_game->first_view->focus->hp<=0) && tries--);
+    the_game->first_view->m_focus=obj[i];
+      }  while ((!the_game->first_view->m_focus->is_playable() ||
+         the_game->first_view->m_focus->hp<=0) && tries--);
       return ;
     }            */
 }
@@ -311,8 +311,8 @@ view *level::make_view_list(int nplayers)
     if (!strcmp(object_names[o->otype],"START"))
     {
       f=new view(create(use_type,o->x,o->y),f,num); num++;
-      f->focus->set_controller(f);
-      add_object_after(f->focus,o);
+      f->m_focus->set_controller(f);
+      add_object_after(f->m_focus,o);
       j++;
       last_start=o;
     }
@@ -325,9 +325,9 @@ view *level::make_view_list(int nplayers)
   {
     if (startable)
     {
-      game_object *o=create(use_type,f->focus->x,f->focus->y);
+      game_object *o=create(use_type,f->m_focus->x,f->m_focus->y);
       f=new view(o,f,num); num++;
-      f->focus->set_controller(f);
+      f->m_focus->set_controller(f);
       add_object_after(o,last_start);
     }
     else
@@ -400,7 +400,7 @@ void level::try_pushback(game_object *subject,game_object *target)
 /*
 void level::check_collisions()
 {
-  game_object *target,*reciever=NULL;
+  game_object *target,*receiver=NULL;
   int32_t sx1,sy1,sx2,sy2,tx1,ty1,tx2,ty2,hitx,hity,
       s_centerx,t_centerx;
 
@@ -410,7 +410,7 @@ void level::check_collisions()
     s_centerx=subject->x_center();
 
     int hit=0;
-    reciever=NULL;
+    receiver=NULL;
     for (target=first_active; target; target=target->next_active)
     {
       if (target!=subject)
@@ -457,7 +457,7 @@ void level::check_collisions()
 
         if (x2!=_x2 || _y2!=y2)
         {
-          reciever=target;
+          receiver=target;
           hitx=((x1+x2)/2+(xp1+xp2)/2)/2;
           hity=((y1+y1)/2+(yp1+yp2)/2)/2;
         }
@@ -468,10 +468,10 @@ void level::check_collisions()
     }
       }
     }
-    if (reciever)
+    if (receiver)
     {
-      reciever->do_damage((int)subject->current_figure()->hit_damage,subject,hitx,hity,0,0);
-      subject->note_attack(reciever);
+      receiver->do_damage((int)subject->current_figure()->hit_damage,subject,hitx,hity,0,0);
+      subject->note_attack(receiver);
       hit=1;
     }
   }
@@ -744,7 +744,7 @@ int level::tick()
       l=o;
     }
 
-    clear_tmp();
+    LSpace::Tmp.Clear();
 
     if (cur)
     {
@@ -772,7 +772,7 @@ int level::tick()
     {
       char name[100];
       sprintf(name,"shot%04d.pcx",screen_shot_on++);
-      write_PCX(screen,pal,name);
+      write_PCX(main_screen,pal,name);
     }
   }
 
@@ -786,27 +786,17 @@ void level::set_tick_counter(uint32_t x)
 
 void level::draw_areas(view *v)
 {
-  int32_t sx1,sy1,sx2,sy2;
-  area_controller *a=area_list;
-  for (; a; a=a->next)
-  {
-    int c1,c2;
-    if (a->active)
+    for (area_controller *a = area_list; a; a = a->next)
     {
-      c1=morph_sel_frame_color;
-      c2=wm->bright_color();
-    } else
-    {
-      c2=morph_sel_frame_color;
-      c1=wm->bright_color();
-    }
+        int c1 = a->active ? morph_sel_frame_color : wm->bright_color();
+        int c2 = a->active ? wm->bright_color() : morph_sel_frame_color;
 
-    the_game->game_to_mouse(a->x,a->y,v,sx1,sy1);
-    the_game->game_to_mouse(a->x+a->w,a->y+a->h,v,sx2,sy2);
-    screen->rectangle(sx1,sy1,sx2,sy2,c1);
-    screen->bar(sx1-1,sy1-1,sx1+1,sy1+1,c2);
-    screen->bar(sx2-1,sy2-1,sx2+1,sy2+1,c2);
-  }
+        ivec2 pos1 = the_game->GameToMouse(ivec2(a->x, a->y), v);
+        ivec2 pos2 = the_game->GameToMouse(ivec2(a->x + a->w, a->y + a->h), v);
+        main_screen->Rectangle(pos1, pos2, c1);
+        main_screen->Bar(pos1 - ivec2(1, 1), pos1 + ivec2(1, 1), c2);
+        main_screen->Bar(pos2 - ivec2(1, 1), pos2 + ivec2(1, 1), c2);
+    }
 }
 
 void level::draw_objects(view *v)
@@ -823,7 +813,7 @@ void level::draw_objects(view *v)
       o->draw();
   }
 
-  clear_tmp();
+  LSpace::Tmp.Clear();
 }
 
 void calc_bgsize(uint16_t fgw, uint16_t  fgh, uint16_t  &bgw, uint16_t  &bgh)
@@ -855,14 +845,14 @@ void level::set_size(int w, int h)
 
   for (y=0; y<miny; y++)
     for (x=0; x<minx; x++)
-      new_fg[x+y*w]=get_fg(x,y);
+      new_fg[x+y*w]=GetFg(ivec2(x, y));
 
   miny=(nbh<bg_height) ? nbh : bg_height;
   minx=(nbw<bg_width) ? nbw : bg_width;
 
   for (y=0; y<miny; y++)
     for (x=0; x<minx; x++)
-      new_bg[x+y*nbw]=get_bg(x,y);
+      new_bg[x+y*nbw]=GetBg(ivec2(x, y));
 
   free(map_fg);
   free(map_bg);
@@ -942,7 +932,7 @@ void level::old_load_objects(spec_directory *sd, bFILE *fp)
     {
       uint16_t t=fp->read_uint16();
       game_object *p=new game_object(o_remap[t],1);
-      clear_tmp();
+      LSpace::Tmp.Clear();
       if (!first) first=p; else last->next=p;
       last=p; p->next=NULL;
     }
@@ -1080,7 +1070,7 @@ void level::load_objects(spec_directory *sd, bFILE *fp)
       {
     fp->read(old_name,fp->read_uint8());
     int new_type=o_remap[i];
-    if (new_type<total_objects)     // make sure old object still exsist
+    if (new_type<total_objects)     // make sure old object still exists
     {
       int k=0;
       for (; k<figures[new_type]->ts; k++)
@@ -1118,7 +1108,7 @@ void level::load_objects(spec_directory *sd, bFILE *fp)
     {
       fp->read(old_name,fp->read_uint8());
       int new_type=o_remap[i];
-      if (new_type!=0xffff)        // make sure old object still exsist
+      if (new_type!=0xffff)        // make sure old object still exists
       {
         int k=0;
         for (; k<figures[new_type]->tiv; k++)
@@ -1152,7 +1142,7 @@ void level::load_objects(spec_directory *sd, bFILE *fp)
       {
         uint16_t t=fp->read_uint16();
         game_object *p=new game_object(o_remap[t],1);
-        clear_tmp();
+        LSpace::Tmp.Clear();
         if (!first) first=p; else last->next=p;
         last=p; p->next=NULL;
       }
@@ -1371,7 +1361,7 @@ level::level(spec_directory *sd, bFILE *fp, char const *lev_name)
   }
   stat_man->update(10);
 
-  /***************** Check map for non exsistant tiles **************************/
+  /***************** Check map for non existsant tiles **************************/
   int32_t i,w;
   uint16_t *m;
   spec_entry *load_all=sd->find("player_info");
@@ -1511,15 +1501,15 @@ void level::level_loaded_notify()
 
 /*  if (DEFINEDP(symbol_function(l_level_loaded)))
   {
-    int sp=current_space;
-    current_space=PERM_SPACE;
+    LSpace *sp = LSpace::Current;
+    LSpace::Current = &LSpace::Perm;
 
     void *arg_list=NULL;
     PtrRef r1(arg_list);
     push_onto_list(LString::Create(n),arg_list);
     ((LSymbol *)l_level_loaded)->EvalFunction(arg_list);
 
-    current_space=sp;
+    LSpace::Current = sp;
   } */
 }
 
@@ -1634,7 +1624,7 @@ bFILE *level::create_dir(char *filename, int save_all,
       name_len+=strlen(v->name)+2;
     sd.add_by_hand(new spec_entry(SPEC_DATA_ARRAY,"player_names",NULL,name_len,0));
 
-    sd.add_by_hand(new spec_entry(SPEC_IMAGE,"thumb nail",NULL,4+160*(100+wm->font()->height()*2),0));
+    sd.add_by_hand(new spec_entry(SPEC_IMAGE,"thumb nail",NULL,4+160*(100+wm->font()->Size().y*2),0));
   }
 
   sd.calc_offsets();
@@ -1646,18 +1636,18 @@ void scale_put(image *im, image *screen, int x, int y, short new_width, short ne
 
 void level::write_thumb_nail(bFILE *fp, image *im)
 {
-  image *i = new image(vec2i(160, 100 + wm->font()->height() * 2));
+  image *i = new image(ivec2(160, 100 + wm->font()->Size().y * 2));
   i->clear();
   scale_put(im,i,0,0,160,100);
   if (first_name)
-    wm->font()->put_string(i,80-strlen(first_name)*wm->font()->width()/2,100,first_name);
+    wm->font()->PutString(i, ivec2(80 - strlen(first_name) * wm->font()->Size().x / 2, 100), first_name);
 
   time_t t;
   t=time(NULL);
   char buf[80];
 
   strftime(buf,80,"%T %A %B %d",localtime(&t));
-  wm->font()->put_string(i,80-strlen(buf)*wm->font()->width()/2,100+wm->font()->height(),buf);
+  wm->font()->PutString(i, ivec2(80, 100) + ivec2(-strlen(buf), 2) * wm->font()->Size() / ivec2(2),buf);
 
   fp->write_uint16(i->Size().x);
   fp->write_uint16(i->Size().y);
@@ -1678,7 +1668,7 @@ void level::write_player_info(bFILE *fp, object_node *save_list)
   fp->write_uint32(t);
 
   for (v=player_list; v; v=v->next)
-    fp->write_uint32(object_to_number_in_list(v->focus,save_list));
+    fp->write_uint32(object_to_number_in_list(v->m_focus,save_list));
 
   int tv=total_view_vars();
   int i=0;
@@ -1732,11 +1722,11 @@ int level::load_player_info(bFILE *fp, spec_directory *sd, object_node *save_lis
     while (player_list)    // delete all of the views (they will get recreated)
     {
       v=player_list;
-      if (v->focus)
+      if (v->m_focus)
       {
-        if (v->focus->controller())
-         v->focus->set_controller(NULL);
-    delete v->focus;
+        if (v->m_focus->controller())
+         v->m_focus->set_controller(NULL);
+    delete v->m_focus;
       }
 
       player_list=player_list->next;
@@ -1793,7 +1783,7 @@ int level::load_player_info(bFILE *fp, spec_directory *sd, object_node *save_lis
       fp->seek(se->offset,0);
       if (fp->read_uint8()==RC_32)
       {
-    int32_t m=fp->read_uint32();  // read how many weapons exsisted when last saved
+    int32_t m=fp->read_uint32();  // read how many weapons existsed when last saved
     int i;
     for (v=player_list; v; v=v->next)
     {
@@ -1840,12 +1830,12 @@ int level::load_player_info(bFILE *fp, spec_directory *sd, object_node *save_lis
       game_object *o=current_object;
       for (f=player_list; f; f=f->next)
       {
-    if (f->focus)
+    if (f->m_focus)
     {
-      current_object=f->focus;
-      void *m=mark_heap(TMP_SPACE);
+      current_object = f->m_focus;
+      void *m = LSpace::Tmp.Mark();
       fun->EvalFunction(NULL);
-      restore_heap(m,TMP_SPACE);
+      LSpace::Tmp.Restore(m);
     }
       }
       current_object=o;
@@ -2324,7 +2314,7 @@ int level::save(char const *filename, int save_all)
             if( save_all )
             {
                 write_player_info( fp, objs );
-                write_thumb_nail( fp,screen );
+                write_thumb_nail( fp,main_screen );
             }
 
             delete fp;
@@ -2649,7 +2639,7 @@ void level::foreground_intersect(int32_t x1, int32_t y1, int32_t &x2, int32_t &y
   {
     for (by=blocky1; by<=blocky2; by++)
     {
-      block=the_game->get_map_fg(bx,by);
+      block=the_game->GetMapFg(ivec2(bx, by));
       if (block>BLACK)        // don't check BLACK, should be no points in it
       {
         // now check the all the line segments in the block
@@ -2723,7 +2713,7 @@ void level::vforeground_intersect(int32_t x1, int32_t y1, int32_t &y2)
 
   for (by=blocky1; by<=blocky2; by++,y1-=f_hi,y2-=f_hi,y_addback+=f_hi)
   {
-    block=the_game->get_map_fg(bx,by);
+    block=the_game->GetMapFg(ivec2(bx, by));
 
     // now check the all the line segments in the block
     foretile *f=the_game->get_fg(block);
@@ -2770,7 +2760,7 @@ void level::send_signal(int32_t signal)
   {
     game_object *o=first_active;
     for (; o; o=o->next_active)
-      o->recieve_signal(signal);
+      o->receive_signal(signal);
   }
 }
 
@@ -3105,10 +3095,10 @@ void level::insert_players()
     game_object *st=find_type(start,f->player_number);
     if (st)
     {
-      f->focus->x=st->x;
-      f->focus->y=st->y;
+      f->m_focus->x=st->x;
+      f->m_focus->y=st->y;
     }
-    add_object_after(f->focus,st);
+    add_object_after(f->m_focus,st);
   }
 
 }

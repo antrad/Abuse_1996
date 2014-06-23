@@ -25,7 +25,7 @@ public :
     void Set(int color_num, int change_to);
     int GetMapping(int color_num) { return m_table[color_num]; }
     void Apply(image *im);
-    void PutImage(image *screen, image *im, vec2i pos);
+    void PutImage(image *screen, image *im, ivec2 pos);
 
 private:
     int m_size;

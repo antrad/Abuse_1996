@@ -1,4 +1,5 @@
-add_library(imlib filter.cpp filter.h
+add_library(imlib
+    filter.cpp filter.h
     image.cpp image.h
     transimage.cpp transimage.h
     linked.cpp linked.h
@@ -21,7 +22,8 @@ add_library(imlib filter.cpp filter.h
     sprite.cpp sprite.h
     jwindow.cpp jwindow.h
     video.cpp video.h
-    event.h mouse.h timing.h jdir.h visobj.h
+    event.cpp event.h
+    timing.h jdir.h visobj.h
 )
 
 include_directories(${abuse_SOURCE_DIR}/src)

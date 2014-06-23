@@ -41,19 +41,19 @@
  * variables will reside in permanant space.  Eveything else will reside in
  * tmp space which gets thrown away after completion of eval.  system
  * functions reside in permant space. */
+LSpace LSpace::Tmp, LSpace::Perm, LSpace::Gc;
 
-bFILE *current_print_file=NULL;
+/* Normally set to Tmp, unless compiling or other needs. */
+LSpace *LSpace::Current;
+
+bFILE *current_print_file = NULL;
 
 LSymbol *LSymbol::root = NULL;
 size_t LSymbol::count = 0;
 
-
-uint8_t *space[4], *free_space[4];
-size_t space_size[4];
 int print_level = 0, trace_level = 0, trace_print_level = 1000;
 int total_user_functions;
-
-int current_space;  // normally set to TMP_SPACE, unless compiling or other needs
+static int evaldepth = 0, maxevaldepth = 0;
 
 int break_level=0;
 
@@ -159,53 +159,52 @@ void lbreak(char const *format, ...)
 
 void need_perm_space(char const *why)
 {
-  if (current_space!=PERM_SPACE && current_space!=GC_SPACE)
+  if (LSpace::Current != &LSpace::Perm && LSpace::Current != &LSpace::Gc)
   {
     lbreak("%s : action requires permanant space\n", why);
     exit(0);
   }
 }
 
-void *mark_heap(int heap)
+void *LSpace::Mark()
 {
-  return free_space[heap];
+    return m_free;
 }
 
-void restore_heap(void *val, int heap)
+void LSpace::Restore(void *val)
 {
-  free_space[heap] = (uint8_t *)val;
+    m_free = (uint8_t *)val;
 }
 
-static size_t get_free_size(int which_space)
+size_t LSpace::GetFree()
 {
-    size_t used = free_space[which_space] - space[which_space];
-    return space_size[which_space] > used ? space_size[which_space] - used : 0;
+    size_t used = m_free - m_data;
+    return m_size > used ? m_size - used : 0;
 }
 
-static void *lmalloc(size_t size, int which_space)
+void *LSpace::Alloc(size_t size)
 {
     // Align allocation
     size = (size + sizeof(intptr_t) - 1) & ~(sizeof(intptr_t) - 1);
 
     // Collect garbage if necessary
-    if (size > get_free_size(which_space))
+    if (size > GetFree())
     {
-        if (which_space == PERM_SPACE || which_space == TMP_SPACE)
-            LispGC::CollectSpace(which_space, 0);
+        if (this == &LSpace::Perm || this == &LSpace::Tmp)
+            Lisp::CollectSpace(this, 0);
 
-        if (size > get_free_size(which_space))
-            LispGC::CollectSpace(which_space, 1);
+        if (size > GetFree())
+            Lisp::CollectSpace(this, 1);
 
-        if (size > get_free_size(which_space))
+        if (size > GetFree())
         {
-            lbreak("lisp: cannot find %d bytes in space #%d\n",
-                   size, which_space);
+            lbreak("lisp: cannot find %d bytes in %s\n", size, m_name);
             exit(0);
         }
     }
 
-    void *ret = (void *)free_space[which_space];
-    free_space[which_space] += size;
+    void *ret = m_free;
+    m_free += size;
     return ret;
 }
 
@@ -228,9 +227,9 @@ LArray *LArray::Create(size_t len, void *rest)
     if (size < sizeof(LRedirect))
         size = sizeof(LRedirect);
 
-    LArray *p = (LArray *)lmalloc(size, current_space);
-    p->type = L_1D_ARRAY;
-    p->len = len;
+    LArray *p = (LArray *)LSpace::Current->Alloc(size);
+    p->m_type = L_1D_ARRAY;
+    p->m_len = len;
     LObject **data = p->GetData();
     memset(data, 0, len * sizeof(LObject *));
     PtrRef r1(p);
@@ -281,9 +280,9 @@ LFixedPoint *LFixedPoint::Create(int32_t x)
 {
     size_t size = Max(sizeof(LFixedPoint), sizeof(LRedirect));
 
-    LFixedPoint *p = (LFixedPoint *)lmalloc(size, current_space);
-    p->type = L_FIXED_POINT;
-    p->x = x;
+    LFixedPoint *p = (LFixedPoint *)LSpace::Current->Alloc(size);
+    p->m_type = L_FIXED_POINT;
+    p->m_fixed = x;
     return p;
 }
 
@@ -291,9 +290,9 @@ LObjectVar *LObjectVar::Create(int index)
 {
     size_t size = Max(sizeof(LObjectVar), sizeof(LRedirect));
 
-    LObjectVar *p = (LObjectVar *)lmalloc(size, current_space);
-    p->type = L_OBJECT_VAR;
-    p->index = index;
+    LObjectVar *p = (LObjectVar *)LSpace::Current->Alloc(size);
+    p->m_type = L_OBJECT_VAR;
+    p->m_index = index;
     return p;
 }
 
@@ -303,9 +302,9 @@ LPointer *LPointer::Create(void *addr)
         return NULL;
     size_t size = Max(sizeof(LPointer), sizeof(LRedirect));
 
-    LPointer *p = (LPointer *)lmalloc(size, current_space);
-    p->type = L_POINTER;
-    p->addr = addr;
+    LPointer *p = (LPointer *)LSpace::Current->Alloc(size);
+    p->m_type = L_POINTER;
+    p->m_addr = addr;
     return p;
 }
 
@@ -313,24 +312,24 @@ LChar *LChar::Create(uint16_t ch)
 {
     size_t size = Max(sizeof(LChar), sizeof(LRedirect));
 
-    LChar *c = (LChar *)lmalloc(size, current_space);
-    c->type = L_CHARACTER;
-    c->ch = ch;
+    LChar *c = (LChar *)LSpace::Current->Alloc(size);
+    c->m_type = L_CHARACTER;
+    c->m_ch = ch;
     return c;
 }
 
 struct LString *LString::Create(char const *string)
 {
     LString *s = Create(strlen(string) + 1);
-    strcpy(s->str, string);
+    strcpy(s->m_str, string);
     return s;
 }
 
 struct LString *LString::Create(char const *string, int length)
 {
     LString *s = Create(length + 1);
-    memcpy(s->str, string, length);
-    s->str[length] = 0;
+    memcpy(s->m_str, string, length);
+    s->m_str[length] = 0;
     return s;
 }
 
@@ -338,9 +337,9 @@ struct LString *LString::Create(int length)
 {
     size_t size = Max(sizeof(LString) + length - 1, sizeof(LRedirect));
 
-    LString *s = (LString *)lmalloc(size, current_space);
-    s->type = L_STRING;
-    s->str[0] = '\0';
+    LString *s = (LString *)LSpace::Current->Alloc(size);
+    s->m_type = L_STRING;
+    s->m_str[0] = '\0';
     return s;
 }
 
@@ -350,8 +349,8 @@ LUserFunction *new_lisp_user_function(LList *arg_list, LList *block_list)
 
     size_t size = Max(sizeof(LUserFunction), sizeof(LRedirect));
 
-    LUserFunction *lu = (LUserFunction *)lmalloc(size, current_space);
-    lu->type = L_USER_FUNCTION;
+    LUserFunction *lu = (LUserFunction *)LSpace::Current->Alloc(size);
+    lu->m_type = L_USER_FUNCTION;
     lu->arg_list = arg_list;
     lu->block_list = block_list;
     return lu;
@@ -362,9 +361,10 @@ LSysFunction *new_lisp_sys_function(int min_args, int max_args, int fun_number)
     size_t size = Max(sizeof(LSysFunction), sizeof(LRedirect));
 
     // System functions should reside in permanant space
-    int space = (current_space == GC_SPACE) ? GC_SPACE : PERM_SPACE;
-    LSysFunction *ls = (LSysFunction *)lmalloc(size, space);
-    ls->type = L_SYS_FUNCTION;
+    LSysFunction *ls = LSpace::Current == &LSpace::Gc
+                     ? (LSysFunction *)LSpace::Gc.Alloc(size)
+                     : (LSysFunction *)LSpace::Perm.Alloc(size);
+    ls->m_type = L_SYS_FUNCTION;
     ls->min_args = min_args;
     ls->max_args = max_args;
     ls->fun_number = fun_number;
@@ -374,21 +374,21 @@ LSysFunction *new_lisp_sys_function(int min_args, int max_args, int fun_number)
 LSysFunction *new_lisp_c_function(int min_args, int max_args, int fun_number)
 {
     LSysFunction *ls = new_lisp_sys_function(min_args, max_args, fun_number);
-    ls->type = L_C_FUNCTION;
+    ls->m_type = L_C_FUNCTION;
     return ls;
 }
 
 LSysFunction *new_lisp_c_bool(int min_args, int max_args, int fun_number)
 {
     LSysFunction *ls = new_lisp_sys_function(min_args, max_args, fun_number);
-    ls->type = L_C_BOOL;
+    ls->m_type = L_C_BOOL;
     return ls;
 }
 
 LSysFunction *new_user_lisp_function(int min_args, int max_args, int fun_number)
 {
     LSysFunction *ls = new_lisp_sys_function(min_args, max_args, fun_number);
-    ls->type = L_L_FUNCTION;
+    ls->m_type = L_L_FUNCTION;
     return ls;
 }
 
@@ -396,13 +396,13 @@ LSymbol *new_lisp_symbol(char *name)
 {
     size_t size = Max(sizeof(LSymbol), sizeof(LRedirect));
 
-    LSymbol *s = (LSymbol *)lmalloc(size, current_space);
+    LSymbol *s = (LSymbol *)LSpace::Current->Alloc(size);
     PtrRef ref(s);
 
-    s->type = L_SYMBOL;
-    s->name = LString::Create(name);
-    s->value = l_undefined;
-    s->function = l_undefined;
+    s->m_type = L_SYMBOL;
+    s->m_name = LString::Create(name);
+    s->m_value = l_undefined;
+    s->m_function = l_undefined;
 #ifdef L_PROFILE
     s->time_taken = 0;
 #endif
@@ -413,9 +413,9 @@ LNumber *LNumber::Create(long num)
 {
     size_t size = Max(sizeof(LNumber), sizeof(LRedirect));
 
-    LNumber *n = (LNumber *)lmalloc(size, current_space);
-    n->type = L_NUMBER;
-    n->num = num;
+    LNumber *n = (LNumber *)LSpace::Current->Alloc(size);
+    n->m_type = L_NUMBER;
+    n->m_num = num;
     return n;
 }
 
@@ -423,10 +423,10 @@ LList *LList::Create()
 {
     size_t size = Max(sizeof(LList), sizeof(LRedirect));
 
-    LList *c = (LList *)lmalloc(size, current_space);
-    c->type = L_CONS_CELL;
-    c->car = NULL;
-    c->cdr = NULL;
+    LList *c = (LList *)LSpace::Current->Alloc(size);
+    c->m_type = L_CONS_CELL;
+    c->m_car = NULL;
+    c->m_cdr = NULL;
     return c;
 }
 
@@ -477,29 +477,27 @@ void *lpointer_value(void *lpointer)
     exit(0);
   }
 #endif
-  return ((LPointer *)lpointer)->addr;
+  return ((LPointer *)lpointer)->m_addr;
 }
 
 int32_t lnumber_value(void *lnumber)
 {
-  switch (item_type(lnumber))
-  {
-    case L_NUMBER :
-      return ((LNumber *)lnumber)->num;
-    case L_FIXED_POINT :
-      return (((LFixedPoint *)lnumber)->x)>>16;
-    case L_STRING :
-      return (uint8_t)*lstring_value(lnumber);
-    case L_CHARACTER :
-      return lcharacter_value(lnumber);
-    default :
+    switch (item_type(lnumber))
     {
-      ((LObject *)lnumber)->Print();
-      lbreak(" is not a number\n");
-      exit(0);
+    case L_NUMBER:
+        return ((LNumber *)lnumber)->m_num;
+    case L_FIXED_POINT:
+        return ((LFixedPoint *)lnumber)->m_fixed >> 16;
+    case L_STRING:
+        return (uint8_t)*lstring_value(lnumber);
+    case L_CHARACTER:
+        return ((LChar *)lnumber)->m_ch;
+    default:
+        ((LObject *)lnumber)->Print();
+        lbreak(" is not a number\n");
+        exit(0);
     }
-  }
-  return 0;
+    return 0;
 }
 
 char *LString::GetString()
@@ -512,7 +510,7 @@ char *LString::GetString()
         exit(0);
     }
 #endif
-    return str;
+    return m_str;
 }
 
 void *lisp_atom(void *i)
@@ -526,7 +524,7 @@ LObject *lcdr(void *c)
 {
   if (!c) return NULL;
   else if (item_type(c)==(ltype)L_CONS_CELL)
-    return ((LList *)c)->cdr;
+    return ((LList *)c)->m_cdr;
   else
     return NULL;
 }
@@ -535,21 +533,21 @@ LObject *lcar(void *c)
 {
   if (!c) return NULL;
   else if (item_type(c)==(ltype)L_CONS_CELL)
-    return ((LList *)c)->car;
+    return ((LList *)c)->m_car;
   else return NULL;
 }
 
-uint16_t lcharacter_value(void *c)
+uint16_t LChar::GetValue()
 {
 #ifdef TYPE_CHECKING
-  if (item_type(c)!=L_CHARACTER)
-  {
-    ((LObject *)c)->Print();
-    lbreak("is not a character\n");
-    exit(0);
-  }
+    if (item_type(this) != L_CHARACTER)
+    {
+        Print();
+        lbreak("is not a character\n");
+        exit(0);
+    }
 #endif
-  return ((LChar *)c)->ch;
+    return m_ch;
 }
 
 long lfixed_point_value(void *c)
@@ -557,9 +555,9 @@ long lfixed_point_value(void *c)
   switch (item_type(c))
   {
     case L_NUMBER :
-      return ((LNumber *)c)->num<<16; break;
+      return ((LNumber *)c)->m_num<<16; break;
     case L_FIXED_POINT :
-      return (((LFixedPoint *)c)->x); break;
+      return (((LFixedPoint *)c)->m_fixed); break;
     default :
     {
       ((LObject *)c)->Print();
@@ -578,12 +576,12 @@ void *lisp_eq(void *n1, void *n2)
     int t1=*((ltype *)n1), t2=*((ltype *)n2);
     if (t1!=t2) return NULL;
     else if (t1==L_NUMBER)
-    { if (((LNumber *)n1)->num==((LNumber *)n2)->num)
+    { if (((LNumber *)n1)->m_num==((LNumber *)n2)->m_num)
         return true_symbol;
       else return NULL;
     } else if (t1==L_CHARACTER)
     {
-      if (((LChar *)n1)->ch==((LChar *)n2)->ch)
+      if (((LChar *)n1)->m_ch==((LChar *)n2)->m_ch)
         return true_symbol;
       else return NULL;
     }
@@ -598,19 +596,19 @@ void *lisp_eq(void *n1, void *n2)
 LObject *LArray::Get(int x)
 {
 #ifdef TYPE_CHECKING
-    if (type != L_1D_ARRAY)
+    if (m_type != L_1D_ARRAY)
     {
         Print();
         lbreak("is not an array\n");
         exit(0);
     }
 #endif
-    if (x >= (int)len || x < 0)
+    if (x >= (int)m_len || x < 0)
     {
         lbreak("array reference out of bounds (%d)\n", x);
         exit(0);
     }
-    return data[x];
+    return m_data[x];
 }
 
 void *lisp_equal(void *n1, void *n2)
@@ -758,29 +756,29 @@ LSymbol *find_symbol(char const *name)
   LList *cs;
   for (cs=(LList *)symbol_list; cs; cs=(LList *)CDR(cs))
   {
-    if (!strcmp( ((char *)((LSymbol *)cs->car)->name)+sizeof(LString), name))
-      return (LSymbol *)(cs->car);
+    if (!strcmp( ((char *)((LSymbol *)cs->m_car)->m_name)+sizeof(LString), name))
+      return (LSymbol *)(cs->m_car);
   }
   return NULL;
 }
 
 
-LSymbol *make_find_symbol(char const *name)    // find a symbol, if it doesn't exsist it is created
+LSymbol *make_find_symbol(char const *name)    // find a symbol, if it doesn't exists it is created
 {
   LSymbol *s=find_symbol(name);
   if (s) return s;
   else
   {
-    int sp=current_space;
-    if (current_space!=GC_SPACE)
-      current_space=PERM_SPACE;       // make sure all symbols get defined in permanant space
+    LSpace *sp = LSpace::Current;
+    if (LSpace::Current != &LSpace::Gc)
+      LSpace::Current = &LSpace::Perm;       // make sure all symbols get defined in permanant space
     LList *cs;
     cs=LList::Create();
     s=new_lisp_symbol(name);
-    cs->car=s;
-    cs->cdr=symbol_list;
+    cs->m_car=s;
+    cs->m_cdr=symbol_list;
     symbol_list=cs;
-    current_space=sp;
+    LSpace::Current = sp;
   }
   return s;
 }
@@ -792,10 +790,10 @@ LSymbol *LSymbol::Find(char const *name)
     LSymbol *p = root;
     while (p)
     {
-        int cmp = strcmp(name, p->name->GetString());
+        int cmp = strcmp(name, p->m_name->GetString());
         if (cmp == 0)
             return p;
-        p = (cmp < 0) ? p->left : p->right;
+        p = (cmp < 0) ? p->m_left : p->m_right;
     }
     return NULL;
 }
@@ -806,33 +804,34 @@ LSymbol *LSymbol::FindOrCreate(char const *name)
     LSymbol **parent = &root;
     while (p)
     {
-        int cmp = strcmp(name, p->name->GetString());
+        int cmp = strcmp(name, p->m_name->GetString());
         if (cmp == 0)
             return p;
-        parent = (cmp < 0) ? &p->left : &p->right;
+        parent = (cmp < 0) ? &p->m_left : &p->m_right;
         p = *parent;
     }
 
     // Make sure all symbols get defined in permanant space
-    int sp = current_space;
-    if (current_space != GC_SPACE)
-       current_space = PERM_SPACE;
+    LSpace *sp = LSpace::Current;
+    if (LSpace::Current != &LSpace::Gc)
+        LSpace::Current = &LSpace::Perm;
 
+    // These permanent objects cannot be GCed, so malloc() them
     p = (LSymbol *)malloc(sizeof(LSymbol));
-    p->type = L_SYMBOL;
-    p->name = LString::Create(name);
+    p->m_type = L_SYMBOL;
+    p->m_name = LString::Create(name);
 
     // If constant, set the value to ourself
-    p->value = (name[0] == ':') ? p : l_undefined;
-    p->function = l_undefined;
+    p->m_value = (name[0] == ':') ? p : l_undefined;
+    p->m_function = l_undefined;
 #ifdef L_PROFILE
     p->time_taken = 0;
 #endif
-    p->left = p->right = NULL;
+    p->m_left = p->m_right = NULL;
     *parent = p;
     count++;
 
-    current_space = sp;
+    LSpace::Current = sp;
     return p;
 }
 
@@ -840,26 +839,24 @@ static void DeleteAllSymbols(LSymbol *root)
 {
     if (root)
     {
-        DeleteAllSymbols(root->left);
-        DeleteAllSymbols(root->right);
+        DeleteAllSymbols(root->m_left);
+        DeleteAllSymbols(root->m_right);
         free(root);
     }
 }
 
-void *assoc(void *item, void *list)
+LList *LList::Assoc(LObject *item)
 {
-  if (item_type(list)!=(ltype)L_CONS_CELL)
-    return NULL;
-  else
-  {
-    while (list)
+    LList *list = this;
+    while (list && item_type(list) == L_CONS_CELL
+                && item_type(CAR(list)) == L_CONS_CELL)
     {
-      if (lisp_eq(CAR(CAR(list)), item))
-        return lcar(list);
-      list=(LList *)(CDR(list));
+        if (lisp_eq(CAR(CAR(list)), item))
+            return (LList *)CAR(list);
+        list = (LList *)CDR(list);
     }
-  }
-  return NULL;
+
+    return NULL;
 }
 
 size_t LList::GetLength()
@@ -907,40 +904,40 @@ void *pairlis(void *list1, void *list2, void *list3)
       if (!first)
         first = cur;
       if (last)
-        last->cdr = cur;
+        last->m_cdr = cur;
       last = cur;
 
       LList *cell = LList::Create();
       tmp = (LObject *)lcar(list1);
-      cell->car = tmp;
+      cell->m_car = tmp;
       tmp = (LObject *)lcar(list2);
-      cell->cdr = tmp;
-      cur->car = cell;
+      cell->m_cdr = tmp;
+      cur->m_car = cell;
 
-      list1 = ((LList *)list1)->cdr;
-      list2 = ((LList *)list2)->cdr;
+      list1 = ((LList *)list1)->m_cdr;
+      list2 = ((LList *)list2)->m_cdr;
     }
-    cur->cdr = (LObject *)list3;
+    cur->m_cdr = (LObject *)list3;
     ret=first;
   } else ret=NULL;
   return ret;
 }
 
-void LSymbol::SetFunction(LObject *fun)
+void LSymbol::SetFunction(LObject *function)
 {
-    function = fun;
+    m_function = function;
 }
 
 LSymbol *add_sys_function(char const *name, short min_args, short max_args, short number)
 {
   need_perm_space("add_sys_function");
   LSymbol *s = LSymbol::FindOrCreate(name);
-  if (s->function!=l_undefined)
+  if (s->m_function!=l_undefined)
   {
     lbreak("add_sys_fucntion -> symbol %s already has a function\n", name);
     exit(0);
   }
-  else s->function=new_lisp_sys_function(min_args, max_args, number);
+  else s->m_function=new_lisp_sys_function(min_args, max_args, number);
   return s;
 }
 
@@ -948,12 +945,12 @@ LSymbol *add_c_object(void *symbol, int index)
 {
   need_perm_space("add_c_object");
   LSymbol *s=(LSymbol *)symbol;
-  if (s->value!=l_undefined)
+  if (s->m_value!=l_undefined)
   {
     lbreak("add_c_object -> symbol %s already has a value\n", lstring_value(s->GetName()));
     exit(0);
   }
-  else s->value=LObjectVar::Create(index);
+  else s->m_value=LObjectVar::Create(index);
   return NULL;
 }
 
@@ -962,12 +959,12 @@ LSymbol *add_c_function(char const *name, short min_args, short max_args, short 
   total_user_functions++;
   need_perm_space("add_c_function");
   LSymbol *s = LSymbol::FindOrCreate(name);
-  if (s->function!=l_undefined)
+  if (s->m_function!=l_undefined)
   {
     lbreak("add_sys_fucntion -> symbol %s already has a function\n", name);
     exit(0);
   }
-  else s->function=new_lisp_c_function(min_args, max_args, number);
+  else s->m_function=new_lisp_c_function(min_args, max_args, number);
   return s;
 }
 
@@ -976,12 +973,12 @@ LSymbol *add_c_bool_fun(char const *name, short min_args, short max_args, short 
   total_user_functions++;
   need_perm_space("add_c_bool_fun");
   LSymbol *s = LSymbol::FindOrCreate(name);
-  if (s->function!=l_undefined)
+  if (s->m_function!=l_undefined)
   {
     lbreak("add_sys_fucntion -> symbol %s already has a function\n", name);
     exit(0);
   }
-  else s->function=new_lisp_c_bool(min_args, max_args, number);
+  else s->m_function=new_lisp_c_bool(min_args, max_args, number);
   return s;
 }
 
@@ -991,12 +988,12 @@ LSymbol *add_lisp_function(char const *name, short min_args, short max_args, sho
   total_user_functions++;
   need_perm_space("add_c_bool_fun");
   LSymbol *s = LSymbol::FindOrCreate(name);
-  if (s->function!=l_undefined)
+  if (s->m_function!=l_undefined)
   {
     lbreak("add_sys_fucntion -> symbol %s already has a function\n", name);
     exit(0);
   }
-  else s->function=new_user_lisp_function(min_args, max_args, number);
+  else s->m_function=new_user_lisp_function(min_args, max_args, number);
   return s;
 }
 
@@ -1076,8 +1073,8 @@ void push_onto_list(void *object, void *&list)
 {
   PtrRef r1(object), r2(list);
   LList *c = LList::Create();
-  c->car = (LObject *)object;
-  c->cdr = (LObject *)list;
+  c->m_car = (LObject *)object;
+  c->m_cdr = (LObject *)list;
   list=c;
 }
 
@@ -1099,12 +1096,12 @@ LObject *LObject::Compile(char const *&code)
     LObject *cs = LList::Create(), *c2=NULL, *tmp;
     PtrRef r1(cs), r2(c2);
 
-    ((LList *)cs)->car=quote_symbol;
+    ((LList *)cs)->m_car=quote_symbol;
     c2 = LList::Create();
     tmp=Compile(code);
-    ((LList *)c2)->car = (LObject *)tmp;
-    ((LList *)c2)->cdr=NULL;
-    ((LList *)cs)->cdr = (LObject *)c2;
+    ((LList *)c2)->m_car = (LObject *)tmp;
+    ((LList *)c2)->m_cdr=NULL;
+    ((LList *)cs)->m_cdr = (LObject *)c2;
     ret=cs;
   }
   else if (n[0]=='`')                    // short hand for backquote function
@@ -1112,24 +1109,24 @@ LObject *LObject::Compile(char const *&code)
     LObject *cs = LList::Create(), *c2=NULL, *tmp;
     PtrRef r1(cs), r2(c2);
 
-    ((LList *)cs)->car=backquote_symbol;
+    ((LList *)cs)->m_car=backquote_symbol;
     c2 = LList::Create();
     tmp=Compile(code);
-    ((LList *)c2)->car = (LObject *)tmp;
-    ((LList *)c2)->cdr=NULL;
-    ((LList *)cs)->cdr = (LObject *)c2;
+    ((LList *)c2)->m_car = (LObject *)tmp;
+    ((LList *)c2)->m_cdr=NULL;
+    ((LList *)cs)->m_cdr = (LObject *)c2;
     ret=cs;
   }  else if (n[0]==',')              // short hand for comma function
   {
     LObject *cs = LList::Create(), *c2=NULL, *tmp;
     PtrRef r1(cs), r2(c2);
 
-    ((LList *)cs)->car=comma_symbol;
+    ((LList *)cs)->m_car=comma_symbol;
     c2 = LList::Create();
     tmp=Compile(code);
-    ((LList *)c2)->car = (LObject *)tmp;
-    ((LList *)c2)->cdr=NULL;
-    ((LList *)cs)->cdr = (LObject *)c2;
+    ((LList *)c2)->m_car = (LObject *)tmp;
+    ((LList *)c2)->m_cdr=NULL;
+    ((LList *)cs)->m_cdr = (LObject *)c2;
     ret=cs;
   }
   else if (n[0]=='(')                     // make a list of everything in ()
@@ -1158,7 +1155,7 @@ LObject *LObject::Compile(char const *&code)
                     void *tmp;
                     read_ltoken(code, n);              // skip the '.'
                     tmp=Compile(code);
-                    ((LList *)last)->cdr = (LObject *)tmp;          // link the last cdr to
+                    ((LList *)last)->m_cdr = (LObject *)tmp;          // link the last cdr to
                     last=NULL;
                   }
                 } else if (!last && first)
@@ -1170,9 +1167,9 @@ LObject *LObject::Compile(char const *&code)
                   PtrRef r1(cur);
                   if (!first) first=cur;
                   tmp=Compile(code);
-                  ((LList *)cur)->car = (LObject *)tmp;
+                  ((LList *)cur)->m_car = (LObject *)tmp;
                   if (last)
-                    ((LList *)last)->cdr = (LObject *)cur;
+                    ((LList *)last)->m_cdr = (LObject *)cur;
                   last=cur;
                 }
       }
@@ -1184,7 +1181,7 @@ LObject *LObject::Compile(char const *&code)
   else if (isdigit(n[0]) || (n[0]=='-' && isdigit(n[1])))
   {
     LNumber *num = LNumber::Create(0);
-    sscanf(n, "%ld", &num->num);
+    sscanf(n, "%ld", &num->m_num);
     ret=num;
   } else if (n[0]=='"')
   {
@@ -1221,11 +1218,11 @@ LObject *LObject::Compile(char const *&code)
       LObject *cs = LList::Create(), *c2=NULL, *tmp;
       PtrRef r4(cs), r5(c2);
       tmp = LSymbol::FindOrCreate("function");
-      ((LList *)cs)->car = (LObject *)tmp;
+      ((LList *)cs)->m_car = (LObject *)tmp;
       c2 = LList::Create();
       tmp=Compile(code);
-      ((LList *)c2)->car = (LObject *)tmp;
-      ((LList *)cs)->cdr = (LObject *)c2;
+      ((LList *)c2)->m_car = (LObject *)tmp;
+      ((LList *)cs)->m_cdr = (LObject *)c2;
       ret=cs;
     }
     else
@@ -1287,8 +1284,8 @@ void LObject::Print()
             {
                 if (item_type(cs) == (ltype)L_CONS_CELL)
                 {
-                    cs->car->Print();
-                    if (cs->cdr)
+                    cs->m_car->Print();
+                    if (cs->m_cdr)
                         lprint_string(" ");
                 }
                 else
@@ -1302,11 +1299,11 @@ void LObject::Print()
         }
         break;
     case L_NUMBER:
-        sprintf(buf, "%ld", ((LNumber *)this)->num);
+        sprintf(buf, "%ld", ((LNumber *)this)->m_num);
         lprint_string(buf);
         break;
     case L_SYMBOL:
-        lprint_string(((LSymbol *)this)->name->GetString());
+        lprint_string(((LSymbol *)this)->m_name->GetString());
         break;
     case L_USER_FUNCTION:
     case L_SYS_FUNCTION:
@@ -1339,12 +1336,12 @@ void LObject::Print()
     case L_CHARACTER:
         if (current_print_file)
         {
-            uint8_t ch = ((LChar *)this)->ch;
+            uint8_t ch = ((LChar *)this)->m_ch;
             current_print_file->write(&ch, 1);
         }
         else
         {
-            uint16_t ch = ((LChar *)this)->ch;
+            uint16_t ch = ((LChar *)this)->m_ch;
             dprintf("#\\");
             switch (ch)
             {
@@ -1358,17 +1355,17 @@ void LObject::Print()
         }
         break;
     case L_OBJECT_VAR:
-        l_obj_print(((LObjectVar *)this)->index);
+        l_obj_print(((LObjectVar *)this)->m_index);
         break;
     case L_1D_ARRAY:
         {
             LArray *a = (LArray *)this;
             LObject **data = a->GetData();
             dprintf("#(");
-            for (size_t j = 0; j < a->len; j++)
+            for (size_t j = 0; j < a->m_len; j++)
             {
                 data[j]->Print();
-                if (j != a->len - 1)
+                if (j != a->m_len - 1)
                     dprintf(" ");
             }
             dprintf(")");
@@ -1376,7 +1373,7 @@ void LObject::Print()
         break;
     case L_COLLECTED_OBJECT:
         lprint_string("GC_reference->");
-        ((LRedirect *)this)->ref->Print();
+        ((LRedirect *)this)->m_ref->Print();
         break;
     default:
         dprintf("Shouldn't happen\n");
@@ -1400,7 +1397,7 @@ LObject *LSymbol::EvalFunction(void *arg_list)
     }
 #endif
 
-    LObject *fun = function;
+    LObject *fun = m_function;
     PtrRef ref2(fun);
     PtrRef ref3(arg_list);
 
@@ -1435,14 +1432,14 @@ LObject *LSymbol::EvalFunction(void *arg_list)
         if (args < req_min)
         {
             ((LObject *)arg_list)->Print();
-            name->Print();
+            m_name->Print();
             lbreak("\nToo few parameters to function\n");
             exit(0);
         }
         else if (req_max != -1 && args > req_max)
         {
             ((LObject *)arg_list)->Print();
-            name->Print();
+            m_name->Print();
             lbreak("\nToo many parameters to function\n");
             exit(0);
         }
@@ -1474,13 +1471,13 @@ LObject *LSymbol::EvalFunction(void *arg_list)
         {
             LList *tmp = LList::Create();
             if (first)
-                cur->cdr = tmp;
+                cur->m_cdr = tmp;
             else
                 first = tmp;
             cur = tmp;
 
             LObject *val = CAR(arg_list)->Eval();
-            ((LList *)cur)->car = val;
+            ((LList *)cur)->m_car = val;
             arg_list = lcdr(arg_list);
         }
         if (t == L_C_FUNCTION)
@@ -1508,13 +1505,13 @@ void pro_print(bFILE *out, LSymbol *p)
 {
   if (p)
   {
-    pro_print(out, p->right);
+    pro_print(out, p->m_right);
     {
       char st[100];
       sprintf(st, "%20s %f\n", lstring_value(p->GetName()), p->time_taken);
       out->write(st, strlen(st));
     }
-    pro_print(out, p->left);
+    pro_print(out, p->m_left);
   }
 }
 
@@ -1578,14 +1575,14 @@ void *mapcar(void *arg_list)
         first=na_list = LList::Create();
       else
       {
-        na_list->cdr = (LObject *)LList::Create();
+        na_list->m_cdr = (LObject *)LList::Create();
                 na_list=(LList *)CDR(na_list);
       }
 
 
       if (arg_on[i])
       {
-                na_list->car = (LObject *)CAR(arg_on[i]);
+                na_list->m_car = (LObject *)CAR(arg_on[i]);
                 arg_on[i]=(LList *)CDR(arg_on[i]);
       }
       else stop=1;
@@ -1593,9 +1590,9 @@ void *mapcar(void *arg_list)
     if (!stop)
     {
       LList *c = LList::Create();
-      c->car = ((LSymbol *)sym)->EvalFunction(first);
+      c->m_car = ((LSymbol *)sym)->EvalFunction(first);
       if (return_list)
-        last_return->cdr=c;
+        last_return->m_cdr=c;
       else
         return_list=c;
       last_return=c;
@@ -1672,7 +1669,7 @@ void *concatenate(void *prog_list)
         while (char_list)
         {
           if (item_type(CAR(char_list))==L_CHARACTER)
-            *(s++)=((LChar *)CAR(char_list))->ch;
+            *(s++)=((LChar *)CAR(char_list))->m_ch;
           char_list=(LList *)CDR(char_list);
         }
       } break;
@@ -1706,7 +1703,7 @@ void *backquote_eval(void *args)
     return args;
   else if (args==NULL)
     return NULL;
-  else if ((LSymbol *) (((LList *)args)->car)==comma_symbol)
+  else if ((LSymbol *) (((LList *)args)->m_car)==comma_symbol)
     return CAR(CDR(args))->Eval();
   else
   {
@@ -1719,25 +1716,25 @@ void *backquote_eval(void *args)
     if (CAR(args)==comma_symbol)               // dot list with a comma?
     {
       tmp = CAR(CDR(args))->Eval();
-      ((LList *)last)->cdr = (LObject *)tmp;
+      ((LList *)last)->m_cdr = (LObject *)tmp;
       args=NULL;
     }
     else
     {
       cur = LList::Create();
       if (first)
-        ((LList *)last)->cdr = (LObject *)cur;
+        ((LList *)last)->m_cdr = (LObject *)cur;
       else
             first=cur;
       last=cur;
           tmp=backquote_eval(CAR(args));
-          ((LList *)cur)->car = (LObject *)tmp;
+          ((LList *)cur)->m_car = (LObject *)tmp;
        args=CDR(args);
     }
       } else
       {
     tmp=backquote_eval(args);
-    ((LList *)last)->cdr = (LObject *)tmp;
+    ((LList *)last)->m_cdr = (LObject *)tmp;
     args=NULL;
       }
 
@@ -1796,9 +1793,9 @@ LObject *LSysFunction::EvalFunction(LList *arg_list)
         {
             cur = LList::Create();
             LObject *val = CAR(arg_list)->Eval();
-            cur->car = val;
+            cur->m_car = val;
             if (last)
-                last->cdr = cur;
+                last->m_cdr = cur;
             else
                 first = cur;
             last = cur;
@@ -1812,9 +1809,9 @@ LObject *LSysFunction::EvalFunction(LList *arg_list)
         LList *c = LList::Create();
         PtrRef r1(c);
         LObject *val = CAR(arg_list)->Eval();
-        c->car = val;
+        c->m_car = val;
         val = CAR(CDR(arg_list))->Eval();
-        c->cdr = val;
+        c->m_cdr = val;
         ret = c;
         break;
     }
@@ -1887,11 +1884,11 @@ LObject *LSysFunction::EvalFunction(LList *arg_list)
             }
             else if (first)
             {
-                quot = ((LNumber *)i)->num;
+                quot = ((LNumber *)i)->m_num;
                 first = 0;
             }
             else
-                quot /= ((LNumber *)i)->num;
+                quot /= ((LNumber *)i)->m_num;
             arg_list = (LList *)CDR(arg_list);
         }
         ret = LNumber::Create(quot);
@@ -1932,26 +1929,26 @@ LObject *LSysFunction::EvalFunction(LList *arg_list)
         switch (item_type(i))
         {
         case L_SYMBOL:
-            switch (item_type(((LSymbol *)i)->value))
+            switch (item_type(((LSymbol *)i)->m_value))
             {
             case L_NUMBER:
-                if (x == L_NUMBER && ((LSymbol *)i)->value != l_undefined)
+                if (x == L_NUMBER && ((LSymbol *)i)->m_value != l_undefined)
                     ((LSymbol *)i)->SetNumber(lnumber_value(set_to));
                 else
                     ((LSymbol *)i)->SetValue((LNumber *)set_to);
                 break;
             case L_OBJECT_VAR:
-                l_obj_set(((LObjectVar *)(((LSymbol *)i)->value))->index, set_to);
+                l_obj_set(((LObjectVar *)(((LSymbol *)i)->m_value))->m_index, set_to);
                 break;
             default:
                 ((LSymbol *)i)->SetValue((LObject *)set_to);
             }
-            ret = ((LSymbol *)i)->value;
+            ret = ((LSymbol *)i)->m_value;
             break;
         case L_CONS_CELL:   // this better be an 'aref'
         {
 #ifdef TYPE_CHECKING
-            LObject *car = ((LList *)i)->car;
+            LObject *car = ((LList *)i)->m_car;
             if (car == car_symbol)
             {
                 car = CAR(CDR(i))->Eval();
@@ -1961,7 +1958,7 @@ LObject *LSysFunction::EvalFunction(LList *arg_list)
                     lbreak("setq car : evaled object is not a cons cell\n");
                     exit(0);
                 }
-                ((LList *)car)->car = set_to;
+                ((LList *)car)->m_car = set_to;
             }
             else if (car == cdr_symbol)
             {
@@ -1972,7 +1969,7 @@ LObject *LSysFunction::EvalFunction(LList *arg_list)
                     lbreak("setq cdr : evaled object is not a cons cell\n");
                     exit(0);
                 }
-                ((LList *)car)->cdr = set_to;
+                ((LList *)car)->m_cdr = set_to;
             }
             else if (car != aref_symbol)
             {
@@ -1994,7 +1991,7 @@ LObject *LSysFunction::EvalFunction(LList *arg_list)
 #endif
                 int num = lnumber_value(CAR(CDR(CDR(i)))->Eval());
 #ifdef TYPE_CHECKING
-                if (num >= (int)a->len || num < 0)
+                if (num >= (int)a->m_len || num < 0)
                 {
                     lbreak("aref : value of bounds (%d)\n", num);
                     exit(0);
@@ -2024,7 +2021,7 @@ LObject *LSysFunction::EvalFunction(LList *arg_list)
         PtrRef r1(item);
         LList *list = (LList *)CAR(CDR(arg_list))->Eval();
         PtrRef r2(list);
-        ret = (LObject *)assoc(item, list);
+        ret = list->Assoc(item);
         break;
     }
     case SYS_FUNC_NOT:
@@ -2041,8 +2038,8 @@ LObject *LSysFunction::EvalFunction(LList *arg_list)
         LObject *i2 = CAR(CDR(arg_list))->Eval();
         PtrRef r2(i2);
         LList *cs = LList::Create();
-        cs->car = i1;
-        cs->cdr = i2;
+        cs->m_car = i1;
+        cs->m_cdr = i2;
         ret = cs;
         break;
     }
@@ -2078,7 +2075,7 @@ LObject *LSysFunction::EvalFunction(LList *arg_list)
             }
 #endif
 
-            l_user_stack.push(((LSymbol *)var_name)->value);
+            l_user_stack.push(((LSymbol *)var_name)->m_value);
             tmp = CAR(CDR(CAR(var_list)))->Eval();
             ((LSymbol *)var_name)->SetValue(tmp);
             var_list = CDR(var_list);
@@ -2180,7 +2177,7 @@ LObject *LSysFunction::EvalFunction(LList *arg_list)
         switch (item_type(i))
         {
         case L_CHARACTER:
-            ret = LNumber::Create(((LChar *)i)->ch);
+            ret = LNumber::Create(((LChar *)i)->m_ch);
             break;
         case L_STRING:
             ret = LNumber::Create(*lstring_value(i));
@@ -2203,7 +2200,7 @@ LObject *LSysFunction::EvalFunction(LList *arg_list)
             lbreak(" is not number type\n");
             exit(0);
         }
-        ret = LChar::Create(((LNumber *)i)->num);
+        ret = LChar::Create(((LNumber *)i)->m_num);
         break;
     }
     case SYS_FUNC_COND:
@@ -2302,7 +2299,7 @@ LObject *LSysFunction::EvalFunction(LList *arg_list)
             exit(0);
         }
 #endif
-        ret = symb->name;
+        ret = symb->m_name;
         break;
     }
     case SYS_FUNC_TRACE:
@@ -2400,11 +2397,11 @@ LObject *LSysFunction::EvalFunction(LList *arg_list)
                 if (stat_man)
                     stat_man->update((cs - s) * 100 / l);
 #endif
-                void *m = mark_heap(TMP_SPACE);
+                void *m = LSpace::Tmp.Mark();
                 compiled_form = LObject::Compile(cs);
                 compiled_form->Eval();
                 compiled_form = NULL;
-                restore_heap(m, TMP_SPACE);
+                LSpace::Tmp.Restore(m);
             }
 #ifndef NO_LIBS
             if (stat_man)
@@ -2470,8 +2467,8 @@ LObject *LSysFunction::EvalFunction(LList *arg_list)
     }
     case SYS_FUNC_ENUM:
     {
-        int sp = current_space;
-        current_space = PERM_SPACE;
+        LSpace *sp = LSpace::Current;
+        LSpace::Current = &LSpace::Perm;
         int32_t x = 0;
         while (arg_list)
         {
@@ -2482,7 +2479,7 @@ LObject *LSysFunction::EvalFunction(LList *arg_list)
             case L_SYMBOL:
             {
                 LObject *tmp = LNumber::Create(x);
-                ((LSymbol *)sym)->value = tmp;
+                ((LSymbol *)sym)->m_value = tmp;
                 break;
             }
             case L_CONS_CELL:
@@ -2499,7 +2496,7 @@ LObject *LSysFunction::EvalFunction(LList *arg_list)
 #endif
                 x = lnumber_value(CAR(CDR(sym))->Eval());
                 LObject *tmp = LNumber::Create(x);
-                ((LSymbol *)sym)->value = tmp;
+                ((LSymbol *)sym)->m_value = tmp;
                 break;
             }
             default:
@@ -2510,7 +2507,7 @@ LObject *LSysFunction::EvalFunction(LList *arg_list)
             arg_list = (LList *)CDR(arg_list);
             x++;
         }
-        current_space = sp;
+        LSpace::Current = sp;
         break;
     }
     case SYS_FUNC_QUIT:
@@ -2545,7 +2542,7 @@ LObject *LSysFunction::EvalFunction(LList *arg_list)
         {
             for (void *s = symbol_list; s; s = CDR(s))
                 fprintf(fp, "%8d  %s\n", ((LSymbol *)(CAR(s)))->call_counter,
-                        lstring_value(((LSymbol *)(CAR(s)))->name));
+                        lstring_value(((LSymbol *)(CAR(s)))->m_name));
             fclose(fp);
         }
         break;
@@ -2691,7 +2688,7 @@ LObject *LSysFunction::EvalFunction(LList *arg_list)
     case SYS_FUNC_EQ0:
     {
         LObject *v = CAR(arg_list)->Eval();
-        if (item_type(v) != L_NUMBER || (((LNumber *)v)->num != 0))
+        if (item_type(v) != L_NUMBER || (((LNumber *)v)->m_num != 0))
             ret = NULL;
         else
             ret = true_symbol;
@@ -2806,7 +2803,7 @@ LObject *LSysFunction::EvalFunction(LList *arg_list)
         break;
     }
     case SYS_FUNC_GC:
-        LispGC::CollectSpace(current_space, 0);
+        Lisp::CollectSpace(LSpace::Current, 0);
         break;
     case SYS_FUNC_SCHAR:
     {
@@ -2864,7 +2861,7 @@ LObject *LSysFunction::EvalFunction(LList *arg_list)
                 next = lcdr(next);
             }
             LObject *tmp = CAR(arg_list)->Eval();
-            ((LList *)l1)->cdr = tmp;
+            ((LList *)l1)->m_cdr = tmp;
             arg_list = (LList *)CDR(arg_list);
         } while (arg_list);
         ret = first;
@@ -2945,19 +2942,12 @@ LObject *LSysFunction::EvalFunction(LList *arg_list)
 
 void tmp_space()
 {
-    current_space = TMP_SPACE;
+    LSpace::Current = &LSpace::Tmp;
 }
 
 void perm_space()
 {
-    current_space = PERM_SPACE;
-}
-
-void use_user_space(void *addr, long size)
-{
-    current_space = USER_SPACE;
-    free_space[USER_SPACE] = space[USER_SPACE] = (uint8_t *)addr;
-    space_size[USER_SPACE] = size;
+    LSpace::Current = &LSpace::Perm;
 }
 
 /* PtrRef check: OK */
@@ -2978,7 +2968,7 @@ LObject *LSymbol::EvalUserFunction(LList *arg_list)
     time_marker start;
 #endif
 
-    LUserFunction *fun = (LUserFunction *)function;
+    LUserFunction *fun = (LUserFunction *)m_function;
 
 #ifdef TYPE_CHECKING
     if (item_type(fun) != L_USER_FUNCTION)
@@ -3003,7 +2993,7 @@ LObject *LSymbol::EvalUserFunction(LList *arg_list)
     for (f_arg = fun_arg_list; f_arg; f_arg = CDR(f_arg))
     {
         LSymbol *s = (LSymbol *)CAR(f_arg);
-        l_user_stack.push(s->value);
+        l_user_stack.push(s->m_value);
     }
 
     // open block so that local vars aren't saved on the stack
@@ -3063,6 +3053,8 @@ LObject *LObject::Eval()
 {
     PtrRef ref1(this);
 
+    maxevaldepth = Max(maxevaldepth, ++evaldepth);
+
     int tstart = trace_level;
 
     if (trace_level)
@@ -3070,7 +3062,7 @@ LObject *LObject::Eval()
         if (trace_level <= trace_print_level)
         {
             dprintf("%d (%d, %d, %d) TRACE : ", trace_level,
-                    get_free_size(PERM_SPACE), get_free_size(TMP_SPACE),
+                    LSpace::Perm.GetFree(), LSpace::Tmp.GetFree(),
                     PtrRef::stack.m_size);
             Print();
             dprintf("\n");
@@ -3102,7 +3094,7 @@ LObject *LObject::Eval()
             {
                 ret = ((LSymbol *)this)->GetValue();
                 if (item_type(ret) == L_OBJECT_VAR)
-                    ret = (LObject *)l_obj_get(((LObjectVar *)ret)->index);
+                    ret = (LObject *)l_obj_get(((LObjectVar *)ret)->m_index);
             }
             break;
         case L_CONS_CELL:
@@ -3119,57 +3111,61 @@ LObject *LObject::Eval()
         trace_level--;
         if (trace_level <= trace_print_level)
             dprintf("%d (%d, %d, %d) TRACE ==> ", trace_level,
-                    get_free_size(PERM_SPACE), get_free_size(TMP_SPACE),
+                    LSpace::Perm.GetFree(), LSpace::Tmp.GetFree(),
                     PtrRef::stack.m_size);
         ret->Print();
         dprintf("\n");
     }
 
 /*  l_user_stack.push(ret);
-  LispGC::CollectSpace(PERM_SPACE);
+  Lisp::CollectSpace(&LSpace::Perm);
   ret=l_user_stack.pop(1);  */
+    --evaldepth;
 
     return ret;
 }
 
-void l_comp_init();
-
-void lisp_init()
+void Lisp::Init()
 {
     LSymbol::root = NULL;
     total_user_functions = 0;
 
-    free_space[0] = space[0] = (uint8_t *)malloc(0x1000);
-    space_size[0] = 0x1000;
+    LSpace::Tmp.m_free = LSpace::Tmp.m_data = (uint8_t *)malloc(0x1000);
+    LSpace::Tmp.m_size = 0x1000;
+    LSpace::Tmp.m_name = "temporary space";
 
-    free_space[1] = space[1] = (uint8_t *)malloc(0x1000);
-    space_size[1] = 0x1000;
+    LSpace::Perm.m_free = LSpace::Perm.m_data = (uint8_t *)malloc(0x1000);
+    LSpace::Perm.m_size = 0x1000;
+    LSpace::Perm.m_name = "permanent space";
 
-    current_space = PERM_SPACE;
+    LSpace::Gc.m_name = "garbage space";
 
-    l_comp_init();
+    LSpace::Current = &LSpace::Perm;
+
+    InitConstants();
+
     for(size_t i = 0; i < sizeof(sys_funcs) / sizeof(*sys_funcs); i++)
         add_sys_function(sys_funcs[i].name,
                          sys_funcs[i].min_args, sys_funcs[i].max_args, i);
     clisp_init();
-    current_space = TMP_SPACE;
+    LSpace::Current = &LSpace::Tmp;
     dprintf("Lisp: %d symbols defined, %d system functions, "
             "%d pre-compiled functions\n", LSymbol::count,
             sizeof(sys_funcs) / sizeof(*sys_funcs), total_user_functions);
 }
 
-void lisp_uninit()
+void Lisp::Uninit()
 {
-    free(space[0]);
-    free(space[1]);
+    free(LSpace::Tmp.m_data);
+    free(LSpace::Perm.m_data);
     DeleteAllSymbols(LSymbol::root);
     LSymbol::root = NULL;
     LSymbol::count = 0;
 }
 
-void clear_tmp()
+void LSpace::Clear()
 {
-    free_space[TMP_SPACE] = space[TMP_SPACE];
+    m_free = m_data;
 }
 
 LString *LSymbol::GetName()
@@ -3182,7 +3178,7 @@ LString *LSymbol::GetName()
         exit(0);
     }
 #endif
-    return name;
+    return m_name;
 }
 
 void LSymbol::SetNumber(long num)
@@ -3195,10 +3191,10 @@ void LSymbol::SetNumber(long num)
         exit(0);
     }
 #endif
-    if (value != l_undefined && item_type(value) == L_NUMBER)
-        ((LNumber *)value)->num = num;
+    if (m_value != l_undefined && item_type(m_value) == L_NUMBER)
+        ((LNumber *)m_value)->m_num = num;
     else
-        value = LNumber::Create(num);
+        m_value = LNumber::Create(num);
 }
 
 void LSymbol::SetValue(LObject *val)
@@ -3211,7 +3207,7 @@ void LSymbol::SetValue(LObject *val)
         exit(0);
     }
 #endif
-    value = val;
+    m_value = val;
 }
 
 LObject *LSymbol::GetFunction()
@@ -3224,7 +3220,7 @@ LObject *LSymbol::GetFunction()
         exit(0);
     }
 #endif
-    return function;
+    return m_function;
 }
 
 LObject *LSymbol::GetValue()
@@ -3237,6 +3233,6 @@ LObject *LSymbol::GetValue()
         exit(0);
     }
 #endif
-    return value;
+    return m_value;
 }
 

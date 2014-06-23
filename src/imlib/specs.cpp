@@ -278,11 +278,7 @@ void set_spec_main_file(char const *filename, int Search_order)
   strcpy(spec_main_file,filename);
   search_order=Search_order;
 
-#if (defined(__APPLE__) && !defined(__MACH__))
   spec_main_jfile.open_external(filename,"rb",O_BINARY|O_RDONLY);
-#else
-  spec_main_jfile.open_external(filename,"rb",O_BINARY|O_RDONLY);
-#endif
   spec_main_fd = spec_main_jfile.get_fd();
   if (spec_main_fd==-1)
     return;

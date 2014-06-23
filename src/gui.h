@@ -24,12 +24,9 @@ public :
   virtual void area(int &x1, int &y1, int &x2, int &y2);
   virtual void draw_first(image *screen) { draw(0,screen); }
   virtual void draw(int active, image *screen);
-  virtual void handle_event(event &ev, image *screen, InputManager *im);
+  virtual void handle_event(Event &ev, image *screen, InputManager *im);
 
   virtual char *read() { return (char *)&up; }
-  void set_xy(int X, int Y) { x=X; y=Y; }
-  int X() { return x; }
-  int Y() { return y; }
   int status() { return up; }
   void set_act_id(int id);
 } ;
@@ -43,7 +40,7 @@ class ico_switch_button : public ifield
   virtual void area(int &x1, int &y1, int &x2, int &y2);
   virtual void draw_first(image *screen) { cur_but->draw_first(screen); }
   virtual void draw(int active, image *screen) { cur_but->draw(active,screen); act=active; }
-  virtual void handle_event(event &ev, image *screen, InputManager *im);
+  virtual void handle_event(Event &ev, image *screen, InputManager *im);
   virtual ifield *unlink(int id);
   virtual char *read() { return cur_but->read(); }
   ~ico_switch_button();

@@ -11,8 +11,13 @@
 #ifndef __TIMING_HPP_
 #define __TIMING_HPP_
 
-#ifdef WIN32
-# include <Windows.h>
+#if (defined WIN32) && !(defined _WINDOWS_)
+// Rather than throw Windows.h into unrelated code, declare FILETIME as a
+// struct here
+typedef struct _FILETIME {
+    int32_t dwLowDateTime;
+    int32_t dwHighDateTime;
+} FILETIME;
 #endif
 
 class time_marker
@@ -33,4 +38,3 @@ public:
 };
 
 #endif
-

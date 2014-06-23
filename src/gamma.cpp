@@ -37,11 +37,11 @@ public:
     {
         long x2 = x + item_width() - 1;
         long y2 = y + item_height() - 1;
-        screen->bar(x, y, x2, y2, 0);
-        screen->bar(x, y, x2 - 3, y2, sc + num);
+        screen->Bar(ivec2(x, y), ivec2(x2, y2), 0);
+        screen->Bar(ivec2(x, y), ivec2(x2 - 3, y2), sc + num);
         if(active)
         {
-            screen->rectangle(x, y, x2, y2, 255);
+            screen->Rectangle(ivec2(x, y), ivec2(x2, y2), 255);
         }
     }
     void set_pos(int x) { cur_sel = x; }
@@ -140,23 +140,24 @@ void gamma_correct(palette *&pal, int force_menu)
             gray_pal->find_closest(md_r, md_g, md_b),
             gray_pal->find_closest(dr_r, dr_g, dr_b));
 
-        int sh = wm->font()->height() + 35;
+        int sh = wm->font()->Size().y + 35;
         button *but = new button(5, 5 + sh * 3, ID_GAMMA_OK, cache.img(ok_button),
             new info_field(35, 10 + sh * 3, ID_NULL, lang_string("gamma_msg"), 0));
 
         gray_picker *gp = new gray_picker(2, 5 + sh, ID_GREEN_PICKER, 0, dg / 4, but);
         gp->set_pos(dg / 4);
 
-        Jwindow *gw = wm->new_window(xres / 2 - 190, yres / 2 - 90, -1, -1, gp);
+        Jwindow *gw = wm->CreateWindow(ivec2(xres / 2 - 190,
+                                             yres / 2 - 90), ivec2(-1), gp);
 
-        event ev;
+        Event ev;
         wm->flush_screen();
         do
         {
             do
             {
                 wm->get_event(ev);
-            } while(ev.type == EV_MOUSE_MOVE && wm->event_waiting());
+            } while(ev.type == EV_MOUSE_MOVE && wm->IsPending());
             wm->flush_screen();
             if(ev.type == EV_CLOSE_WINDOW)
                 abort = 1;
@@ -184,11 +185,11 @@ void gamma_correct(palette *&pal, int force_menu)
             {
                 fprintf(fp, "(setq darkest_gray %ld)\n", dg);
                 fclose(fp);
-                int sp = current_space;
-                current_space = PERM_SPACE;
+                LSpace *sp = LSpace::Current;
+                LSpace::Current = &LSpace::Perm;
                 LSymbol::FindOrCreate("darkest_gray")->SetNumber(dg);
 
-                current_space = sp;
+                LSpace::Current = sp;
             }
             else
             {

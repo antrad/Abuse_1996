@@ -37,82 +37,51 @@
 #include "scroller.h"
 #include "netcfg.h"
 
-#if !defined __CELLOS_LV2__
-#   include "net/sock.h"
+#include "net/sock.h"
+
 extern net_protocol *prot;
-#else
-static int const prot = 0;
-#endif
 
 static VolumeWindow *volume_window;
 
 //percent is 0..256
-void tint_area(int x1, int y1, int x2, int y2, int r_to, int g_to, int b_to, int percent)
+static void TintArea(ivec2 aa, ivec2 bb,
+                     int r_to, int g_to, int b_to, int percent)
 {
-  int x,y;
-  int cx1, cy1, cx2, cy2;
-  screen->GetClip(cx1, cy1, cx2, cy2);
-  if (x1<cx1) x1=cx1;
-  if (y1<cy1) y1=cy1;
-  if (x2>cx2-1) x2=cx2-1;
-  if (y2>cy2-1) y2=cy2-1;
-  if (x2<x1 || y2<y1) return ;
+    ivec2 caa, cbb;
+    main_screen->GetClip(caa, cbb);
+    aa = Max(aa, caa);
+    bb = Min(bb, cbb);
 
-  percent=256-percent;
+    if (!(aa < bb))
+        return;
 
-  screen->Lock();
-  for (y=y1; y<=y2; y++)
-  {
-    uint8_t *sl=screen->scan_line(y)+x1;
-    for (x=x1; x<=x2; x++,sl++)
+    percent = 256 - percent;
+
+    main_screen->Lock();
+    for (int y = aa.y; y < bb.y; y++)
     {
-      uint8_t *paddr=(uint8_t *)pal->addr()+(*sl)*3;
-      uint8_t r=((*(paddr++))-r_to)*percent/256+r_to;
-      uint8_t g=((*(paddr++))-g_to)*percent/256+g_to;
-      uint8_t b=((*(paddr++))-b_to)*percent/256+b_to;
-      *sl=color_table->Lookup((r)>>3,(g)>>3,(b)>>3);
+        uint8_t *sl = main_screen->scan_line(y) + aa.x;
+        for (int x = aa.x; x < bb.x; x++, sl++)
+        {
+            uint8_t *paddr = (uint8_t *)pal->addr() + (*sl) * 3;
+            uint8_t r = (((paddr[0] - r_to) * percent) >> 8) + r_to;
+            uint8_t g = (((paddr[1] - g_to) * percent) >> 8) + g_to;
+            uint8_t b = (((paddr[2] - b_to) * percent) >> 8) + b_to;
+            *sl = color_table->Lookup((r) >> 3, (g) >> 3, (b) >> 3);
+        }
     }
-  }
-  screen->AddDirty(x1, y1, x2 + 1, y2 + 1);
-  screen->Unlock();
+    main_screen->AddDirty(aa, bb);
+    main_screen->Unlock();
 }
 
-void darken_area(int x1, int y1, int x2, int y2, int amount)
+void DarkWidget(ivec2 aa, ivec2 bb, int br, int dr, int amount)
 {
-  int x,y;
-  int cx1, cy1, cx2, cy2;
-  screen->GetClip(cx1, cy1, cx2, cy2);
-  if (x1<cx1) x1=cx1;
-  if (y1<cy1) y1=cy1;
-  if (x2>cx2-1) x2=cx2-1;
-  if (y2>cy2-1) y2=cy2-1;
-  if (x2<x1 || y2<y1) return ;
-
-  screen->Lock();
-  for (y=y1; y<=y2; y++)
-  {
-    uint8_t *sl=screen->scan_line(y)+x1;
-    for (x=x1; x<=x2; x++,sl++)
-    {
-      uint8_t *paddr=(uint8_t *)pal->addr()+(*sl)*3;
-      uint8_t r=(*(paddr++))*amount/256;
-      uint8_t g=(*(paddr++))*amount/256;
-      uint8_t b=(*(paddr++))*amount/256;
-      *sl=color_table->Lookup((r)>>3,(g)>>3,(b)>>3);
-    }
-  }
-  screen->AddDirty(x1, y1, x2 + 1, y2 + 1);
-  screen->Unlock();
-}
-
-void dark_widget(int x1, int y1, int x2, int y2, int br, int dr, int amount)
-{
-  screen->AddDirty(x1, y1, x2 + 1, y2 + 1);
-  screen->line(x1,y1,x1,y2,br);
-  screen->line(x1+1,y1,x2,y1,br);
-  screen->line(x2,y1+1,x2,y2,dr);
-  screen->line(x1+1,y2,x2,y2,dr);
-  darken_area(x1+1,y1+1,x2-1,y2-1,amount);
+    main_screen->AddDirty(aa, bb);
+    main_screen->Line(aa, ivec2(aa.x, bb.y - 1), br);
+    main_screen->Line(aa, ivec2(bb.x - 1, aa.y), br);
+    main_screen->Line(ivec2(bb.x - 1, aa.y + 1), bb - ivec2(1), dr);
+    main_screen->Line(ivec2(aa.x + 1, bb.y - 1), bb - ivec2(1), dr);
+    TintArea(aa + ivec2(1), bb, 0, 0, 0, amount);
 }
 
 char *men_str(void *arg)
@@ -133,6 +102,10 @@ char *men_str(void *arg)
   return NULL;
 }
 
+//
+// This method is only used by the (menu) Lisp method, which was
+// never tested.
+//
 int menu(void *args, JCFont *font)             // reurns -1 on esc
 {
   main_menu();
@@ -143,7 +116,7 @@ int menu(void *args, JCFont *font)             // reurns -1 on esc
   args=CAR(CDR(args));
 
   int options = ((LList *)args)->GetLength();
-  int mh=(font->height()+1)*options+10,maxw=0;
+  int mh=(font->Size().y+1)*options+10,maxw=0;
 
   Cell *c=(Cell *)args;
   for (; !NILP(c); c=CDR(c))
@@ -152,38 +125,39 @@ int menu(void *args, JCFont *font)             // reurns -1 on esc
       maxw = strlen(men_str(CAR(c)));
   }
 
-  int mw=(font->width())*maxw+20;
-  int mx=screen->Size().x/2-mw/2,
-      my=screen->Size().y/2-mh/2;
+  int mw=(font->Size().x)*maxw+20;
+  int mx=main_screen->Size().x/2-mw/2,
+      my=main_screen->Size().y/2-mh/2;
 
 
-  screen->AddDirty(mx, my, mx + mw, my + mh);
+  main_screen->AddDirty(ivec2(mx, my), ivec2(mx + mw, my + mh));
 
   if (title)
   {
-    int tl=strlen(title)*font->width();
-    int tx=screen->Size().x/2-tl/2;
-    dark_widget(tx-2,my-font->height()-4,tx+tl+2,my-2,wm->medium_color(),wm->dark_color(),180);
-    font->put_string(screen,tx+1,my-font->height()-2,title,wm->bright_color());
+    int tl=strlen(title)*font->Size().x;
+    int tx=main_screen->Size().x/2-tl/2;
+    DarkWidget(ivec2(tx - 2, my-font->Size().y - 4), ivec2(tx + tl + 3, my - 1), wm->medium_color(),wm->dark_color(),180);
+    font->PutString(main_screen, ivec2(tx + 1, my-font->Size().y - 2), title, wm->bright_color());
   }
 
-  dark_widget(mx,my,mx+mw-1,my+mh-1,wm->medium_color(),wm->dark_color(),200);
+  DarkWidget(ivec2(mx, my), ivec2(mx + mw, my + mh),
+             wm->medium_color(), wm->dark_color(), 200);
 
 
   int y=my+5;
   for (c=(Cell *)args; !NILP(c); c=CDR(c))
   {
     char *ms=men_str(CAR(c));
-    font->put_string(screen,mx+10+1,y+1,ms,wm->black());
-    font->put_string(screen,mx+10,y,ms,wm->bright_color());
-    y+=font->height()+1;
+    font->PutString(main_screen, ivec2(mx + 10 + 1, y + 1), ms, wm->black());
+    font->PutString(main_screen, ivec2(mx + 10, y), ms, wm->bright_color());
+    y+=font->Size().y+1;
   }
 
   wm->flush_screen();
-  event ev;
+  Event ev;
   int choice=0,done=0;
-  int bh=font->height()+3;
-  image *save = new image(vec2i(mw - 2,bh));
+  int bh=font->Size().y+3;
+  image *save = new image(ivec2(mw - 2,bh));
   int color=128,cdir=50;
 
   time_marker *last_color_time=NULL;
@@ -192,7 +166,7 @@ int menu(void *args, JCFont *font)             // reurns -1 on esc
   do
   {
     wm->flush_screen();
-    if (wm->event_waiting())
+    if (wm->IsPending())
     {
       wm->get_event(ev);
       if (ev.type==EV_KEY)
@@ -220,7 +194,7 @@ int menu(void *args, JCFont *font)             // reurns -1 on esc
     if (ev.mouse_move.x>mx && ev.mouse_move.x<mx+mw && ev.mouse_move.y>my &&
         ev.mouse_move.y<my+mh)
     {
-      int msel=(ev.mouse_move.y-my)/(font->height()+1);
+      int msel=(ev.mouse_move.y-my)/(font->Size().y+1);
       if (msel>=options) msel=options-1;
       if (msel==choice)                    // clicked on already selected item, return it
         done=1;
@@ -236,16 +210,18 @@ int menu(void *args, JCFont *font)             // reurns -1 on esc
         delete last_color_time;
       last_color_time=new time_marker;
 
-      int by1=(font->height()+1)*choice+my+5-2;
+      int by1=(font->Size().y+1)*choice+my+5-2;
       int by2=by1+bh-1;
 
-      screen->put_part(save,0,0,mx+1,by1,mx+mw-2,by2);
-      tint_area(mx+1,by1,mx+mw-2,by2,63,63,63,color);
+      save->PutPart(main_screen, ivec2(0, 0), ivec2(mx + 1, by1), ivec2(mx + mw - 1, by2 + 1));
+      TintArea(ivec2(mx + 1, by1), ivec2(mx + mw - 1, by2 + 1),
+               63, 63, 63, color);
 
       char *cur=men_str(nth(choice,args));
-      font->put_string(screen,mx+10+1,by1+3,cur,wm->black());
-      font->put_string(screen,mx+10,by1+2,cur,wm->bright_color());
-      screen->rectangle(mx+1,by1,mx+mw-2,by2,wm->bright_color());
+      font->PutString(main_screen, ivec2(mx + 10 + 1, by1 + 3), cur, wm->black());
+      font->PutString(main_screen, ivec2(mx + 10, by1 + 2), cur, wm->bright_color());
+      main_screen->Rectangle(ivec2(mx + 1, by1), ivec2(mx + mw - 2, by2),
+                             wm->bright_color());
 
       color+=cdir;
 
@@ -255,7 +231,7 @@ int menu(void *args, JCFont *font)             // reurns -1 on esc
     color+=cdir;
       }
       wm->flush_screen();
-      save->put_image(screen,mx+1,by1);
+      main_screen->PutImage(save, ivec2(mx + 1, by1));
     } else { Timer tmp; tmp.WaitMs(10); }
 
   } while (!done);
@@ -285,13 +261,13 @@ static void create_volume_window()
 
     while(volume_window)
     {
-        event ev;
+        Event ev;
 
         do
         {
             wm->get_event(ev);
         }
-        while(ev.type == EV_MOUSE_MOVE && wm->event_waiting());
+        while(ev.type == EV_MOUSE_MOVE && wm->IsPending());
 
         wm->flush_screen();
 
@@ -388,19 +364,19 @@ void show_sell(int abortable)
   LSymbol *ss = LSymbol::FindOrCreate("sell_screens");
   if (!DEFINEDP(ss->GetValue()))
   {
-    int sp=current_space;
-    current_space=PERM_SPACE;
+    LSpace *sp = LSpace::Current;
+    LSpace::Current = &LSpace::Perm;
 //    char *prog="((\"art/help.spe\" . \"sell2\")(\"art/help.spe\" . \"sell4\")(\"art/help.spe\" . \"sell3\")(\"art/fore/endgame.spe\" . \"credit\"))";
 //    char *prog="((\"art/fore/endgame.spe\" . \"credit\") (\"art/help.spe\" . \"sell6\"))";
     char const *prog = "((\"art/fore/endgame.spe\" . \"credit\"))";
     ss->SetValue(LObject::Compile(prog));
-    current_space=sp;
+    LSpace::Current = sp;
   }
 
   if (DEFINEDP(ss->GetValue()))
   {
-    image blank(vec2i(2, 2)); blank.clear();
-    wm->set_mouse_shape(blank.copy(),0,0);      // don't show mouse
+    image blank(ivec2(2, 2)); blank.clear();
+    wm->SetMouseShape(blank.copy(), ivec2(0, 0));      // don't show mouse
 
     LObject *tmp = (LObject *)ss->GetValue();
     int quit=0;
@@ -409,7 +385,7 @@ void show_sell(int abortable)
       int im=cache.reg_object("art/help.spe",CAR(tmp),SPEC_IMAGE,1);
       fade_in(cache.img(im),16);
 
-      event ev;
+      Event ev;
       do
       { wm->flush_screen();
     wm->get_event(ev);
@@ -419,12 +395,12 @@ void show_sell(int abortable)
       fade_out(16);
       tmp = (LObject *)CDR(tmp);
     }
-    wm->set_mouse_shape(cache.img(c_normal)->copy(),1,1);
+    wm->SetMouseShape(cache.img(c_normal)->copy(), ivec2(1, 1));
   }
 }
 
 
-void menu_handler(event &ev, InputManager *inm)
+void menu_handler(Event &ev, InputManager *inm)
 {
   switch (ev.type)
   {
@@ -449,7 +425,7 @@ void menu_handler(event &ev, InputManager *inm)
       the_game->set_state(RUN_STATE);
       view *v;
       for (v=player_list; v; v=v->next)
-        if (v->focus)
+        if (v->m_focus)
           v->reset_player();
 
     } break;
@@ -515,12 +491,11 @@ void menu_handler(event &ev, InputManager *inm)
     if (!volume_window)
     {
       show_sell(1);
-      screen->clear();
+      main_screen->clear();
       if (title_screen>=0)
       {
-        image *tit=cache.img(title_screen);
-          tit->put_image(screen,screen->Size().x/2-tit->Size().x/2,
-                          screen->Size().y/2-tit->Size().y/2);
+        image *im = cache.img(title_screen);
+        main_screen->PutImage(im, main_screen->Size() / 2 - im->Size() / 2);
       }
       inm->redraw();
       fade_in(NULL,8);
@@ -660,13 +635,13 @@ void main_menu()
     ico_button *list=make_conditional_buttons(xres-33,y);
     list=make_default_buttons(xres-33,y,list);
 
-    InputManager *inm=new InputManager(screen,list);
+    InputManager *inm=new InputManager(main_screen,list);
     inm->allow_no_selections();
     inm->clear_current();
 
-    screen->AddDirty(0, 0, 320, 200);
+    main_screen->AddDirty(ivec2(0), ivec2(320, 200));
 
-    event ev;
+    Event ev;
 
     int stop_menu=0;
     time_marker start;
@@ -675,15 +650,15 @@ void main_menu()
     {
         time_marker new_time;
 
-        if (wm->event_waiting())
+        if (wm->IsPending())
         {
             do
             {
                 wm->get_event(ev);
-            } while (ev.type==EV_MOUSE_MOVE && wm->event_waiting());
+            } while (ev.type==EV_MOUSE_MOVE && wm->IsPending());
             inm->handle_event(ev,NULL);
             if (ev.type==EV_KEY && ev.key==JK_ESC)
-                wm->push_event(new event(ID_QUIT,NULL));
+                wm->Push(new Event(ID_QUIT,NULL));
 
             menu_handler(ev,inm);
             start.get_time();

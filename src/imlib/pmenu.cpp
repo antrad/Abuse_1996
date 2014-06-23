@@ -28,18 +28,17 @@ pmenu::pmenu(int X, int Y, pmenu_item *first, image *screen)
   top=first;
   active=NULL;
 
-  int cx1, cy1, cx2, cy2;
-  screen->GetClip(cx1, cy1, cx2, cy2);
-  if (cx1<X) cx1=X;
-  int w = cx2 - cx1 - Jwindow::left_border() - Jwindow::right_border();
+  ivec2 caa, cbb;
+  screen->GetClip(caa, cbb);
+  if (caa.x<X) caa.x=X;
+  int w = cbb.x - caa.x - Jwindow::left_border() - Jwindow::right_border();
   int h = Jwindow::top_border() + Jwindow::bottom_border();
 
-  bar=wm->new_window(X, Y, w, 0, NULL);
+  bar = wm->CreateWindow(ivec2(X, Y), ivec2(w, 0), NULL);
   bar->freeze();  // can't drag this window
-  bar->screen->widget_bar(0,0,w-1,h-1,wm->bright_color(),wm->medium_color(),
-            wm->dark_color());
-
-
+  bar->m_surf->WidgetBar(ivec2(0, 0), ivec2(w - 1, h - 1),
+                         wm->bright_color(), wm->medium_color(),
+                         wm->dark_color());
 
   int total=0,tx,tw;
   pmenu_item *p=top;
@@ -146,12 +145,12 @@ void psub_menu::hide(Jwindow *parent, int x, int y)
 {
   int w,h;
   calc_size(w,h);
-  int cx1, cy1, cx2, cy2;
-  screen->GetClip(cx1, cy1, cx2, cy2);
+  ivec2 caa, cbb;
+  main_screen->GetClip(caa, cbb);
   // FIXME: is this correct? it looks like it used to be incorrect
   // before the GetClip refactoring...
-  if (w+x>cx2-1)
-    x=cx2-1-w;
+  if (w+x>cbb.x-1)
+    x=cbb.x-1-w;
 
   if (win)
   {
@@ -159,7 +158,7 @@ void psub_menu::hide(Jwindow *parent, int x, int y)
     {
       int w,h;
       calc_size(w,h);
-      item_num(active)->draw(win,x+3,y+3+active*(wm->font()->height()+1),w-6,0,0);
+      item_num(active)->draw(win,x+3,y+3+active*(wm->font()->Size().y+1),w-6,0,0);
     }
     wm->close_window(win);
     win=NULL;
@@ -168,19 +167,19 @@ void psub_menu::hide(Jwindow *parent, int x, int y)
 
 void psub_menu::calc_size(int &w, int &h)
 {
-  int tw=wm->font()->width(),th=wm->font()->height();
+    ivec2 ts = wm->font()->Size();
   w=h=0;
   for (pmenu_item *p=first; p; p=p->next)
   {
     if (p->name())
     {
-      int l=strlen(p->name())*tw+8;
-      if (p->on_off) l+=tw*4;
+      int l=strlen(p->name())*ts.x+8;
+      if (p->on_off) l+=ts.x*4;
       if (l>w) w=l;
     }
     h++;
   }
-  h=h*(th+1)+8;
+  h=h*(ts.y+1)+8;
 }
 
 void psub_menu::draw(Jwindow *parent, int x, int y)
@@ -189,32 +188,34 @@ void psub_menu::draw(Jwindow *parent, int x, int y)
 
   int w,h,i=0;
   calc_size(w,h);
-  int cx1, cy1, cx2, cy2;
-  screen->GetClip(cx1, cy1, cx2, cy2);
-  if (parent->x+w+x>=cx2)
-    x=cx2-1-w-parent->x;
-  if (h+y+parent->y>=cy2)
+  ivec2 caa, cbb;
+  main_screen->GetClip(caa, cbb);
+  if (parent->m_pos.x + w + x >= cbb.x)
+    x=cbb.x-1-w-parent->m_pos.x;
+  if (h+y+parent->m_pos.y>=cbb.y)
   {
-    if (parent->y+parent->h+wm->font()->height()>=cy2)
+    if (parent->m_pos.y+parent->m_size.y+wm->font()->Size().y>=cbb.y)
       y=-h;
-    else y=y-h+wm->font()->height()+5;
+    else y=y-h+wm->font()->Size().y+5;
   }
 
 
-  win=wm->new_window(parent->x+x,parent->y+y,
-             w - Jwindow::left_border() - Jwindow::right_border(),
-             h - Jwindow::top_border() - Jwindow::bottom_border(),
-                     NULL);
+  win=wm->CreateWindow(parent->m_pos + ivec2(x, y),
+             ivec2(w - Jwindow::left_border() - Jwindow::right_border(),
+                   h - Jwindow::top_border() - Jwindow::bottom_border()),
+             NULL);
   win->freeze();
-  win->screen->widget_bar(0,0,w-1,h-1,wm->bright_color(),wm->medium_color(),wm->dark_color());
+  win->m_surf->WidgetBar(ivec2(0, 0), ivec2(w - 1, h - 1),
+                         wm->bright_color(), wm->medium_color(),
+                         wm->dark_color());
 
   int has_flags=0;
   pmenu_item *p=first;
   for (; p; p=p->next) if (p->on_off) has_flags=1;
-  x=has_flags ? 3+wm->font()->width() : 3;
-  y=3;
+  x = has_flags ? 3 + wm->font()->Size().x : 3;
+  y = 3;
 
-  for (p=first; p; p=p->next,i++,y+=wm->font()->height()+1)
+  for (p=first; p; p=p->next,i++,y+=wm->font()->Size().y+1)
     p->draw(win,x,y,w-6,0,i==active);
 
 }
@@ -222,33 +223,39 @@ void psub_menu::draw(Jwindow *parent, int x, int y)
 void pmenu_item::draw_self(Jwindow *parent, int x, int y, int w, int top, int active)
 {
   int bx=x;
-  if (on_off) bx=x-wm->font()->width();
+  if (on_off) bx=x-wm->font()->Size().x;
 
   if (!n)
   {
-    int h=wm->font()->height();
-    parent->screen->widget_bar(x,y+h/2-1,x+w-1,y+h/2,wm->dark_color(),wm->medium_color(),wm->bright_color());
+    int h=wm->font()->Size().y;
+    parent->m_surf->WidgetBar(ivec2(x, y + h / 2 - 1),
+                              ivec2(x + w - 1, y + h / 2), wm->dark_color(),
+                              wm->medium_color(), wm->bright_color());
   } else
   {
     if (active)
     {
       if (xp!=-1)
-        parent->screen->xor_bar(bx,y,x+w-1,y+wm->font()->height()+1,wm->dark_color());
+        parent->m_surf->xor_bar(bx,y,x+w-1,y+wm->font()->Size().y+1,wm->dark_color());
       else
       {
-    parent->screen->bar(bx,y,x+w-1,y+wm->font()->height()+1,wm->dark_color());
-    wm->font()->put_string(parent->screen,x+1,y+1,n,wm->medium_color());
-    if (on_off && *on_off) wm->font()->put_string(parent->screen,bx+1,y+1,"*",wm->medium_color());
+    parent->m_surf->Bar(ivec2(bx, y),
+                        ivec2(x + w - 1, y + wm->font()->Size().y + 1),
+                        wm->dark_color());
+    wm->font()->PutString(parent->m_surf, ivec2(x+1, y+1), n, wm->medium_color());
+    if (on_off && *on_off) wm->font()->PutString(parent->m_surf, ivec2(bx+1, y+1), "*", wm->medium_color());
       }
     } else
     {
       if (xp!=-1)
-        parent->screen->xor_bar(bx,y,x+w-1,y+wm->font()->height()+1,wm->dark_color());
+        parent->m_surf->xor_bar(bx,y,x+w-1,y+wm->font()->Size().y+1,wm->dark_color());
       else
       {
-    parent->screen->bar(bx,y,x+w-1,y+wm->font()->height()+1,wm->medium_color());
-    wm->font()->put_string(parent->screen,x+1,y+1,n,wm->bright_color());
-    if (on_off && *on_off) wm->font()->put_string(parent->screen,bx+1,y+1,"*",wm->bright_color());
+    parent->m_surf->Bar(ivec2(bx, y),
+                        ivec2(x + w - 1, y + wm->font()->Size().y + 1),
+                        wm->medium_color());
+    wm->font()->PutString(parent->m_surf, ivec2(x + 1, y + 1), n, wm->bright_color());
+    if (on_off && *on_off) wm->font()->PutString(parent->m_surf, ivec2(bx + 1, y + 1), "*", wm->bright_color());
       }
     }
   }
@@ -265,7 +272,7 @@ void pmenu_item::draw(Jwindow *parent, int x, int y, int w, int top,
       if (sub)
       {
     if (top)
-          sub->draw(parent,x,y+wm->font()->height()+2);
+          sub->draw(parent,x,y+wm->font()->Size().y+2);
     else
       sub->draw(parent,x+w,y);
       }
@@ -275,7 +282,7 @@ void pmenu_item::draw(Jwindow *parent, int x, int y, int w, int top,
       if (sub)
       {
     if (top)
-          sub->hide(parent,x,y+wm->font()->height()+2);
+          sub->hide(parent,x,y+wm->font()->Size().y+2);
     else
       sub->hide(parent,x+w,y);
       }
@@ -289,7 +296,7 @@ void pmenu_item::draw(Jwindow *parent, int x, int y, int w, int top,
 int pmenu::itemx(pmenu_item *p)
 {
   if (p->xp!=-1) return p->xp;
-  int w=bar->screen->Size().x;
+  int w=bar->m_surf->Size().x;
 
 
   int total=0,tw,i=0,x=0;
@@ -310,21 +317,19 @@ void pmenu::draw(image *screen, int top_only)
 }
 
 
-int psub_menu::handle_event(Jwindow *parent, int x, int y, event &ev)
+int psub_menu::handle_event(Jwindow *parent, int x, int y, Event &ev)
 {
   int w,h;
   calc_size(w,h);
-  int cx1, cy1, cx2, cy2;
-  screen->GetClip(cx1, cy1, cx2, cy2);
 
-  x=win->x;
-  y=win->y;
+  x=win->m_pos.x;
+  y=win->m_pos.y;
 
   int has_flags=0,dx=3;
   for (pmenu_item *p=first; p; p=p->next) if (p->on_off) has_flags=1;
-  if (has_flags) dx+=wm->font()->width();
+  if (has_flags) dx+=wm->font()->Size().x;
 
-  int th=wm->font()->height();
+  int th=wm->font()->Size().y;
   if (ev.mouse_move.x>=x && ev.mouse_move.y>=y && ev.mouse_move.x<x+w && ev.mouse_move.y<y+h)
   {
     int new_active=(ev.mouse_move.y-y-3)/(th+1);
@@ -345,42 +350,40 @@ int psub_menu::handle_event(Jwindow *parent, int x, int y, event &ev)
       else return 0;
     } else return 1;
   } else if (active!=-1)
-    return item_num(active)->handle_event(win,win->x+dx,win->y+3+active*(th+1),w-6,0,ev);
+    return item_num(active)->handle_event(win,win->m_pos.x+dx,win->m_pos.y+3+active*(th+1),w-6,0,ev);
   else return 0;
 
 
 }
 
 int pmenu_item::handle_event(Jwindow *parent, int x, int y, int w, int top,
-                 event &ev)
+                 Event &ev)
 {
-  x+=parent->x;
-  y+=parent->y;
+  x+=parent->m_pos.x;
+  y+=parent->m_pos.y;
   if (ev.mouse_move.x>=x && ev.mouse_move.y>=y && ev.mouse_move.x<x+w &&
-      ev.mouse_move.y<y+wm->font()->height()+2)
+      ev.mouse_move.y<y+wm->font()->Size().y+2)
   {
     if (sub) return 1;
     else
     {
       if (ev.type==EV_MOUSE_BUTTON &&n)
-        wm->push_event(new event(id,(char *)this));
+        wm->Push(new Event(id,(char *)this));
       return 1;
     }
   } else if (sub)
   {
     if (top)
-      return sub->handle_event(parent,x,y+wm->font()->height()+2,ev);
+      return sub->handle_event(parent,x,y+wm->font()->Size().y+2,ev);
     else return sub->handle_event(parent,x+w,y,ev);
   } else return 0;
 }
 
 pmenu_item *pmenu::inarea(int mx, int my, image *screen)
 {
-  int cx1, cy1, cx2, cy2;
-  screen->GetClip(cx1, cy1, cx2, cy2);
-  mx-=bar->x;
-  my-=bar->y;
-  if (mx<0 || my<0 || mx>=bar->screen->Size().x || my>=bar->screen->Size().y) return NULL;
+  mx-=bar->m_pos.x;
+  my-=bar->m_pos.y;
+  if (mx<0 || my<0 || mx>=bar->m_surf->Size().x || my>=bar->m_surf->Size().y) return NULL;
   else
   {
     for (pmenu_item *p=top; p; p=p->next)
@@ -392,7 +395,7 @@ pmenu_item *pmenu::inarea(int mx, int my, image *screen)
   }
 }
 
-int psub_menu::own_event(event &ev)
+int psub_menu::own_event(Event &ev)
 {
   if (win && ev.window==win) return 1; else
     for (pmenu_item *p=first; p; p=p->next)
@@ -401,7 +404,7 @@ int psub_menu::own_event(event &ev)
   return 0;
 }
 
-int pmenu_item::own_event(event &ev)
+int pmenu_item::own_event(Event &ev)
 {
   if (sub)
     return sub->own_event(ev);
@@ -412,7 +415,7 @@ pmenu_item::~pmenu_item()
 { if (n) free(n); if (sub) delete sub;
 }
 
-int pmenu::handle_event(event &ev, image *screen)
+int pmenu::handle_event(Event &ev, image *screen)
 {
   if (!active && ev.window!=bar) return 0;
 /*
@@ -435,7 +438,7 @@ int pmenu::handle_event(event &ev, image *screen)
     pmenu_item *r=p->find_key(ev.key);
     if (r)
     {
-      wm->push_event(new event(r->id,(char *)r));
+      wm->Push(new Event(r->id,(char *)r));
       return 1;
     }
       }

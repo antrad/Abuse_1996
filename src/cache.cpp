@@ -381,8 +381,8 @@ void CacheList::preload_cache_object(int type)
 
       if (cache_fun)
       {
-    int sp=current_space;
-    current_space=PERM_SPACE;
+    LSpace *sp = LSpace::Current;
+    LSpace::Current = &LSpace::Perm;
 
     void *call_with=NULL;
     push_onto_list(LNumber::Create(type),call_with);
@@ -418,7 +418,7 @@ void CacheList::preload_cache_object(int type)
         id_list=CDR(id_list);
       }
     }
-    current_space=sp;
+    LSpace::Current=sp;
 
       }
     }

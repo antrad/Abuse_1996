@@ -27,7 +27,7 @@ void write_include(image *im, palette *pal, char *filename, char *name)
     if (toupper(tmp_name[j])<'A' || toupper(tmp_name[j])>'Z')
       tmp_name[j]='_';
 
-  FILE *fp=fopen(filename,"rb");  // see if the file already exsist
+  FILE *fp=fopen(filename,"rb");  // see if the file already exists
   if (fp)
   {
     fclose(fp);
@@ -54,13 +54,13 @@ void write_include(image *im, palette *pal, char *filename, char *name)
         else fprintf(fp,", ");
       }
     }
-    vec2i size = im->Size();
+    ivec2 size = im->Size();
     fprintf(fp,"unsigned char %s[%d*%d]={\n    ",tmp_name, size.x, size.y);
     int x,y,max=size.x*size.y-1;
     for (y=0,i=0; y<size.y; y++)
       for (x=0; x<size.x; x++,i++)
       {
-        fprintf(fp,"%d",(int)im->Pixel(vec2i(x,y)));
+        fprintf(fp,"%d",(int)im->Pixel(ivec2(x,y)));
         if (i==max)
           fprintf(fp,"};\n\n");
         else

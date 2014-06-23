@@ -83,7 +83,7 @@ void write_level(bFILE *fp, LObject *level)
         }
         break;
     case L_CHARACTER:
-        fp->write_uint16(lcharacter_value(level));
+        fp->write_uint16(((LChar *)level)->GetValue());
         break;
     case L_STRING:
         {
@@ -125,16 +125,16 @@ LObject *load_block(bFILE *fp)
             {
                 LList *c = LList::Create();
                 if (first)
-                    last->cdr = c;
+                    last->m_cdr = c;
                 else
                     first = c;
                 last = c;
             }
-            last->cdr = (t < 0) ? (LObject *)load_block(fp) : NULL;
+            last->m_cdr = (t < 0) ? (LObject *)load_block(fp) : NULL;
 
             last = first;
-            for (size_t count = abs(t); count--; last = (LList *)last->cdr)
-                last->car = load_block(fp);
+            for (size_t count = abs(t); count--; last = (LList *)last->m_cdr)
+                last->m_car = load_block(fp);
             return first;
         }
     case L_CHARACTER:

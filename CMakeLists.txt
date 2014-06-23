@@ -13,6 +13,7 @@ endif()
 if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
     # TODO: Think about Win64
     set(PLATFORM_WIN32 true)
+    enable_language(RC)
 elseif(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
     set(PLATFORM_MAC_OS_X true)
 endif()
@@ -33,6 +34,8 @@ check_include_files("sys/time.h" HAVE_SYS_TIME_H)
 check_include_files("sys/ioctl.h" HAVE_SYS_IOCTL_H)
 check_include_files("netinet/in.h" HAVE_NETINET_IN_H)
 check_include_files(bstring.h HAVE_BSTRING_H)
+
+set(HAVE_NETWORK TRUE CACHE BOOL "Enable networking support")
 
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/config.h.in ${CMAKE_CURRENT_BINARY_DIR}/config.h)
 

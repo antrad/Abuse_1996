@@ -62,6 +62,10 @@ extern FILE *open_FILE(char const *filename, char const *mode);
 
 class Game
 {
+public:
+    Game(int argc, char **argv);
+    ~Game();
+
 private:
   JCFont *fnt;
   bool finished;
@@ -88,9 +92,6 @@ public :
   view *first_view,*old_view;
   int state,zoom;
 
-  Game(int argc, char **argv);
-  ~Game();
-
   void step();
   void show_help(char const *st);
   void draw_value(image *screen, int x, int y, int w, int h, int val, int max);
@@ -105,15 +106,15 @@ public :
                            return cache.foret(foretiles[BLACK]); else
                return cache.foret(foretiles[x]); }
 
-  void ftile_on(int screenx, int screeny, int32_t &x, int32_t &y);
-  void btile_on(int screenx, int screeny, int32_t &x, int32_t &y);
+    ivec2 GetFgTile(ivec2 pos);
+    ivec2 GetBgTile(ivec2 pos);
   void toggle_delay();
   void set_delay(int on) { no_delay=!on; }
   void pan(int xv, int yv);
 
-  void mouse_to_game(int32_t x, int32_t y, int32_t &gamex, int32_t &gamey, view *v=NULL);
-  void game_to_mouse(int32_t gamex, int32_t gamey, view *which, int32_t &x, int32_t &y);
-  view *view_in(int mousex, int mousey);
+    ivec2 MouseToGame(ivec2 pos, view *v = NULL);
+    ivec2 GameToMouse(ivec2 pos, view *v);
+    view *GetView(ivec2 pos);
 
   int calc_speed();
   int ftile_width()  { return f_wid; }
@@ -123,20 +124,17 @@ public :
   int btile_height() { return b_hi; }
 
 
-  void put_fg(int x, int y, int type);
-  void put_bg(int x, int y, int type);
+    void PutFg(ivec2 pos, int type);
+    void PutBg(ivec2 pos, int type);
   void draw_map(view *v, int interpolate=0);
   void dev_scroll();
-  void put_block_fg(int x, int y, TransImage *im);
-  void put_block_bg(int x, int y, image *im);
 
-
-  int in_area(event &ev, int x1, int y1, int x2, int y2);
+  int in_area(Event &ev, int x1, int y1, int x2, int y2);
   void load_level(char const *name);
   void set_level(level *nl);
   void show_time();
-  tile_type get_map_bg(int x, int y) { return current_level->get_bg(x,y); }
-  tile_type get_map_fg(int x, int y) { return current_level->get_fg(x,y); }
+    tile_type GetMapBg(ivec2 pos) { return current_level->GetBg(pos); }
+    tile_type GetMapFg(ivec2 pos) { return current_level->GetFg(pos); }
   void end_session();
   void need_refresh() { refresh=1; }       // for development mode only
   palette *current_palette() { return pal; }
@@ -144,8 +142,8 @@ public :
   void update_screen();
   void get_input();
   void do_intro();
-  void joy_calb(event &ev);
-  void menu_select(event &ev2);
+  void joy_calb(Event &ev);
+  void menu_select(Event &ev2);
   int can_morph_into(int type);
   void morph_into(int type);
   void set_state(int new_state);
@@ -154,7 +152,7 @@ public :
   void play_sound(int id, int vol, int32_t x, int32_t y);
   void request_level_load(char *name);
   void request_end();
-} ;
+};
 
 extern int playing_state(int state);
 #endif

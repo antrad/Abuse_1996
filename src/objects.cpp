@@ -105,11 +105,11 @@ int32_t game_object::get_var_by_name(char *name, int &error)
     {
       return lvars[figures[otype]->var_index[i]];
 /*      LObjectVar *cobj=(LObjectVar *)symbol_value(figures[otype]->vars[i]);
-      character_type *t=figures[otype];
+      CharacterType *t=figures[otype];
       int number=cobj->number;
       if (t->tiv<=number || !t->vars[number])
       {
-    lbreak("access : variable does not exsist for this class\n");
+    lbreak("access : variable does not exists for this class\n");
     return 0;
       }
       return lvars[t->var_index[number]]; */
@@ -260,9 +260,9 @@ void game_object::reload_notify()
     game_object *o=current_object;
     current_object=this;
 
-    void *m=mark_heap(TMP_SPACE);
+    void *m = LSpace::Tmp.Mark();
     ((LSymbol *)ns)->EvalFunction(NULL);
-    restore_heap(m,TMP_SPACE);
+    LSpace::Tmp.Restore(m);
 
     current_object=o;
   }
@@ -274,9 +274,9 @@ void game_object::next_sequence()
     if( ns )
     {
         current_object = this;
-        void *m = mark_heap( TMP_SPACE );
+        void *m = LSpace::Tmp.Mark();
         ((LSymbol *)ns)->EvalFunction(NULL);
-        restore_heap( m, TMP_SPACE );
+        LSpace::Tmp.Restore(m);
     }
     else
     {
@@ -377,22 +377,23 @@ void game_object::morph_into(int type, void (*stat_fun)(int), int anneal, int fr
 
 void game_object::draw_above(view *v)
 {
-  int32_t x1,y1,x2,y2,sy1,sy2,sx,i;
+  int32_t x1, y1, x2, y2;
   picture_space(x1,y1,x2,y2);
 
-  the_game->game_to_mouse(x1,y1,v,sx,sy2);
-  if (sy2>=v->cy1)
+  ivec2 pos1 = the_game->GameToMouse(ivec2(x1, y1), v);
+  if (pos1.y >= v->m_aa.y)
   {
-    int32_t draw_to=y1-(sy2-v->cy1),tmp=x;
-    current_level->foreground_intersect(x,y1,tmp,draw_to);
-    the_game->game_to_mouse(x1,draw_to,v,i,sy1);     // calculate sy1
+    int32_t draw_to = y1 - (pos1.y - v->m_aa.y), tmp = x;
+    current_level->foreground_intersect(x, y1, tmp, draw_to);
+    // calculate pos2.y
+    ivec2 pos2 = the_game->GameToMouse(ivec2(x1, draw_to), v);
 
-    sy1 = Max(v->cy1, sy1);
-    sy2 = Min(v->cy2, sy2);
-    TransImage *p=picture();
+    pos2.y = Max(v->m_aa.y, pos2.y);
+    pos1.y = Min(v->m_bb.y, pos1.y);
+    TransImage *p = picture();
 
-    for (i=sy1; i<=sy2; i++)
-      p->PutScanLine(screen,vec2i(sx,i),0);
+    for (int i = pos2.y; i <= pos1.y; i++)
+      p->PutScanLine(main_screen, ivec2(pos1.x, i), 0);
   }
 }
 
@@ -409,7 +410,7 @@ int game_object::decide()
     old_aistate=aistate();
 
     current_object=this;
-    void *m=mark_heap(TMP_SPACE);
+    void *m = LSpace::Tmp.Mark();
 
     time_marker *prof1=NULL;
     if (profiling())
@@ -423,7 +424,7 @@ int game_object::decide()
       delete prof1;
     }
 
-    restore_heap(m,TMP_SPACE);
+    LSpace::Tmp.Restore(m);
 
     if (keep_ai_info())
     {
@@ -483,37 +484,37 @@ void game_object::do_damage(int amount, game_object *from, int32_t hitx, int32_t
     game_object *o = current_object;
     current_object = this;
 
-    void *m = mark_heap(TMP_SPACE);
+    void *m = LSpace::Tmp.Mark();
 
     am = LList::Create();
     PtrRef r1(am);
-    am->car = LNumber::Create(amount);
+    am->m_car = LNumber::Create(amount);
 
     frm = LList::Create();
     PtrRef r2(frm);
-    frm->car = LPointer::Create(from);
+    frm->m_car = LPointer::Create(from);
 
     hx = LList::Create();
     PtrRef r3(hx);
-    hx->car = LNumber::Create(hitx);
+    hx->m_car = LNumber::Create(hitx);
 
     hy = LList::Create();
     PtrRef r4(hy);
-    hy->car = LNumber::Create(hity);
+    hy->m_car = LNumber::Create(hity);
 
     px = LList::Create();
     PtrRef r5(px);
-    px->car = LNumber::Create(push_xvel);
+    px->m_car = LNumber::Create(push_xvel);
 
     py = LList::Create();
     PtrRef r6(py);
-    py->car = LNumber::Create(push_yvel);
+    py->m_car = LNumber::Create(push_yvel);
 
-    px->cdr = py;
-    hy->cdr = px;
-    hx->cdr = hy;
-    frm->cdr = hx;
-    am->cdr = frm;
+    px->m_cdr = py;
+    hy->m_cdr = px;
+    hx->m_cdr = hy;
+    frm->m_cdr = hx;
+    am->m_cdr = frm;
 
     time_marker *prof1 = NULL;
     if (profiling())
@@ -527,7 +528,7 @@ void game_object::do_damage(int amount, game_object *from, int32_t hitx, int32_t
       delete prof1;
     }
 
-    restore_heap(m, TMP_SPACE);
+    LSpace::Tmp.Restore(m);
 
     current_object = o;
   } else damage_fun(amount,from,hitx,hity,push_xvel,push_yvel);
@@ -623,7 +624,7 @@ void game_object::draw()
   {
     current_object=this;
 
-    void *m=mark_heap(TMP_SPACE);
+    void *m = LSpace::Tmp.Mark();
     time_marker *prof1=NULL;
     if (profiling())
       prof1=new time_marker;
@@ -636,9 +637,7 @@ void game_object::draw()
       delete prof1;
     }
 
-
-
-    restore_heap(m,TMP_SPACE);
+    LSpace::Tmp.Restore(m);
 
   } else drawer();
 }
@@ -650,7 +649,7 @@ void game_object::map_draw()
   {
     current_object=this;
 
-    void *m=mark_heap(TMP_SPACE);
+    void *m = LSpace::Tmp.Mark();
     time_marker *prof1=NULL;
     if (profiling())
       prof1=new time_marker;
@@ -663,16 +662,15 @@ void game_object::map_draw()
       delete prof1;
     }
 
-    restore_heap(m,TMP_SPACE);
-
+    LSpace::Tmp.Restore(m);
   }
 }
 
 void game_object::draw_trans(int count, int max)
 {
   TransImage *cpict=picture();
-  cpict->PutFade(screen,
-          vec2i((direction<0 ? x-(cpict->Size().x-x_center()-1) : x-x_center())-current_vxadd,
+  cpict->PutFade(main_screen,
+          ivec2((direction<0 ? x-(cpict->Size().x-x_center()-1) : x-x_center())-current_vxadd,
                 y-cpict->Size().y+1-current_vyadd),
           count,max,
           color_table,the_game->current_palette());
@@ -683,8 +681,8 @@ void game_object::draw_tint(int tint_id)
 {
   TransImage *cpict=picture();
   if (fade_count())
-    cpict->PutFadeTint(screen,
-               vec2i((direction<0 ? x-(cpict->Size().x-x_center()-1) : x-x_center())-current_vxadd,
+    cpict->PutFadeTint(main_screen,
+               ivec2((direction<0 ? x-(cpict->Size().x-x_center()-1) : x-x_center())-current_vxadd,
                      y-cpict->Size().y+1-current_vyadd),
                fade_count(),fade_max(),
                cache.ctint(tint_id)->data,
@@ -692,8 +690,8 @@ void game_object::draw_tint(int tint_id)
 
 
   else
-    cpict->PutRemap(screen,
-               vec2i((direction<0 ? x-(cpict->Size().x-x_center()-1) : x-x_center())-current_vxadd,
+    cpict->PutRemap(main_screen,
+               ivec2((direction<0 ? x-(cpict->Size().x-x_center()-1) : x-x_center())-current_vxadd,
                      y-cpict->Size().y+1-current_vyadd),
                cache.ctint(tint_id)->data);
 }
@@ -703,8 +701,8 @@ void game_object::draw_double_tint(int tint_id, int tint2)
 {
   TransImage *cpict=picture();
   if (fade_count())
-    cpict->PutFadeTint(screen,
-               vec2i((direction<0 ? x-(cpict->Size().x-x_center()-1) : x-x_center())-current_vxadd,
+    cpict->PutFadeTint(main_screen,
+               ivec2((direction<0 ? x-(cpict->Size().x-x_center()-1) : x-x_center())-current_vxadd,
                      y-cpict->Size().y+1-current_vyadd),
                fade_count(),fade_max(),
                cache.ctint(tint_id)->data,
@@ -712,8 +710,8 @@ void game_object::draw_double_tint(int tint_id, int tint2)
 
 
   else
-    cpict->PutDoubleRemap(screen,
-               vec2i((direction<0 ? x-(cpict->Size().x-x_center()-1) : x-x_center())-current_vxadd,
+    cpict->PutDoubleRemap(main_screen,
+               ivec2((direction<0 ? x-(cpict->Size().x-x_center()-1) : x-x_center())-current_vxadd,
                      y-cpict->Size().y+1-current_vyadd),
                cache.ctint(tint_id)->data,
                cache.ctint(tint2)->data);
@@ -724,8 +722,8 @@ void game_object::draw_double_tint(int tint_id, int tint2)
 void game_object::draw_predator()
 {
   TransImage *cpict=picture();
-  cpict->PutPredator(screen,
-             vec2i((direction<0 ? x-(cpict->Size().x-x_center()-1) : x-x_center())-current_vxadd,
+  cpict->PutPredator(main_screen,
+             ivec2((direction<0 ? x-(cpict->Size().x-x_center()-1) : x-x_center())-current_vxadd,
                    y-cpict->Size().y+1-current_vyadd));
 
 }
@@ -747,8 +745,8 @@ void game_object::drawer()
     else
     {
       TransImage *cpict=picture();
-      cpict->PutImage(screen,
-               vec2i((direction<0 ? x-(cpict->Size().x-x_center()-1) : x-x_center())-current_vxadd,
+      cpict->PutImage(main_screen,
+               ivec2((direction<0 ? x-(cpict->Size().x-x_center()-1) : x-x_center())-current_vxadd,
                      y-cpict->Size().y+1-current_vyadd));
     }
   }
@@ -1156,7 +1154,7 @@ game_object *create(int type, int32_t x, int32_t y, int skip_constructor, int ai
     game_object *o=current_object;
     current_object=g;
 
-    void *m=mark_heap(TMP_SPACE);
+    void *m = LSpace::Tmp.Mark();
 
     time_marker *prof1=NULL;
     if (profiling())
@@ -1170,11 +1168,8 @@ game_object *create(int type, int32_t x, int32_t y, int skip_constructor, int ai
       delete prof1;
     }
 
-
-
-    restore_heap(m,TMP_SPACE);
-
-    current_object=o;
+    LSpace::Tmp.Restore(m);
+    current_object = o;
   }
   return g;
 }
@@ -1208,20 +1203,20 @@ int game_object::move(int cx, int cy, int button)
     // make a list of the parameters, and call the lisp function
     lcx = LList::Create();
     PtrRef r1(lcx);
-    lcx->car = LNumber::Create(cx);
+    lcx->m_car = LNumber::Create(cx);
 
     lcy = LList::Create();
     PtrRef r2(lcy);
-    lcy->car = LNumber::Create(cy);
+    lcy->m_car = LNumber::Create(cy);
 
     lb = LList::Create();
     PtrRef r3(lb);
-    lb->car = LNumber::Create(button);
+    lb->m_car = LNumber::Create(button);
 
-    lcx->cdr = lcy;
-    lcy->cdr = lb;
+    lcx->m_cdr = lcy;
+    lcy->m_cdr = lb;
 
-    void *m = mark_heap(TMP_SPACE);
+    void *m = LSpace::Tmp.Mark();
 
     time_marker *prof1 = NULL;
     if (profiling())
@@ -1235,7 +1230,7 @@ int game_object::move(int cx, int cy, int button)
       delete prof1;
     }
 
-    restore_heap(m,TMP_SPACE);
+    LSpace::Tmp.Restore(m);
 
     if (item_type(r)!=L_NUMBER)
     {
@@ -1625,7 +1620,7 @@ void game_object::change_type(int new_type)
     game_object *o=current_object;
     current_object=this;
 
-    void *m=mark_heap(TMP_SPACE);
+    void *m = LSpace::Tmp.Mark();
 
     time_marker *prof1=NULL;
     if (profiling())
@@ -1639,9 +1634,7 @@ void game_object::change_type(int new_type)
       delete prof1;
     }
 
-
-    restore_heap(m,TMP_SPACE);
-
-    current_object=o;
+    LSpace::Tmp.Restore(m);
+    current_object = o;
   }
 }

@@ -24,15 +24,12 @@
 
 #include "dev.h"
 
-#if !defined __CELLOS_LV2__
-#   include "net/sock.h"
-#endif
+#include "net/sock.h"
 
 extern char const *get_login();
 net_configuration *main_net_cfg = NULL;
 extern char lsf[256];
 
-#if !defined __CELLOS_LV2__
 extern net_protocol *prot;
 
 net_configuration::net_configuration()
@@ -40,7 +37,6 @@ net_configuration::net_configuration()
   strcpy(name,get_login());
 
   strcpy(server_name,"My Netgame");
-
 
   min_players=2;
   max_players=8;
@@ -60,13 +56,13 @@ enum { NET_OK=1, NET_CANCEL, NET_SERVER_NAME, NET_NAME, NET_PORT, NET_SERVER_POR
 
 void net_configuration::cfg_error(char const *msg)
 {
-  Jwindow *j=wm->new_window(-1,0,-1,-1,new info_field(0, 0, 0, msg,
+  Jwindow *j=wm->CreateWindow(ivec2(-1, 0), ivec2(-1), new info_field(0, 0, 0, msg,
       new button(0, 30,CFG_ERR_OK,symbol_str("ok_button"),NULL)),symbol_str("input_error"));
-  event ev;
+  Event ev;
   do
   {
     wm->flush_screen();
-    do { wm->get_event(ev); } while (ev.type==EV_MOUSE_MOVE && wm->event_waiting());
+    do { wm->get_event(ev); } while (ev.type==EV_MOUSE_MOVE && wm->IsPending());
   } while (ev.type!=EV_MESSAGE || ev.message.id!=CFG_ERR_OK || ev.type==EV_CLOSE_WINDOW || (ev.type==EV_KEY && ev.key==JK_ESC));
   wm->close_window(j);
   wm->flush_screen();
@@ -184,12 +180,12 @@ extern int start_running,demo_start,start_edit;
                      new button(0,wm->font()->height()*6,NET_CANCEL,symbol_str("cancel_net"),
                         NULL)))),symbol_str("Networking"));
 
-  event ev;
+  Event ev;
   int done=0;
   do
   {
     wm->flush_screen();
-    do { wm->get_event(ev); } while (ev.type==EV_MOUSE_MOVE && wm->event_waiting());
+    do { wm->get_event(ev); } while (ev.type==EV_MOUSE_MOVE && wm->IsPending());
     if (ev.type==EV_MESSAGE)
     {
       if (ev.message.id==NET_SERVER) { done=1; state=RESTART_SERVER;  start_edit=0; demo_start=0; start_running=1; }
@@ -246,7 +242,7 @@ extern int start_running,demo_start,start_edit;
   do
   {
     wm->flush_screen();
-    do { wm->get_event(ev); } while (ev.type==EV_MOUSE_MOVE && wm->event_waiting());
+    do { wm->get_event(ev); } while (ev.type==EV_MOUSE_MOVE && wm->IsPending());
     if (ev.type==EV_MESSAGE && ev.message.id==NET_OK && confirm_inputs(nw,state==RESTART_SERVER))
       done=1;
     if (ev.type==EV_MESSAGE && (ev.message.id==NET_CANCEL || ev.message.id==NET_SINGLE))
@@ -266,52 +262,52 @@ extern int start_running,demo_start,start_edit;
 
 void net_configuration::error(char const *message)
 {
-  image *screen_backup=screen->copy();
+  image *screen_backup = main_screen->copy();
 
   image *ns=cache.img(cache.reg("art/frame.spe","net_screen",SPEC_IMAGE,1));
   int ns_w=ns->Size().x,ns_h=ns->Size().y;
   int x=(xres+1)/2-ns_w/2,y=(yres+1)/2-ns_h/2;
-  ns->put_image(screen,x,y);
+  main_screen->PutImage(ns, ivec2(x, y));
   JCFont *fnt=wm->font();
 
   uint8_t *remap=white_light+30*256;
 
-  uint8_t *sl=screen->scan_line(0);
-  int xx=screen->Size().x*screen->Size().y;
+  uint8_t *sl = main_screen->scan_line(0);
+  int xx = main_screen->Size().x * main_screen->Size().y;
   for (; xx; xx--,sl++) *sl=remap[*sl];
 
-  int fx=x+ns_w/2-strlen(message)*fnt->width()/2,
-    fy=y+ns_h/2-fnt->height();
+  int fx=x+ns_w/2-strlen(message)*fnt->Size().x/2,
+      fy=y+ns_h/2-fnt->Size().y;
 
-  fnt->put_string(screen,fx+1,fy+1,message,wm->black());
-  fnt->put_string(screen,fx,fy,message,wm->bright_color());
+  fnt->PutString(main_screen, ivec2(fx + 1, fy + 1), message, wm->black());
+  fnt->PutString(main_screen, ivec2(fx, fy), message, wm->bright_color());
 
 
   {
     char const *ok = symbol_str("ok_button");
 
-    int bx=x+ns_w/2-strlen(ok)*fnt->width()/2-3,
-      by=y+ns_h/2+fnt->height()*3;
+    int bx=x+ns_w/2-strlen(ok)*fnt->Size().x/2-3,
+        by=y+ns_h/2+fnt->Size().y*3;
 
     button *sb=new button(bx,by,NET_SERVER,ok,NULL);
 
-    InputManager inm(screen,sb);
+    InputManager inm(main_screen, sb);
     inm.allow_no_selections();
     inm.clear_current();
 
     int done=0;
-    event ev;
+    Event ev;
     do
     {
       wm->flush_screen();
-      do  { wm->get_event(ev); } while (ev.type==EV_MOUSE_MOVE && wm->event_waiting());
+      do  { wm->get_event(ev); } while (ev.type==EV_MOUSE_MOVE && wm->IsPending());
       inm.handle_event(ev,NULL);
       if ((ev.type==EV_KEY && (ev.key==JK_ESC || ev.key==JK_ENTER)) ||
       ev.type==EV_MESSAGE) done=1;
     } while (!done);
   }
 
-  screen_backup->put_image(screen,0,0);
+  main_screen->PutImage(screen_backup, ivec2(0, 0));
   wm->flush_screen();
   delete screen_backup;
 }
@@ -321,12 +317,12 @@ ifield *net_configuration::center_ifield(ifield *i,int x1, int x2, ifield *place
 {
   int X1,Y1,X2,Y2;
   i->area(X1,Y1,X2,Y2);
-  i->x=(x1+x2)/2-(X2-X1)/2;
+  i->m_pos.x=(x1+x2)/2-(X2-X1)/2;
 
   if (place_below)
   {
     place_below->area(X1,Y1,X2,Y2);
-    i->y=Y2+2;
+    i->m_pos.y=Y2+2;
   }
   return i;
 }
@@ -336,7 +332,7 @@ int net_configuration::get_options(int server)
   image *ns=cache.img(cache.reg("art/frame.spe","net_screen",SPEC_IMAGE,1));
   int ns_w=ns->Size().x,ns_h=ns->Size().y;
   int x=(xres+1)/2-ns_w/2,y=(yres+1)/2-ns_h/2;
-  ns->put_image(screen,x,y);
+  main_screen->PutImage(ns, ivec2(x, y));
   JCFont *fnt=wm->font();
   image *ok_image=cache.img(cache.reg("art/frame.spe","dev_ok",SPEC_IMAGE,1))->copy(),
     *cancel_image=cache.img(cache.reg("art/frame.spe","cancel",SPEC_IMAGE,1))->copy();
@@ -409,22 +405,22 @@ int net_configuration::get_options(int server)
   }
 
 
-  list=new button(x+80-17,y+ns_h-20-fnt->height(),NET_OK,ok_image,list);
-  list=new button(x+80+17,y+ns_h-20-fnt->height(),NET_CANCEL,cancel_image,list);
+  list=new button(x+80-17,y+ns_h-20-fnt->Size().y,NET_OK,ok_image,list);
+  list=new button(x+80+17,y+ns_h-20-fnt->Size().y,NET_CANCEL,cancel_image,list);
 
   int ret=0;
 
   {
-    InputManager inm(screen,list);
+    InputManager inm(main_screen, list);
     inm.allow_no_selections();
     inm.clear_current();
 
     int done=0;
-    event ev;
+    Event ev;
     do
     {
       wm->flush_screen();
-      do { wm->get_event(ev); } while (ev.type==EV_MOUSE_MOVE && wm->event_waiting());
+      do { wm->get_event(ev); } while (ev.type==EV_MOUSE_MOVE && wm->IsPending());
       inm.handle_event(ev,NULL);
       if (ev.type==EV_MESSAGE)
       {
@@ -450,33 +446,33 @@ int net_configuration::get_options(int server)
 int net_configuration::input()   // pulls up dialog box and input fileds
 {
   int ret=0;
-  screen->clear();
+  main_screen->clear();
 
   image *ns=cache.img(cache.reg("art/frame.spe","net_screen",SPEC_IMAGE,1));
   int ns_w=ns->Size().x,ns_h=ns->Size().y;
   int x=(xres+1)/2-ns_w/2,y=(yres+1)/2-ns_h/2;
-  ns->put_image(screen,x,y);
+  main_screen->PutImage(ns, ivec2(x, y));
   char const *nw_s = symbol_str("Networking");
   JCFont *fnt=wm->font();
 
 
-  wm->font()->put_string(screen,x+ns_w/2-strlen(nw_s)*fnt->width()/2,y+21/2-fnt->height()/2,
+  wm->font()->PutString(main_screen, ivec2(x + ns_w / 2 - strlen(nw_s) * fnt->Size().x / 2, y + 21 / 2 - fnt->Size().y / 2),
       nw_s,wm->medium_color());
   {
 
     char const *server_str = symbol_str("server");
-    button *sb=new button(x+40,y+ns_h-23-fnt->height(),NET_SERVER,server_str,NULL);
+    button *sb=new button(x+40, y+ns_h-23-fnt->Size().y, NET_SERVER, server_str, NULL);
 
     if (main_net_cfg && (main_net_cfg->state==CLIENT || main_net_cfg->state==SERVER))
-      sb=new button(x+40,y+ns_h-9-fnt->height(),NET_SINGLE,symbol_str("single_play"),sb);
+      sb=new button(x+40, y+ns_h-9-fnt->Size().y, NET_SINGLE, symbol_str("single_play"), sb);
 
-    InputManager inm(screen,sb);
+    InputManager inm(main_screen,sb);
 
     inm.allow_no_selections();
     inm.clear_current();
 
 
-    event ev;
+    Event ev;
     int done=0;
     int button_y=25,total_games=0;
     enum { MAX_GAMES=9 };
@@ -486,9 +482,9 @@ int net_configuration::input()   // pulls up dialog box and input fileds
 
     do
     {
-      if (wm->event_waiting())
+      if (wm->IsPending())
       {
-        do  { wm->get_event(ev); } while (ev.type==EV_MOUSE_MOVE && wm->event_waiting());
+        do  { wm->get_event(ev); } while (ev.type==EV_MOUSE_MOVE && wm->IsPending());
         inm.handle_event(ev,NULL);
         if (ev.type==EV_MESSAGE)
         {
@@ -528,13 +524,13 @@ int net_configuration::input()   // pulls up dialog box and input fileds
         net_address *find=prot->find_address(0x9090,name);    // was server_port
         if (find)
         {
-          int bw=strlen(name)*fnt->width();
+          int bw=strlen(name)*fnt->Size().x;
           inm.add(new button(x+ns_w/2-bw/2,y+button_y,NET_GAME+total_games,name,NULL));
           find->set_port(server_port);
           game_addr[total_games]=find;
 
           total_games++;
-          button_y+=fnt->height()+10;
+          button_y += fnt->Size().y + 10;
           inm.redraw();
         }
       }
@@ -597,5 +593,3 @@ int net_configuration::input()   // pulls up dialog box and input fileds
 
   return ret;
 }
-
-#endif // __CELLOS_LV2__

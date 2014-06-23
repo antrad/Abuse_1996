@@ -116,16 +116,16 @@ public :
 
   uint16_t *get_fgline(int y) { CHECK(y>=0 && y<fg_height); return map_fg+y*fg_width; }
   uint16_t *get_bgline(int y) { CHECK(y>=0 && y<bg_height); return map_bg+y*bg_width; }
-  uint16_t get_fg(int x, int y) { if (x>=0 && y>=0 && x<fg_width && y<fg_height)
-                              return fgvalue(*(map_fg+x+y*fg_width));
+  uint16_t GetFg(ivec2 pos) { if (pos >= ivec2(0) && pos < ivec2(fg_width, fg_height))
+                              return fgvalue(*(map_fg+pos.x+pos.y*fg_width));
                                     else return 0;
                       }
-  uint16_t get_bg(int x, int y) { if (x>=0 && y>=0 && x<bg_width && y<bg_height)
-                      return *(map_bg+x+y*bg_width);
+  uint16_t GetBg(ivec2 pos) { if (pos >= ivec2(0) && pos < ivec2(bg_width, bg_height))
+                      return *(map_bg+pos.x+pos.y*bg_width);
                                      else return 0;
                     }
-  void put_fg(int x, int y, uint16_t tile) { *(map_fg+x+y*fg_width)=tile; }
-  void put_bg(int x, int y, uint16_t tile) { *(map_bg+x+y*bg_width)=tile; }
+  void PutFg(ivec2 pos, uint16_t tile) { *(map_fg+pos.x+pos.y*fg_width)=tile; }
+  void PutBg(ivec2 pos, uint16_t tile) { *(map_bg+pos.x+pos.y*bg_width)=tile; }
   void draw_objects(view *v);
   void interpolate_draw_objects(view *v);
   void draw_areas(view *v);
