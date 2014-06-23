@@ -340,7 +340,7 @@ if(EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/music)
         music/abuse11.hmi music/abuse13.hmi music/abuse15.hmi music/abuse17.hmi
     DESTINATION ${ASSETDIR}/music)
 else()
-    message(STATUS "Non-free music not found, it will not be included.")
+    message(WARNING "Non-free music not found, it will not be included.")
 endif()
 
 if(EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/sfx)
@@ -409,5 +409,5 @@ if(EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/sfx)
         addon/twist/sfx/dray.wav
     DESTINATION ${ASSETDIR}/addon/twist/sfx)
 else()
-    message(STATUS "Non-free sound effects not found, sound will not be enabled.")
+    message(WARNING "Non-free sound effects not found, sound will not be enabled.")
 endif()

@@ -16,6 +16,6 @@ include_directories(
 
 add_definitions(-DNO_CHECK)
 
-if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
+if(PLATFORM_WIN32)
     target_link_libraries(net ws2_32)
 endif()
