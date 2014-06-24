@@ -14,9 +14,11 @@ if(PLATFORM_WIN32)
     # And then include it
     # FIXME: I think this means the build location can't have spaces
     set(abuse_RESOURCE_FILES "${CMAKE_CURRENT_BINARY_DIR}/resources.rc")
+elseif(PLATFORM_MAC_OS_X)
+    set(abuse_RESOURCE_FILES osx/SDLMain.m osx/SDLMain.h)
 else()
     set(abuse_RESOURCE_FILES "")
-endif(PLATFORM_WIN32)
+endif()
 
 add_executable(abuse
     common.h

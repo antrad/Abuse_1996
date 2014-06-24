@@ -119,8 +119,9 @@ void set_mode(int mode, int argc, char **argv)
     // Create the window with a preference for 8-bit (palette animations!),
     // but accept any depth
     int bpp = 8;
-#ifdef WIN32
-    // Except under Win32, where it won't work if we don't match.
+#if (defined __APPLE__) || (defined WIN32)
+    // Setting a preference for 8-bit only works under Linux when in windowed
+    // mode, otherwise you get a black screen
     if ((vidFlags & SDL_FULLSCREEN) == 0)
     {
         bpp = 0;

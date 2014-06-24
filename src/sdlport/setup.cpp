@@ -101,22 +101,19 @@ void createRCFile( char *rcfile )
     {
         fputs( "; Abuse-SDL Configuration file\n\n", fd );
         fputs( "; Startup fullscreen\nfullscreen=0\n\n", fd );
-#ifdef __APPLE__
+#if (defined __APPLE__) || (defined WIN32)
         fputs( "; Use DoubleBuffering\ndoublebuf=1\n\n", fd );
         fputs( "; Use OpenGL\ngl=1\n\n", fd );
 #else
         fputs( "; Use DoubleBuffering\ndoublebuf=0\n\n", fd );
         fputs( "; Use OpenGL\ngl=0\n\n", fd );
-# ifndef WIN32
-        // This doesn't really make sense under Windows
         fputs( "; Location of the datafiles\ndatadir=", fd );
         fputs( ASSETDIR "\n\n", fd );
-# endif
 #endif
         fputs( "; Use mono audio only\nmono=0\n\n", fd );
         fputs( "; Grab the mouse to the window\ngrabmouse=0\n\n", fd );
         fputs( "; Set the scale factor\nscale=2\n\n", fd );
-        fputs( "; Use anti-aliasing (with gl=1 only)\nantialias=1\n\n", fd );
+        fputs( "; Use anti-aliasing (with gl=1 only)\n; Looks horrible, never enable it\nantialias=0\n\n", fd );
 //        fputs( "; Set the width of the window\nx=320\n\n", fd );
 //        fputs( "; Set the height of the window\ny=200\n\n", fd );
         fputs( "; Disable the SDL parachute in the case of a crash\nnosdlparachute=0\n\n", fd );

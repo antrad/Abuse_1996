@@ -2,4 +2,5 @@ KNOWN ISSUES
 ============
 
 - The mouse is messed up when choosing initial gamma
-- (MACOSX) By throwing Abuse into an app bundle, it's impractical to open it in edit mode
+- The double buffering flag probably shouldn't be user-settable since it appears
+  to only work when in OpenGL mode
