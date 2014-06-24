@@ -380,9 +380,18 @@ bFILE *open_file(char const *filename, char const *mode)
   if (!verify_file_fun || verify_file_fun(filename,mode))
   {
     if (open_file_fun)
+    {
       return open_file_fun(filename,mode);
-    else return new jFILE(filename,mode);
-  } else return new null_file;
+    }
+    else
+    {
+      return new jFILE(filename,mode);
+    }
+  }
+  else
+  {
+    return new null_file;
+  }
 }
 
 void jFILE::open_internal(char const *filename, char const *mode, int flags)

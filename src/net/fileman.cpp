@@ -414,7 +414,7 @@ int file_manager::rf_open_file(char const *&filename, char const *mode)
     fs_server_addr=prot->get_node_address(filename,DEFAULT_COMM_PORT,0);
     if (!fs_server_addr)
     {
-      printf("couldn not get address for %s\n",filename);
+      printf("could not get address for %s\n",filename);
       return -1;
     }
   } else if (default_fs)
@@ -452,15 +452,36 @@ int file_manager::rf_open_file(char const *&filename, char const *mode)
   int flags=0;
   while (*mode)
   {
-    if (*mode=='w') flags|=O_CREAT|O_RDWR;
-    else if (*mode=='r') flags|=O_RDONLY;
+    if (*mode=='w')
+    {
+      flags|=O_CREAT|O_RDWR;
+    }
+    else if (*mode=='r')
+    {
+      flags|=O_RDONLY;
+    }
+#ifdef WIN32
+    else if (*mode=='b')
+    {
+      flags|=O_BINARY;
+    }
+#endif
     mode++;
   }
 
   char tmp_name[200];
+#ifdef WIN32
+  if (get_filename_prefix() && filename[0] != '/' && (filename[0] != '\0' && filename[1] != ':'))
+#else
   if (get_filename_prefix() && filename[0] != '/')
+#endif
+  {
     sprintf(tmp_name,"%s%s",get_filename_prefix(),filename);
-  else strcpy(tmp_name,filename);
+  }
+  else
+  {
+    strcpy(tmp_name,filename);
+  }
 
 #ifdef WIN32
   int f = open(tmp_name, flags, S_IREAD|S_IWRITE);
@@ -537,4 +558,3 @@ int32_t file_manager::rf_file_size(int fd)
 }
 
 #endif // HAVE_NETWORK
-

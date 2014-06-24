@@ -1646,7 +1646,7 @@ void level::write_thumb_nail(bFILE *fp, image *im)
   t=time(NULL);
   char buf[80];
 
-  strftime(buf,80,"%T %A %B %d",localtime(&t));
+  strftime(buf,80,"%H:%M:%S %A %B %d",localtime(&t));
   wm->font()->PutString(i, ivec2(80, 100) + ivec2(-strlen(buf), 2) * wm->font()->Size() / ivec2(2),buf);
 
   fp->write_uint16(i->Size().x);
