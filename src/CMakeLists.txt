@@ -7,8 +7,13 @@ add_subdirectory(imlib)
 add_subdirectory(sdlport)
 
 if(PLATFORM_WIN32)
-    # Add the icon to the abuse.exe file
-    set(abuse_RESOURCE_FILES "win32/resources.rc")
+    # FIXME: Where should this logic reside? Whatever, first generate the
+    # resource script...
+    get_filename_component(abuse_ICON_PATH ${CPACK_WIX_PRODUCT_ICON} ABSOLUTE)
+    configure_file(win32/resources.rc.in ${CMAKE_CURRENT_BINARY_DIR}/resources.rc ESCAPE_QUOTES NEWLINE_STYLE WIN32)
+    # And then include it
+    # FIXME: I think this means the build location can't have spaces
+    set(abuse_RESOURCE_FILES "${CMAKE_CURRENT_BINARY_DIR}/resources.rc")
 else()
     set(abuse_RESOURCE_FILES "")
 endif(PLATFORM_WIN32)

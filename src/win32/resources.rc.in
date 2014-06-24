@@ -1,0 +1,32 @@
+#include <Windows.h>
+
+VS_VERSION_INFO VERSIONINFO
+FILEVERSION     ${abuse_VERSION_MAJOR},${abuse_VERSION_MINOR},${abuse_VERSION_PATCH},${abuse_VERSION_TWEAK}
+PRODUCTVERSION  ${abuse_VERSION_MAJOR},${abuse_VERSION_MINOR},${abuse_VERSION_PATCH},${abuse_VERSION_TWEAK}
+FILEFLAGSMASK   VS_FFI_FILEFLAGSMASK
+FILEFLAGS       (VS_FF_PRIVATEBUILD|VS_FF_DEBUG|VS_FF_PRERELEASE)
+FILEOS          VOS__WINDOWS32
+FILETYPE        VFT_APP
+FILESUBTYPE     VFT_UNKNOWN
+BEGIN
+    BLOCK "StringFileInfo"
+    BEGIN
+        BLOCK "040904E4"
+        BEGIN
+            VALUE "CompanyName", "${CPACK_PACKAGE_VENDOR}"
+            VALUE "FileDescription", "${CPACK_PACKAGE_DESCRIPTION_SUMMARY}"
+            VALUE "FileVersion", "${abuse_VERSION}"
+            VALUE "InternalName", "abuse.exe"
+            VALUE "OriginalFilename", "abuse.exe"
+            VALUE "PrivateBuild", "Xenoveritas version from http://github.com/Xenoveritas/abuse"
+            VALUE "ProductName", "Abuse"
+            VALUE "ProductVersion", "${abuse_VERSION}"
+        END
+    END
+    BLOCK "VarFileInfo"
+    BEGIN
+        VALUE "Translation", 0x409, 1252
+    END
+END
+
+abuse ICON "${abuse_ICON_PATH}"

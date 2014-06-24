@@ -2,14 +2,16 @@ cmake_minimum_required(VERSION 2.8.9)
 
 if(${CMAKE_MAJOR_VERSION} LESS 3)
     project(abuse C CXX)
-    set(abuse_VERSION 0.9.0)
+    set(abuse_VERSION 0.9)
     set(abuse_VERSION_MAJOR 0)
     set(abuse_VERSION_MINOR 9)
     set(abuse_VERSION_PATCH 0)
+    set(abuse_VERSION_TWEAK 0)
 else()
     cmake_policy(SET CMP0048 NEW)
-    project(abuse LANGUAGES C CXX VERSION 0.9.0)
-    message("Abuse ${abuse_VERSION_MAJOR}.${abuse_VERSION_MINOR}.${abuse_VERSION_PATCH}.${abuse_VERSION_TWEAK}")
+    project(abuse LANGUAGES C CXX VERSION 0.9)
+    set(abuse_VERSION_PATCH 0)
+    set(abuse_VERSION_TWEAK 0)
 endif()
 
 # Detect the platform, as there's quite a bit of platform variation
@@ -64,9 +66,6 @@ add_definitions(-DPACKAGE_VERSION="${abuse_VERSION}")
 add_definitions(-DHAVE_CONFIG_H)
 include_directories(${CMAKE_CURRENT_BINARY_DIR})
 
-add_subdirectory(src)
-add_subdirectory(data)
-
 # Packaging
 
 set(CPACK_PACKAGE_NAME "Abuse")
@@ -93,3 +92,6 @@ set(CPACK_WIX_PRODUCT_ICON "${CMAKE_CURRENT_SOURCE_DIR}/doc/icon.ico")
 set(CPACK_WIX_PROGRAM_MENU_FOLDER "Abuse")
 
 include(CPack)
+
+add_subdirectory(src)
+add_subdirectory(data)
