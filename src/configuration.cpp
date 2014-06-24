@@ -32,6 +32,8 @@ int morph_detail = MEDIUM_DETAIL;
 struct player_keys
 {
     int joy, left, right, up, down, b1, b2, b3, b4;
+    // Alternate keys to allow two key bindings for the same action
+    int left_2, right_2, up_2, down_2;
 };
 
 static player_keys *key_map = NULL;
@@ -139,18 +141,26 @@ void get_key_bindings()
         key_map[i].joy = 0;
 #if !defined __CELLOS_LV2__
         key_map[i].left = get_key_binding( "left", i + 1 );
+        key_map[i].left_2 = get_key_binding( "left2", i + 1 );
         key_map[i].right = get_key_binding( "right", i + 1 );
+        key_map[i].right_2 = get_key_binding( "right2", i + 1 );
         key_map[i].up = get_key_binding( "up", i + 1 );
+        key_map[i].up_2 = get_key_binding( "up2", i + 1 );
         key_map[i].down = get_key_binding( "down", i + 1 );
+        key_map[i].down_2 = get_key_binding( "down2", i + 1 );
         key_map[i].b4 = get_key_binding( "b4", i + 1 );
         key_map[i].b3 = get_key_binding( "b3", i + 1 );
         key_map[i].b2 = get_key_binding( "b2", i + 1 );
         key_map[i].b1 = get_key_binding( "b1", i + 1 );
 #else
         key_map[i].left = 258;
+        key_map[i].left_2 = 258;
         key_map[i].right = 259;
+        key_map[i].right_2 = 259;
         key_map[i].up = 256;
+        key_map[i].up_2 = 256;
         key_map[i].down = 257;
+        key_map[i].down_2 = 257;
         key_map[i].b4 = 281;
         key_map[i].b3 = 261;
         key_map[i].b2 = 32;
@@ -178,16 +188,20 @@ void get_movement(int player, int &x, int &y, int &b1, int &b2, int &b3, int &b4
         }
         else*/
         {
-            if( is_pressed( key_map[player].left ) )
+            if( is_pressed( key_map[player].left ) ||
+                    is_pressed( key_map[player].left_2) )
                 x = -1;
-            else if( is_pressed( key_map[player].right ) )
+            else if( is_pressed( key_map[player].right ) ||
+                    is_pressed( key_map[player].right_2) )
                 x=1;
             else
                 x = 0;
 
-            if( is_pressed( key_map[player].up ) )
+            if( is_pressed( key_map[player].up ) ||
+                    is_pressed( key_map[player].up_2) )
                 y = -1;
-            else if( is_pressed( key_map[player].down ) )
+            else if( is_pressed( key_map[player].down ) ||
+                    is_pressed( key_map[player].down_2) )
                 y = 1;
             else y = 0;
 
@@ -218,6 +232,8 @@ void get_movement(int player, int &x, int &y, int &b1, int &b2, int &b3, int &b4
     }
 }
 
+/*
+This doesn't appear to be used
 void key_bindings(int player, int &left, int &right, int &up, int &down, int &b1, int &b2, int &b3, int &b4)
 {
     left = key_map[player].left;
@@ -229,7 +245,7 @@ void key_bindings(int player, int &left, int &right, int &up, int &down, int &b1
     b3 = key_map[player].b3;
     b3 = key_map[player].b4;
 }
-
+*/
 
 void config_cleanup()
 {

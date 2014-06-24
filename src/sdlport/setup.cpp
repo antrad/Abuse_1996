@@ -122,6 +122,8 @@ void createRCFile( char *rcfile )
         fputs( "; Disable the SDL parachute in the case of a crash\nnosdlparachute=0\n\n", fd );
         fputs( "; Key mappings\n", fd );
         fputs( "left=LEFT\nright=RIGHT\nup=UP\ndown=DOWN\n", fd );
+        fputs( "; Alternate key bindings\n", fd );
+        fputs( "left2=a\nright2=d\nup=w\ndown=s\n", fd );
         fputs( "fire=SPACE\nweapprev=CTRL_R\nweapnext=INSERT\n", fd );
         fclose( fd );
     }
@@ -231,6 +233,26 @@ void readRCFile()
             {
                 result = strtok( NULL,"\n" );
                 keys.down = key_value( result );
+            }
+            else if( strcasecmp( result, "left2" ) == 0 )
+            {
+                result = strtok( NULL,"\n" );
+                keys.left_2 = key_value( result );
+            }
+            else if( strcasecmp( result, "right2" ) == 0 )
+            {
+                result = strtok( NULL,"\n" );
+                keys.right_2 = key_value( result );
+            }
+            else if( strcasecmp( result, "up2" ) == 0 )
+            {
+                result = strtok( NULL,"\n" );
+                keys.up_2 = key_value( result );
+            }
+            else if( strcasecmp( result, "down2" ) == 0 )
+            {
+                result = strtok( NULL,"\n" );
+                keys.down_2 = key_value( result );
             }
             else if( strcasecmp( result, "fire" ) == 0 )
             {
@@ -374,12 +396,16 @@ void setup( int argc, char **argv )
 #ifdef HAVE_OPENGL
     flags.antialias            = GL_NEAREST;    // Don't anti-alias
 #endif
-    keys.up                    = key_value( "UP" );
+    keys.up                  = key_value( "UP" );
     keys.down                = key_value( "DOWN" );
     keys.left                = key_value( "LEFT" );
-    keys.right                = key_value( "RIGHT" );
-    keys.b3                    = key_value( "CTRL_R" );
-    keys.b4                    = key_value( "INSERT" );
+    keys.right               = key_value( "RIGHT" );
+    keys.up_2                = key_value( "w" );
+    keys.down_2              = key_value( "s" );
+    keys.left_2              = key_value( "a" );
+    keys.right_2             = key_value( "d" );
+    keys.b3                  = key_value( "CTRL_R" );
+    keys.b4                  = key_value( "INSERT" );
     scale                    = 2;            // Default scale amount
 
     // Display our name and version
@@ -516,6 +542,14 @@ int get_key_binding(char const *dir, int i)
         return keys.up;
     else if( strcasecmp( dir, "down" ) == 0 )
         return keys.down;
+    else if( strcasecmp( dir, "left2" ) == 0 )
+        return keys.left_2;
+    else if( strcasecmp( dir, "right2" ) == 0 )
+        return keys.right_2;
+    else if( strcasecmp( dir, "up2" ) == 0 )
+        return keys.up_2;
+    else if( strcasecmp( dir, "down2" ) == 0 )
+        return keys.down_2;
     else if( strcasecmp( dir, "b1" ) == 0 )
         return keys.b1;
     else if( strcasecmp( dir, "b2" ) == 0 )

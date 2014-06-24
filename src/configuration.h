@@ -17,7 +17,8 @@ enum { HIGH_DETAIL,
        POOR_DETAIL };
 
 
-void key_bindings(int player, int &left, int &right, int &up, int &down, int &b1, int &b2, int &b3,  int &b4);
+// key_bindings does not appear to be used anywhere
+//void key_bindings(int player, int &left, int &right, int &up, int &down, int &b1, int &b2, int &b3,  int &b4);
 void get_key_bindings();
 void get_movement(int player, int &x, int &y, int &b1, int &b2, int &b3, int &b4);
 void config_cleanup();  // free any memory allocated

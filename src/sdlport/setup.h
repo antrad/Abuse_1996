@@ -29,9 +29,13 @@ struct flags_struct
 struct keys_struct
 {
     int left;
+    int left_2;
     int right;
+    int right_2;
     int up;
+    int up_2;
     int down;
+    int down_2;
     int b1;
     int b2;
     int b3;
