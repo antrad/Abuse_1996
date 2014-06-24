@@ -51,12 +51,12 @@ if(PLATFORM_WIN32)
 elseif(PLATFORM_MAC_OS_X)
     # Under Mac OS X, I actually want to redirect this to an app bundle,
     # which makes things weird.
-    set(ASSETDIR "${CMAKE_INSTALL_PREFIX}/abuse.app/Contents/Resources/data")
+    set(ASSETDIR "abuse.app/Contents/Resources/data")
 else()
     # Under Linux, match the original autotools prefix
-    set(ASSETDIR "${CMAKE_INSTALL_PREFIX}/share/games/abuse")
+    set(ASSETDIR "share/games/abuse")
     # Only define this for ports that actually use it
-    add_definitions(-DASSETDIR="${ASSETDIR}")
+    add_definitions(-DASSETDIR="${CMAKE_INSTALL_PREFIX}/${ASSETDIR}")
 endif()
 
 add_definitions(-DPACKAGE_NAME="abuse")
