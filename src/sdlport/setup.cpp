@@ -58,10 +58,10 @@ static unsigned int scale;
 //
 // Display help
 //
-void showHelp()
+void showHelp(const char* executableName)
 {
     printf( "\n" );
-    printf( "Usage: abuse.sdl [options]\n" );
+    printf( "Usage: %s [options]\n", executableName );
     printf( "Options:\n\n" );
     printf( "** Abuse Options **\n" );
     printf( "  -size <arg>       Set the size of the screen\n" );
@@ -122,9 +122,9 @@ void createRCFile( char *rcfile )
         fputs( "; Disable the SDL parachute in the case of a crash\nnosdlparachute=0\n\n", fd );
         fputs( "; Key mappings\n", fd );
         fputs( "left=LEFT\nright=RIGHT\nup=UP\ndown=DOWN\n", fd );
-        fputs( "; Alternate key bindings\n", fd );
-        fputs( "left2=a\nright2=d\nup=w\ndown=s\n", fd );
         fputs( "fire=SPACE\nweapprev=CTRL_R\nweapnext=INSERT\n", fd );
+        fputs( "; Alternative key bindings\n; Note: only the following keys can have two bindings\n", fd );
+        fputs( "left2=a\nright2=d\nup2=w\ndown2=s\n", fd );
         fclose( fd );
     }
     else
@@ -367,7 +367,7 @@ void parseCommandLine( int argc, char **argv )
         }
         else if( !strcasecmp( argv[ii], "-h" ) || !strcasecmp( argv[ii], "--help" ) )
         {
-            showHelp();
+            showHelp(argv[0]);
             exit( 0 );
         }
     }
