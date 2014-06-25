@@ -1,8 +1,8 @@
-Abuse 0.8 README
-================
+Abuse README
+============
 
-This is a fork of the original Abuse 0.8 SDL port. It switches the build system
-to CMake in order to make building it under Windows more feasible.
+This is a fork of the original Abuse SDL port from <http://abuse.zoy.org/>. It
+switches the build system to CMake to make crossplatform building easier.
 
 ----
 
@@ -26,10 +26,9 @@ released in 1995 for MS-DOS. A Linux version was also made available at
 a later date. It had a few limitations the most restrictive of which was
 that it only ran on an 8-bit display, and only in a window.
 
-Abuse will run at any colour depth and supports fullscreen mode, as
-well as many other new features. It should also be more portable and
-hopefully run on a variety of *nix variants, and possibly other systems
-supported by the SDL library.
+The version of Abuse will run at any color depth and supports fullscreen mode,
+as well as many other new features. It should also be more portable and
+hopefully run on a variety of *nix variants, as well as Windows and Mac OS X.
 
 ## 2. ADDITIONAL FEATURES
 
@@ -40,7 +39,7 @@ Abuse has the following extra features over the original:
   * Scaling by any amount (eg. 2, 3 or 4)
   * OpenGL support for hardware scaling and anti-aliasing.
   * Stereo sound with panning.
-  * Mousewheel support for changing weapons.
+  * Mouse wheel support for changing weapons.
   * Customizable keys.
 
 ## 3. REQUIREMENTS
@@ -55,9 +54,10 @@ Abuse has the following requirements:
     - fRaBs(Free Abuse)
   * OpenGL is optional.
 
-
 ## 4. RUNNING ABUSE
 
+Generally, just launch it however is appropriate for your platform after
+running the `install` build.
 If Abuse has been installed properly, the command:
 
     abuse
@@ -91,46 +91,58 @@ Setting an option to '1' turns it on, and '0' turns it off.
 To change the keys used in the game, simply type the key after the option.
 The following special keys can also be used:
 
-    LEFT, RIGHT, UP, DOWN : Cursor keys and keypad.
-    CTRL_L, CTRL_R        : Left and right CTRL keys.
-    ALT_L, ALT_R          : Left and right ALT keys.
-    SHIFT_L, SHIFT_R      : Left and right SHIFT keys.
-    F1 - F10              : Function keys 1 through 10.
-    TAB                   : TAB key.
-    BACKSPACE             : Backspace key.
-    ENTER                 : Enter key
-    INSERT, DEL           : Insert and Delete keys.
-    PAGEUP, PAGEDOWN      : PageUp and PageDown keys.
-    CAPS, NUM_LOCK        : Caps-Lock and Num-Lock keys.
-    SPACE                 : Spacebar.
+| Code                          | Represents
+|-------------------------------|-----------------------
+| `LEFT`, `RIGHT`, `UP`, `DOWN` | Cursor keys and keypad.
+| `CTRL_L`, `CTRL_R`            | Left and right Ctrl keys.
+| `ALT_L`, `ALT_R`              | Left and right Alt keys.
+| `SHIFT_L`, `SHIFT_R`          | Left and right Shift keys.
+| `F1` - `F10`                  | Function keys 1 through 10.
+| `TAB`                         | Tab key.
+| `BACKSPACE`                   | Backspace key.
+| `ENTER`                       | Enter key
+| `INSERT`, `DEL`               | Insert and Delete keys.
+| `PAGEUP`, `PAGEDOWN`          | Page Up and Page Down keys.
+| `CAPS`, `NUM_LOCK`            | Caps-Lock and Num-Lock keys.
+| `SPACE`                       | Spacebar.
 
 The default key settings are as follows:
 
-    Left        : Left cursor key.
-    Right       : Right cursor key.
-    Up/Jump     : Up cursor key.
-    Down/Use    : Down cursor key.
-    Prev Weapon : Left or Right CTRL keys.
-    Next Weapon : Insert key.
+| Action      | Bound to
+|-------------|---------
+| Left        | Left arrow, A
+| Right       | Right arrow, D
+| Up/Jump     | Up arrow, W
+| Down/Use    | Down arrow, S
+| Prev Weapon | Left or Right Ctrl
+| Next Weapon | Insert
 
 The mouse always controls your aim, with Left button for fire and
-Right button for special.  Mousewheel can be used for changing weapons.
+Right button for special.  The mouse wheel can be used for changing weapons.
 
 ## 6. INSTALLING THE DATAFILES
 
-Abuse requires a set of datafiles (graphics, sounds, maps and so on)
-to be installed before it will run. They are available as a separate
-package from the Abuse website.
+This repository contains the majority of the data files. The only data currently
+missing are the sound effects and the music as they weren't released into the
+public domain.
 
-By default, Abuse expects the datafiles to be installed in the following
-location:
+You can still grab them off of <http://abuse.zoy.org/> and extract them into
+the data directory, and they will be used by the build script.
+
+Under Windows and Mac OS X, Abuse looks for the data files in a path relative to
+the executable. Using the CMake `install` and `publish` targets will set up
+the directory in the correct way. (See BUILDING.md for more information about
+that.)
+
+Under Linux, by default, Abuse expects the datafiles to be installed in the
+following location:
 
     /usr/local/share/games/abuse
 
 However it is possible to change this and tell Abuse where to find the
 files if they are in another location.
 
-The location can be set when Abuse is compiled. See the INSTALL file for
+The location can be set when Abuse is compiled. See the INSTALL.md file for
 instructions on how to do this.
 
 You can also specify the location with the -datadir argument when
@@ -138,9 +150,6 @@ Abuse is run. See section 4 above.
 
 Finally, the location can be set in the configuration file. See section
 5 above.
-
-To install the datafiles, simply unpack the archive into a location of your
-choice (preferably '/usr/local/share/games/abuse' as mentioned above).
 
 ## 7. NOTES
 
@@ -173,13 +182,11 @@ See the AUTHORS file for details.
 
 ## 9. FEEDBACK
 
-If you have any questions, comments or criticism, Sam's email address is:
+For this fork, please use the [GitHub page](https://github.com/Xenoveritas/abuse)
+if you have any questions, comments, or find bugs.
 
-sam@hocevar.net
-
-The Abuse webpage can be found at:
-
-  http://abuse.zoy.org/
+The original code was taken from <http://abuse.zoy.org/>, but any issues on
+non-Linux platforms should be directed to the GitHub page.
 
 ----
 
