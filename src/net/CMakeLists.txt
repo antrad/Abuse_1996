@@ -10,8 +10,8 @@ add_library(net
 include_directories(
     ${abuse_SOURCE_DIR}/src
     ${abuse_SOURCE_DIR}/src/imlib
-    ${SDL_INCLUDE_DIR}
-    ${SDL_MIXER_INCLUDE_DIR}
+    ${SDL2_INCLUDE_DIR}
+    ${SDL2_MIXER_INCLUDE_DIR}
 )
 
 add_definitions(-DNO_CHECK)

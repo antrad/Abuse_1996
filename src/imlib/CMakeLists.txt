@@ -28,6 +28,6 @@ add_library(imlib
 
 include_directories(${abuse_SOURCE_DIR}/src)
 add_definitions(-DNO_CHECK)
-#INCLUDES = -I$(srcdir) -I$(srcdir)/.. $(SDL_CFLAGS)
+#INCLUDES = -I$(srcdir) -I$(srcdir)/.. $(SDL2_CFLAGS)
 
 #CPPFLAGS = @CPPFLAGS@ -DNO_CHECK

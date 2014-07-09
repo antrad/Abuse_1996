@@ -89,7 +89,7 @@ target_link_libraries(abuse lisp)
 target_link_libraries(abuse sdlport)
 target_link_libraries(abuse imlib)
 target_link_libraries(abuse net)
-target_link_libraries(abuse ${SDL_LIBRARY})
+target_link_libraries(abuse ${SDL2_LIBRARY})
 target_link_libraries(abuse ${SDLMIXER_LIBRARY})
 if(OPENGL_FOUND)
     target_link_libraries(abuse ${OPENGL_LIBRARIES})
@@ -104,8 +104,8 @@ include_directories(
     ${abuse_SOURCE_DIR}/src/lisp
     ${abuse_SOURCE_DIR}/src/imlib
     ${abuse_SOURCE_DIR}/src/net
-    ${SDL_INCLUDE_DIR}
-    ${SDL_MIXER_INCLUDE_DIR}
+    ${SDL2_INCLUDE_DIR}
+    ${SDL2_MIXER_INCLUDE_DIR}
 )
 if(PLATFORM_WINDOWS)
     # Under Windows, throw them into the root
@@ -113,14 +113,14 @@ if(PLATFORM_WINDOWS)
         RUNTIME DESTINATION "."
         LIBRARY DESTINATION ".")
     # We also need to include the SDL DLLs or nothing will work
-    string(FIND "${SDL_LIBRARY}" ";" INDEX)
+    string(FIND "${SDL2_LIBRARY}" ";" INDEX)
     if (${INDEX} GREATER -1)
-        string(SUBSTRING "${SDL_LIBRARY}" 0 ${INDEX} SDL_DLL_PATH)
+        string(SUBSTRING "${SDL2_LIBRARY}" 0 ${INDEX} SDL2_DLL_PATH)
     else()
-        set(SDL_DLL_PATH "${SDL_LIBRARY}")
+        set(SDL2_DLL_PATH "${SDL2_LIBRARY}")
     endif()
-    get_filename_component(SDL_DLL_PATH "${SDL_DLL_PATH}" DIRECTORY)
-    install(FILES ${SDL_DLL_PATH}/SDL.dll DESTINATION ".")
+    get_filename_component(SDL2_DLL_PATH "${SDL2_DLL_PATH}" DIRECTORY)
+    install(FILES ${SDL2_DLL_PATH}/SDL.dll DESTINATION ".")
     string(FIND "${SDLMIXER_LIBRARY}" ";" INDEX)
     if (${INDEX} GREATER -1)
         string(SUBSTRING "${SDLMIXER_LIBRARY}" 0 ${INDEX} SDLMIXER_DLL_PATH)
@@ -128,7 +128,7 @@ if(PLATFORM_WINDOWS)
         set(SDLMIXER_DLL_PATH "${SDLMIXER_LIBRARY}")
     endif()
     get_filename_component(SDLMIXER_DLL_PATH "${SDLMIXER_DLL_PATH}" DIRECTORY)
-    install(FILES ${SDLMIXER_DLL_PATH}/SDL_mixer.dll DESTINATION ".")
+    install(FILES ${SDLMIXER_DLL_PATH}/SDL2_mixer.dll DESTINATION ".")
 else()
     # Under Linux, we want the tools in bin
     install(TARGETS abuse abuse-tool RUNTIME DESTINATION bin

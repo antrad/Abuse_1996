@@ -9,9 +9,9 @@ add_library(lisp
 include_directories(
     ${abuse_SOURCE_DIR}/src
     ${abuse_SOURCE_DIR}/src/imlib
-    ${SDL_INCLUDE_DIR}
-    ${SDL_MIXER_INCLUDE_DIR}
+    ${SDL2_INCLUDE_DIR}
+    ${SDL2_MIXER_INCLUDE_DIR}
 )
-#INCLUDES = -I$(srcdir) -I$(srcdir)/../ -I$(srcdir)/../imlib $(SDL_CFLAGS)
+#INCLUDES = -I$(srcdir) -I$(srcdir)/../ -I$(srcdir)/../imlib $(SDL2_CFLAGS)
 
 #CPPFLAGS = @CPPFLAGS@ -DNO_CHECK

@@ -2,6 +2,7 @@ News for Abuse-XV 0.9 (unreleased)
 
     - Change to CMake for easier cross-platform build support
     - Builds under Windows now
+    - Move to SDL2
 
 News for Abuse 0.8 (2011-05-09)
 

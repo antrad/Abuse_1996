@@ -1,18 +1,11 @@
 cmake_minimum_required(VERSION 2.8.9)
 
-if(${CMAKE_MAJOR_VERSION} LESS 3)
-    project(abuse C CXX)
-    set(abuse_VERSION 0.9)
-    set(abuse_VERSION_MAJOR 0)
-    set(abuse_VERSION_MINOR 9)
-    set(abuse_VERSION_PATCH 0)
-    set(abuse_VERSION_TWEAK 0)
-else()
-    cmake_policy(SET CMP0048 NEW)
-    project(abuse LANGUAGES C CXX VERSION 0.9)
-    set(abuse_VERSION_PATCH 0)
-    set(abuse_VERSION_TWEAK 0)
-endif()
+project(abuse C CXX)
+set(abuse_VERSION 0.9)
+set(abuse_VERSION_MAJOR 0)
+set(abuse_VERSION_MINOR 9)
+set(abuse_VERSION_PATCH 0)
+set(abuse_VERSION_TWEAK 0)
 
 # Detect the platform, as there's quite a bit of platform variation
 
@@ -27,8 +20,9 @@ elseif(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 endif()
 # TODO (maybe): Add a Linux constant
 
-find_package(SDL 1.1.6 REQUIRED)
-find_package(SDL_mixer REQUIRED)
+list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_LIST_DIR}/cmake")
+find_package(SDL2 2.0.3 REQUIRED)
+find_package(SDL2_mixer 2.0.0 REQUIRED)
 find_package(OpenGL)
 
 if(OPENGL_FOUND)
