@@ -24,19 +24,6 @@
 
 #include "SDL.h"
 
-#ifdef HAVE_OPENGL
-#   ifdef __APPLE__
-#       include <OpenGL/gl.h>
-#       include <OpenGL/glu.h>
-#   else
-#       ifdef WIN32
-#           include <Windows.h>
-#       endif
-#       include <GL/gl.h>
-#       include <GL/glu.h>
-#   endif    /* __APPLE__ */
-#endif    /* HAVE_OPENGL */
-
 #include "common.h"
 
 #include "filter.h"
@@ -108,63 +95,11 @@ void set_mode(int mode, int argc, char **argv)
     }
     main_screen->clear();
 
-
-/*#ifdef HAVE_OPENGL
-        int w, h;
-
-        // texture width/height should be power of 2
-        // FIXME: we can use GL_ARB_texture_non_power_of_two or
-        // GL_ARB_texture_rectangle to avoid the extra memory allocation
-        w = power_of_two(xres);
-        h = power_of_two(yres);
-
-        // create texture surface
-        texture = SDL_CreateRGBSurface(SDL_SWSURFACE, w , h , 32,
-#if SDL_BYTEORDER == SDL_LIL_ENDIAN
-                0x000000FF, 0x0000FF00, 0x00FF0000, 0xFF000000);
-#else
-                0xFF000000, 0x00FF0000, 0x0000FF00, 0x000000FF);
-#endif
-
-        // setup 2D gl environment
-        glPushAttrib(GL_ENABLE_BIT);
-        glDisable(GL_DEPTH_TEST);
-        glDisable(GL_CULL_FACE);
-        glEnable(GL_TEXTURE_2D);
-
-        glViewport(0, 0, window->w, window->h);
-
-        glMatrixMode(GL_PROJECTION);
-        glPushMatrix();
-        glLoadIdentity();
-
-        glOrtho(0.0, (GLdouble)window->w, (GLdouble)window->h, 0.0, 0.0, 1.0);
-
-        glMatrixMode(GL_MODELVIEW);
-        glPushMatrix();
-        glLoadIdentity();
-
-        // texture coordinates
-        texcoord[0] = 0.0f;
-        texcoord[1] = 0.0f;
-        texcoord[2] = (GLfloat)xres / texture->w;
-        texcoord[3] = (GLfloat)yres / texture->h;
-
-        // create an RGBA texture for the texture surface
-        glGenTextures(1, &texid);
-        glBindTexture(GL_TEXTURE_2D, texid);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, flags.antialias);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, flags.antialias);
-        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, texture->w, texture->h, 0, GL_RGBA, GL_UNSIGNED_BYTE, texture->pixels);
-#endif
-    }*/
     SDL_DisplayMode windowMode;
     SDL_GetWindowDisplayMode(window, &windowMode);
-    // Calculate the window scale
-    printf("Mouse scaling: [%dx%d] => [%dx%d]\n", windowMode.w, windowMode.h, xres, yres);
+    // Calculate the mouse scaling
     mouse_xscale = (windowMode.w << 16) / xres;
     mouse_yscale = (windowMode.h << 16) / yres;
-    printf("Mouse=[%xx%x]\n", mouse_xscale, mouse_yscale);
 
     // Create our 8-bit surface
     surface = SDL_CreateRGBSurface(0, xres, yres, 8, 0, 0, 0, 0);

@@ -23,11 +23,6 @@ endif()
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_LIST_DIR}/cmake")
 find_package(SDL2 2.0.3 REQUIRED)
 find_package(SDL2_mixer 2.0.0 REQUIRED)
-find_package(OpenGL)
-
-if(OPENGL_FOUND)
-    add_definitions(-DHAVE_OPENGL)
-endif()
 
 include(CheckIncludeFiles)
 

@@ -71,8 +71,7 @@ The following command-line switches can be used:
     -edit             Start in editor mode
     -f <arg>          Load the map file named <arg>
     -fullscreen       Enable fullscreen mode
-    -gl               Enable OpenGL (if supported)
-    -antialias        Enable anti-aliasing (only with -gl)
+    -antialias        Enable anti-aliasing
     -lisp             Start in lisp interpreter mode
     -mono             Disable stereo sound
     -nodelay          Run at maximum speed

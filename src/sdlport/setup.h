@@ -14,15 +14,12 @@
 struct flags_struct
 {
     short fullscreen;
-    short doublebuf;
     short mono;
     short nosound;
     short grabmouse;
-    short nosdlparachute;
     short xres;
     short yres;
     short overlay;
-    short gl;
     int antialias;
 };
 
