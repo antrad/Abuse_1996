@@ -118,3 +118,10 @@
 
 /* Version number of package */
 #cmakedefine VERSION
+
+#ifdef _MSC_VER
+/* At some point, I'd like to properly fix this, but for now, STFU MSVC */
+#define _CRT_SECURE_NO_WARNINGS
+/* Shut up, shut up, shut up */
+#pragma warning(disable: 4996)
+#endif

@@ -45,11 +45,11 @@ getting CMake and SDL/SDL_mixer is probably using [Homebrew](http://brew.sh/).
        cd build
        cmake -DCMAKE_INSTALL_PREFIX:PATH=../final-binary ../abuse
 
-   Under Windows, this will probably fail because it can't find the SDL or
-   SDL_mixer libraries. Two solutions to this:
+   Under Windows, this will probably fail because it can't find the SDL2 or
+   SDL2_mixer libraries. Two solutions to this:
 
       1. Run `cmake-gui` and provide the paths that way
-      2. Set `SDLDIR` and `SDLMIXERDIR` to point to where you extracted the
+      2. Set `SDL2DIR` and `SDL2MIXERDIR` to point to where you extracted the
          Windows VC devel binaries for each library
 
 3. Build the files

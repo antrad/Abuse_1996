@@ -34,6 +34,7 @@
 #include "sprite.h"
 #include "game.h"
 
+extern SDL_Window *window;
 extern int get_key_binding(char const *dir, int i);
 extern int mouse_xscale, mouse_yscale;
 short mouse_buttons[5] = { 0, 0, 0, 0, 0 };
@@ -41,12 +42,13 @@ short mouse_buttons[5] = { 0, 0, 0, 0, 0 };
 void EventHandler::SysInit()
 {
     // Ignore activate events
-    SDL_EventState(SDL_ACTIVEEVENT, SDL_IGNORE);
+    // This event is gone in SDL2, should we be ignoring the replacement? Dunno
+    //SDL_EventState(SDL_ACTIVEEVENT, SDL_IGNORE);
 }
 
 void EventHandler::SysWarpMouse(ivec2 pos)
 {
-    SDL_WarpMouse(pos.x, pos.y);
+    SDL_WarpMouseInWindow(window, pos.x, pos.y);
 }
 
 //
@@ -191,7 +193,7 @@ void EventHandler::SysEvent(Event &ev)
         case SDLK_RALT:         ev.key = JK_ALT_R; break;
         case SDLK_LSHIFT:       ev.key = JK_SHIFT_L; break;
         case SDLK_RSHIFT:       ev.key = JK_SHIFT_R; break;
-        case SDLK_NUMLOCK:      ev.key = JK_NUM_LOCK; break;
+        case SDLK_NUMLOCKCLEAR: ev.key = JK_NUM_LOCK; break;
         case SDLK_HOME:         ev.key = JK_HOME; break;
         case SDLK_END:          ev.key = JK_END; break;
         case SDLK_BACKSPACE:    ev.key = JK_BACKSPACE; break;
@@ -211,23 +213,25 @@ void EventHandler::SysEvent(Event &ev)
         case SDLK_F9:           ev.key = JK_F9; break;
         case SDLK_F10:          ev.key = JK_F10; break;
         case SDLK_INSERT:       ev.key = JK_INSERT; break;
-        case SDLK_KP0:          ev.key = JK_INSERT; break;
+        case SDLK_KP_0:         ev.key = JK_INSERT; break;
         case SDLK_PAGEUP:       ev.key = JK_PAGEUP; break;
         case SDLK_PAGEDOWN:     ev.key = JK_PAGEDOWN; break;
-        case SDLK_KP8:          ev.key = JK_UP; break;
-        case SDLK_KP2:          ev.key = JK_DOWN; break;
-        case SDLK_KP4:          ev.key = JK_LEFT; break;
-        case SDLK_KP6:          ev.key = JK_RIGHT; break;
+        case SDLK_KP_8:         ev.key = JK_UP; break;
+        case SDLK_KP_2:         ev.key = JK_DOWN; break;
+        case SDLK_KP_4:         ev.key = JK_LEFT; break;
+        case SDLK_KP_6:         ev.key = JK_RIGHT; break;
         case SDLK_F11:
             // Only handle key down
             if(ev.type == EV_KEY)
             {
                 // Toggle fullscreen
-                SDL_WM_ToggleFullScreen(SDL_GetVideoSurface());
+                // FIXME
+                //SDL_WM_ToggleFullScreen(SDL_GetVideoSurface());
             }
             ev.key = EV_SPURIOUS;
             break;
         case SDLK_F12:
+        /* FIXME
             // Only handle key down
             if(ev.type == EV_KEY)
             {
@@ -243,9 +247,11 @@ void EventHandler::SysEvent(Event &ev)
                     SDL_WM_GrabInput(SDL_GRAB_ON);
                 }
             }
+            */
             ev.key = EV_SPURIOUS;
             break;
-        case SDLK_PRINT:    // print-screen key
+        case SDLK_PRINTSCREEN:    // print-screen key
+        /* FIXME
             // Only handle key down
             if(ev.type == EV_KEY)
             {
@@ -253,6 +259,7 @@ void EventHandler::SysEvent(Event &ev)
                 SDL_SaveBMP(SDL_GetVideoSurface(), "screenshot.bmp");
                 the_game->show_help("Screenshot saved to: screenshot.bmp.\n");
             }
+            */
             ev.key = EV_SPURIOUS;
             break;
         default:
@@ -306,4 +313,3 @@ void EventHandler::SysEvent(Event &ev)
         }
     }
 }
-

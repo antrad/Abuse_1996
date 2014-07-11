@@ -22,7 +22,7 @@
 #   include "config.h"
 #endif
 
-#include <SDL.h>
+#include "SDL.h"
 
 #ifdef HAVE_OPENGL
 #   ifdef __APPLE__
@@ -44,7 +44,9 @@
 #include "image.h"
 #include "setup.h"
 
-SDL_Surface *window = NULL, *surface = NULL;
+SDL_Window *window = NULL;
+SDL_Renderer *renderer = NULL;
+SDL_Surface *surface = NULL;
 image *main_screen = NULL;
 int win_xscale, win_yscale, mouse_xscale, mouse_yscale;
 int xres, yres;
@@ -76,63 +78,31 @@ static int power_of_two(int input)
 //
 void set_mode(int mode, int argc, char **argv)
 {
-    const SDL_VideoInfo *vidInfo;
-    int vidFlags = SDL_HWPALETTE;
-
-    // Check for video capabilities
-    vidInfo = SDL_GetVideoInfo();
-    if(vidInfo->hw_available)
-        vidFlags |= SDL_HWSURFACE;
-    else
-        vidFlags |= SDL_SWSURFACE;
-
-    if(flags.fullscreen)
-        vidFlags |= SDL_FULLSCREEN;
-
-    if(flags.doublebuf)
-        vidFlags |= SDL_DOUBLEBUF;
-
     // Calculate the window scale
-    win_xscale = mouse_xscale = (flags.xres << 16) / xres;
-    win_yscale = mouse_yscale = (flags.yres << 16) / yres;
-
-    // Try using opengl hw accell
-    if(flags.gl) {
-#ifdef HAVE_OPENGL
-        printf("Video : OpenGL enabled\n");
-        // allow doublebuffering in with gl too
-        SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, flags.doublebuf);
-        // set video gl capability
-        vidFlags |= SDL_OPENGL;
-        // force no scaling, let the hw do it
-        win_xscale = win_yscale = 1 << 16;
-#else
-        // ignore the option if not available
-        printf("Video : OpenGL disabled (Support missing in executable)\n");
-        flags.gl = 0;
-#endif
-    }
+    // I think we can ignore this for now?
+    win_xscale = win_yscale = 1 << 16;
+    //win_xscale = mouse_xscale = (flags.xres << 16) / xres;
+    //win_yscale = mouse_yscale = (flags.yres << 16) / yres;
 
     // Set the icon for this window.  Looks nice on taskbars etc.
-    SDL_WM_SetIcon(SDL_LoadBMP("abuse.bmp"), NULL);
+    //SDL_WM_SetIcon(SDL_LoadBMP("abuse.bmp"), NULL);
 
-    // Create the window with a preference for 8-bit (palette animations!),
-    // but accept any depth
-    int bpp = 8;
-#if (defined __APPLE__) || (defined WIN32)
-    // Setting a preference for 8-bit only works under Linux when in windowed
-    // mode, otherwise you get a black screen
-    if ((vidFlags & SDL_FULLSCREEN) == 0)
-    {
-        bpp = 0;
-    }
-#endif
-    window = SDL_SetVideoMode(flags.xres, flags.yres, bpp, vidFlags | SDL_ANYFORMAT);
+    window = SDL_CreateWindow("Abuse",
+        SDL_WINDOWPOS_UNDEFINED,
+        SDL_WINDOWPOS_UNDEFINED,
+        0, 0,
+        SDL_WINDOW_FULLSCREEN_DESKTOP);
     if(window == NULL)
     {
-        printf("Video : Unable to set video mode : %s\n", SDL_GetError());
+        printf("Video : Unable to create window : %s\n", SDL_GetError());
         exit(1);
     }
+    renderer = SDL_CreateRenderer(window, -1, 0);
+    if (renderer == NULL)
+    {
+        printf("Video : Unable to create renderer : %s\n", SDL_GetError());
+    }
+    SDL_RenderSetLogicalSize(renderer, xres, yres);
 
     // Create the screen image
     main_screen = new image(ivec2(xres, yres), NULL, 2);
@@ -144,9 +114,8 @@ void set_mode(int mode, int argc, char **argv)
     }
     main_screen->clear();
 
-    if (flags.gl)
-    {
-#ifdef HAVE_OPENGL
+
+/*#ifdef HAVE_OPENGL
         int w, h;
 
         // texture width/height should be power of 2
@@ -194,10 +163,12 @@ void set_mode(int mode, int argc, char **argv)
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, flags.antialias);
         glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, texture->w, texture->h, 0, GL_RGBA, GL_UNSIGNED_BYTE, texture->pixels);
 #endif
-    }
+    }*/
+    SDL_DisplayMode windowMode;
+	SDL_GetWindowDisplayMode(window, &windowMode);
 
     // Create our 8-bit surface
-    surface = SDL_CreateRGBSurface(SDL_SWSURFACE, window->w, window->h, 8, 0xff, 0xff, 0xff, 0xff);
+	surface = SDL_CreateRGBSurface(SDL_SWSURFACE, windowMode.w, windowMode.h, 8, 0xff, 0xff, 0xff, 0xff);
     if(surface == NULL)
     {
         // Our surface is no good, we have to bail.
@@ -205,15 +176,13 @@ void set_mode(int mode, int argc, char **argv)
         exit(1);
     }
 
-    printf("Video : %dx%d %dbpp\n", window->w, window->h, window->format->BitsPerPixel);
-
-    // Set the window caption
-    SDL_WM_SetCaption("Abuse", "Abuse");
+	printf("Video : %dx%d %dbpp\n", windowMode.w, windowMode.h, SDL_BITSPERPIXEL(windowMode.format));
 
     // Grab and hide the mouse cursor
     SDL_ShowCursor(0);
-    if(flags.grabmouse)
-        SDL_WM_GrabInput(SDL_GRAB_ON);
+    // I think grabbing was removed in SDL2
+    //if(flags.grabmouse)
+    //    SDL_WM_GrabInput(SDL_GRAB_ON);
 
     update_dirty(main_screen);
 }
@@ -374,10 +343,9 @@ void palette::load()
         colors[ii].r = red(ii);
         colors[ii].g = green(ii);
         colors[ii].b = blue(ii);
+        colors[ii].a = 255;
     }
-    SDL_SetColors(surface, colors, 0, ncolors);
-    if(window->format->BitsPerPixel == 8)
-        SDL_SetColors(window, colors, 0, ncolors);
+    SDL_SetPaletteColors(surface->format->palette, colors, 0, ncolors);
 
     // Now redraw the surface
     update_window_part(NULL);
@@ -396,38 +364,13 @@ void palette::load_nice()
 
 void update_window_done()
 {
-#ifdef HAVE_OPENGL
-    // opengl blit complete surface to window
-    if(flags.gl)
-    {
-        // convert color-indexed surface to RGB texture
-        SDL_BlitSurface(surface, NULL, texture, NULL);
-
-        // Texturemap complete texture to surface so we have free scaling
-        // and antialiasing
-        glTexSubImage2D(GL_TEXTURE_2D, 0,
-                        0, 0, texture->w, texture->h,
-                        GL_RGBA, GL_UNSIGNED_BYTE, texture->pixels);
-        glBegin(GL_TRIANGLE_STRIP);
-        glTexCoord2f(texcoord[0], texcoord[1]); glVertex3i(0, 0, 0);
-        glTexCoord2f(texcoord[2], texcoord[1]); glVertex3i(window->w, 0, 0);
-        glTexCoord2f(texcoord[0], texcoord[3]); glVertex3i(0, window->h, 0);
-        glTexCoord2f(texcoord[2], texcoord[3]); glVertex3i(window->w, window->h, 0);
-        glEnd();
-
-        if(flags.doublebuf)
-            SDL_GL_SwapBuffers();
-    }
-#else
-    // swap buffers in case of double buffering
-    // do nothing in case of single buffering
-    if(flags.doublebuf)
-        SDL_Flip(window);
-#endif
+    SDL_RenderPresent(renderer);
 }
 
 static void update_window_part(SDL_Rect *rect)
 {
+    // This should now be a complete no-op
+#if 0
     // no partial blit's in case of opengl
     // complete blit + scaling just before flip
     if (flags.gl)
@@ -444,4 +387,5 @@ static void update_window_part(SDL_Rect *rect)
         SDL_UpdateRect(window, 0, 0, 0, 0);
     else
         SDL_UpdateRect(window, rect->x, rect->y, rect->w, rect->h);
+#endif
 }

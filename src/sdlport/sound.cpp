@@ -198,7 +198,7 @@ song::song(char const * filename)
     }
 
     rw = SDL_RWFromMem(data, data_size);
-    music = Mix_LoadMUS_RW(rw);
+    music = Mix_LoadMUS_RW(rw, 0);
 
     if (!music)
     {
