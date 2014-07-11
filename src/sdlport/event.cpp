@@ -33,11 +33,15 @@
 #include "timing.h"
 #include "sprite.h"
 #include "game.h"
+#include "setup.h"
 
 extern SDL_Window *window;
+extern flags_struct flags;
 extern int get_key_binding(char const *dir, int i);
-extern int mouse_xscale, mouse_yscale;
+extern int mouse_xpad, mouse_ypad, mouse_xscale, mouse_yscale;
 short mouse_buttons[5] = { 0, 0, 0, 0, 0 };
+// From setup.cpp:
+void video_change_settings(void);
 
 void EventHandler::SysInit()
 {
@@ -85,6 +89,13 @@ void EventHandler::SysEvent(Event &ev)
     // Sort the mouse out
     int x, y;
     uint8_t buttons = SDL_GetMouseState(&x, &y);
+    // Remove any padding SDL may have added
+    x -= mouse_xpad;
+    if (x < 0)
+        x = 0;
+    y -= mouse_ypad;
+    if (y < 0)
+        y = 0;
     x = Min((x << 16) / mouse_xscale, main_screen->Size().x - 1);
     y = Min((y << 16) / mouse_yscale, main_screen->Size().y - 1);
     ev.mouse_move.x = x;
@@ -225,8 +236,8 @@ void EventHandler::SysEvent(Event &ev)
             if(ev.type == EV_KEY)
             {
                 // Toggle fullscreen
-                // FIXME
-                //SDL_WM_ToggleFullScreen(SDL_GetVideoSurface());
+                flags.fullscreen = !flags.fullscreen;
+                video_change_settings();
             }
             ev.key = EV_SPURIOUS;
             break;

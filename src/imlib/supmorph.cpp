@@ -368,7 +368,7 @@ main(int argc, char **argv)
   time_marker time2;
   printf("time = %lf\n",time2.diff_time(&time1));
 
-  set_mode(19,argc,argv);
+  set_mode(argc,argv);
   pal->load();
   i1->put_image(screen,30,30);
   update_dirty(screen);
@@ -380,5 +380,3 @@ main(int argc, char **argv)
   sleep(2);
   close_graphics();
 }*/
-
-

@@ -1331,7 +1331,7 @@ Game::Game(int argc, char **argv)
 //    load_level(NET_STARTFILE);
   }
 
-  set_mode(19, argc, argv);
+  set_mode(argc, argv);
   if(get_option("-2") && (xres < 639 || yres < 399))
   {
     close_graphics();
