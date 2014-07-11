@@ -21,14 +21,14 @@
 # include "config.h"
 #endif
 
-#ifdef WIN32
-# include <Windows.h>
-#endif
-
 #include <stdio.h>
 #include <stdarg.h>
 
+#include "SDL.h"
+
 #include "errorui.h"
+
+extern SDL_Window* window;
 
 void show_error_message(const char *title, const char* format, ... )
 {
@@ -39,10 +39,8 @@ void show_error_message(const char *title, const char* format, ... )
     va_end(args);
     // Always dump the message to stderr
     fputs(buffer, stderr);
-    // And then do something platform-specific with this.
-#ifdef WIN32
-    MessageBox(NULL, buffer, title == NULL ? "Error" : title, MB_OK | MB_ICONERROR);
-#endif
+    SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR,
+        title, buffer, window);
 }
 
 void show_startup_error(const char* format, ...)
