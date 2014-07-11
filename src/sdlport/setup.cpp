@@ -367,6 +367,13 @@ void parseCommandLine( int argc, char **argv )
             showHelp(argv[0]);
             exit( 0 );
         }
+        else if ( !strcasecmp( argv[ii], "-pause" ) )
+        {
+            // Debug command to force a pause here
+            printf("Pausing, press any key to resume (attach debugger now!) . . .");
+            getc(stdin);
+            printf("\n");
+        }
     }
 }
 

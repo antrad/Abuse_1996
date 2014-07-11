@@ -9,6 +9,7 @@ add_library(sdlport
     joystick.cpp joy.h
     setup.cpp setup.h
     hmi.cpp hmi.h
+    errorui.cpp errorui.h
 )
 #libsdlport_a_LIBADD =
 #
