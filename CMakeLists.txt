@@ -9,16 +9,10 @@ set(abuse_VERSION_TWEAK 0)
 
 # Detect the platform, as there's quite a bit of platform variation
 
-if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
+if (WIN32)
     # TODO: Think about Win64
-    set(PLATFORM_WIN32 true)
-    # Also set Windows for non-32-bit specific stuff
-    set(PLATFORM_WINDOWS true)
     enable_language(RC)
-elseif(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
-    set(PLATFORM_MAC_OS_X true)
 endif()
-# TODO (maybe): Add a Linux constant
 
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_LIST_DIR}/cmake")
 find_package(SDL2 2.0.3 REQUIRED)
@@ -36,10 +30,10 @@ set(HAVE_NETWORK TRUE CACHE BOOL "Enable networking support")
 
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/config.h.in ${CMAKE_CURRENT_BINARY_DIR}/config.h)
 
-if(PLATFORM_WIN32)
+if(WIN32)
     # For Windows, just use whatever CMake wants
     set(ASSETDIR ".")
-elseif(PLATFORM_MAC_OS_X)
+elseif(APPLE)
     # Under Mac OS X, I actually want to redirect this to an app bundle,
     # which makes things weird.
     set(ASSETDIR "abuse.app/Contents/Resources/data")
@@ -67,9 +61,9 @@ set(CPACK_PACKAGE_DESCRIPTION_SUMMARY "Abuse game")
 #set(CPACK_PACKAGE_ICON "doc/abuse.bmp")
 set(CPACK_RESOURCE_FILE_LICENSE "${CMAKE_CURRENT_SOURCE_DIR}/COPYING")
 set(CPACK_PACKAGE_EXECUTABLES "abuse;Abuse")
-if (PLATFORM_WINDOWS)
+if (WIN32)
     set(CPACK_GENERATOR "WIX;ZIP")
-elseif(PLATFORM_MAC_OS_X)
+elseif(APPLE)
     set(CPACK_GENERATOR "DragNDrop;TGZ")
 else()
     set(CPACK_GENERATOR "TGZ")

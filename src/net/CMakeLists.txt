@@ -16,6 +16,6 @@ include_directories(
 
 add_definitions(-DNO_CHECK)
 
-if(PLATFORM_WIN32)
+if(WIN32)
     target_link_libraries(net ws2_32)
 endif()

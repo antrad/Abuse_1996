@@ -28,6 +28,9 @@
 # include <direct.h>
 # define strcasecmp _stricmp
 #endif
+#ifdef __APPLE__
+# include <CoreFoundation/CoreFoundation.h>
+#endif
 
 #include <stdio.h>
 #include <stdlib.h>

@@ -6,7 +6,7 @@ add_subdirectory(net)
 add_subdirectory(imlib)
 add_subdirectory(sdlport)
 
-if(PLATFORM_WIN32)
+if (WIN32)
     # FIXME: Where should this logic reside? Whatever, first generate the
     # resource script...
     get_filename_component(abuse_ICON_PATH ${CPACK_WIX_PRODUCT_ICON} ABSOLUTE)
@@ -14,8 +14,6 @@ if(PLATFORM_WIN32)
     # And then include it
     # FIXME: I think this means the build location can't have spaces
     set(abuse_RESOURCE_FILES "${CMAKE_CURRENT_BINARY_DIR}/resources.rc")
-elseif(PLATFORM_MAC_OS_X)
-    set(abuse_RESOURCE_FILES osx/SDLMain.m osx/SDLMain.h)
 else()
     set(abuse_RESOURCE_FILES "")
 endif()
@@ -107,7 +105,7 @@ include_directories(
     ${SDL2_INCLUDE_DIR}
     ${SDL2_MIXER_INCLUDE_DIR}
 )
-if(PLATFORM_WINDOWS)
+if(WIN32)
     # Under Windows, throw them into the root
     install(TARGETS abuse abuse-tool
         RUNTIME DESTINATION "."
@@ -133,7 +131,7 @@ else()
     # Under Linux, we want the tools in bin
     install(TARGETS abuse abuse-tool RUNTIME DESTINATION bin
     BUNDLE DESTINATION "${CMAKE_INSTALL_PREFIX}")
-    if(PLATFORM_MAC_OS_X)
+    if(APPLE)
         install(FILES "../osx/abuse.icns" DESTINATION "${CMAKE_INSTALL_PREFIX}/abuse.app/Contents/Resources")
     endif()
 endif()

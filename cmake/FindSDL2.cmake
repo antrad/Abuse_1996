@@ -88,9 +88,9 @@
 find_path(SDL2_INCLUDE_DIR SDL.h
   HINTS
     ENV SDL2DIR
-  PATH_SUFFIXES SDL SDL2
+  PATH_SUFFIXES SDL2 SDL
                 # path suffixes to search inside ENV{SDL2DIR}
-                include/SDL include/SDL2 include
+                include/SDL2 include/SDL include
 )
 
 if(CMAKE_SIZEOF_VOID_P EQUAL 8)
@@ -194,6 +194,8 @@ if(SDL2_INCLUDE_DIR AND EXISTS "${SDL2_INCLUDE_DIR}/SDL_version.h")
   unset(SDL2_VERSION_MINOR)
   unset(SDL2_VERSION_PATCH)
 endif()
+
+include(${CMAKE_ROOT}/Modules/FindPackageHandleStandardArgs.cmake)
 
 FIND_PACKAGE_HANDLE_STANDARD_ARGS(SDL2
                                   REQUIRED_VARS SDL2_LIBRARY SDL2_INCLUDE_DIR

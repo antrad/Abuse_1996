@@ -57,7 +57,7 @@ find_path(SDL2_MIXER_INCLUDE_DIR SDL_mixer.h
   HINTS
     ENV SDL2MIXERDIR
     ENV SDL2DIR
-  PATH_SUFFIXES include/SDL include/SDL2 include
+  PATH_SUFFIXES include/SDL2 include/SDL include
 )
 
 if(CMAKE_SIZEOF_VOID_P EQUAL 8)
@@ -96,6 +96,8 @@ endif()
 
 set(SDL2_MIXER_LIBRARIES ${SDL2_MIXER_LIBRARY})
 set(SDL2_MIXER_INCLUDE_DIRS ${SDL2_MIXER_INCLUDE_DIR})
+
+include(${CMAKE_ROOT}/Modules/FindPackageHandleStandardArgs.cmake)
 
 FIND_PACKAGE_HANDLE_STANDARD_ARGS(SDL2_mixer
                                   REQUIRED_VARS SDL2_MIXER_LIBRARIES SDL2_MIXER_INCLUDE_DIRS
