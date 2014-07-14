@@ -37,7 +37,7 @@ Abuse has the following extra features over the original:
   * Runs at a screen bit depth of 8, 16, 24 or 32.
   * Fullscreen display.
   * Scaling by any amount (eg. 2, 3 or 4)
-  * OpenGL support for hardware scaling and anti-aliasing.
+  * SDL2 support for hardware scaling and anti-aliasing.
   * Stereo sound with panning.
   * Mouse wheel support for changing weapons.
   * Customizable keys.
@@ -46,13 +46,8 @@ Abuse has the following extra features over the original:
 
 Abuse has the following requirements:
 
-  * SDL 1.1.6 or above.
-  * SDL-Mixer
-  * One of the following sets of datafiles:
-    - Registered Abuse(original CD)
-    - Abuse Shareware
-    - fRaBs(Free Abuse)
-  * OpenGL is optional.
+  * SDL2 2.0.3 or above.
+  * SDL_mixer 2.0.0 or above.
 
 ## 4. RUNNING ABUSE
 
@@ -67,7 +62,6 @@ will start the game.
 The following command-line switches can be used:
 
     -datadir <arg>    Set the location of the datafiles
-    -doublebuf        Enable double buffering
     -edit             Start in editor mode
     -f <arg>          Load the map file named <arg>
     -fullscreen       Enable fullscreen mode
