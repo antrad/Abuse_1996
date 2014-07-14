@@ -168,11 +168,6 @@ void calculate_mouse_scaling()
     // And calculate the padding
     mouse_xpad = viewport.x * scale_x;
     mouse_ypad = viewport.y * scale_y;
-    printf("Mouse scale: [%dx%d] => [%dx%d] = (%f)/(%f)\n",
-        width, height,
-        xres, yres,
-        ((float)mouse_xscale) / 65536.0f,
-        ((float)mouse_yscale) / 65536.0f);
 }
 
 //

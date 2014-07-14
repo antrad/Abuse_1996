@@ -154,7 +154,42 @@ void EventHandler::SysEvent(Event &ev)
     case SDL_QUIT:
         exit(0);
         break;
+    case SDL_MOUSEWHEEL:
+        // Conceptually this can be in multiple directions, so use left/right
+        // first because those match the bars on the button
+        if (sdlev.wheel.x < 0)
+        {
+            ev.key = get_key_binding("b4", 0);
+            ev.type = EV_KEY;
+        }
+        else if (sdlev.wheel.x > 0)
+        {
+            ev.key = get_key_binding("b3", 0);
+            ev.type = EV_KEY;
+        }
+        else if (sdlev.wheel.y < 0)
+        {
+            ev.key = get_key_binding("b4", 0);
+            ev.type = EV_KEY;
+        }
+        else if (sdlev.wheel.y > 0)
+        {
+            ev.key = get_key_binding("b3", 0);
+            ev.type = EV_KEY;
+        }
+        if (ev.type == EV_KEY)
+        {
+            // We also need to immediately queue a "release" event or this will
+            // be stuck down forever.
+            Event *release_event = new Event();
+            release_event->key = ev.key;
+            release_event->type = EV_KEYRELEASE;
+            Push(release_event);
+        }
+        break;
     case SDL_MOUSEBUTTONUP:
+        // These were the old mouse wheel handlers, but honestly, using
+        // B4 and B5 for weapon switching works.
         switch(sdlev.button.button)
         {
         case 4:        // Mouse wheel goes up...
@@ -232,6 +267,7 @@ void EventHandler::SysEvent(Event &ev)
         case SDLK_KP_4:         ev.key = JK_LEFT; break;
         case SDLK_KP_6:         ev.key = JK_RIGHT; break;
         case SDLK_F11:
+            // FIXME: This should really be ALT-ENTER
             // Only handle key down
             if(ev.type == EV_KEY)
             {

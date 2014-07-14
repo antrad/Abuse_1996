@@ -41,6 +41,7 @@
 #include "specs.h"
 #include "keys.h"
 #include "setup.h"
+#include "errorui.h"
 
 flags_struct flags;
 keys_struct keys;
@@ -334,13 +335,13 @@ void parseCommandLine( int argc, char **argv )
 //
 void setup( int argc, char **argv )
 {
-    // Initialise default settings
-    flags.fullscreen         = 0;            // Start in a window
-    flags.mono               = 0;            // Enable stereo sound
-    flags.nosound            = 0;            // Enable sound
-    flags.grabmouse          = 0;            // Don't grab the mouse
-    flags.xres = xres        = 320;            // Default window width
-    flags.yres = yres        = 200;            // Default window height
+    // Initialize default settings
+    flags.fullscreen         = 1;    // Start fullscreen (actually windowed-fullscreen now)
+    flags.mono               = 0;    // Enable stereo sound
+    flags.nosound            = 0;    // Enable sound
+    flags.grabmouse          = 0;    // Don't grab the mouse
+    flags.xres = xres        = 320;  // Default window width
+    flags.yres = yres        = 200;  // Default window height
     flags.antialias          = 0;    // Don't anti-alias
     keys.up                  = key_value( "UP" );
     keys.down                = key_value( "DOWN" );
@@ -352,7 +353,7 @@ void setup( int argc, char **argv )
     keys.right_2             = key_value( "d" );
     keys.b3                  = key_value( "CTRL_R" );
     keys.b4                  = key_value( "INSERT" );
-    scale                    = 2;            // Default scale amount
+    scale                    = 2;    // Default scale amount
 
     // Display our name and version
     printf( "%s %s\n", PACKAGE_NAME, PACKAGE_VERSION );
@@ -360,7 +361,7 @@ void setup( int argc, char **argv )
     // Initialize SDL with video and audio support
     if( SDL_Init( SDL_INIT_VIDEO | SDL_INIT_AUDIO ) < 0 )
     {
-        printf( "Unable to initialise SDL : %s\n", SDL_GetError() );
+        show_startup_error( "Unable to initialize SDL : %s\n", SDL_GetError() );
         exit( 1 );
     }
     atexit( SDL_Quit );
