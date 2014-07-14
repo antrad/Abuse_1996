@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 2.8.9)
+cmake_minimum_required(VERSION 2.8.12)
 
 project(abuse C CXX)
 set(abuse_VERSION 0.9)
@@ -15,7 +15,7 @@ if (WIN32)
 endif()
 
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_LIST_DIR}/cmake")
-find_package(SDL2 2.0.3 REQUIRED)
+find_package(SDL2 2.0.0 REQUIRED)
 find_package(SDL2_mixer 2.0.0 REQUIRED)
 
 include(CheckIncludeFiles)
