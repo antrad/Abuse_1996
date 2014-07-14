@@ -42,6 +42,7 @@ extern int mouse_xpad, mouse_ypad, mouse_xscale, mouse_yscale;
 short mouse_buttons[5] = { 0, 0, 0, 0, 0 };
 // From setup.cpp:
 void video_change_settings(void);
+void calculate_mouse_scaling(void);
 
 void EventHandler::SysInit()
 {
@@ -154,6 +155,18 @@ void EventHandler::SysEvent(Event &ev)
     case SDL_QUIT:
         exit(0);
         break;
+    case SDL_WINDOWEVENT:
+        switch (sdlev.window.event)
+        {
+        case SDL_WINDOWEVENT_RESIZED:
+        case SDL_WINDOWEVENT_MAXIMIZED:
+        case SDL_WINDOWEVENT_RESTORED:
+        case SDL_WINDOWEVENT_MINIMIZED:
+            // Recalculate mouse scaling and padding. Note that we may end up
+            // double-doing this, but whatever. Who cares.
+            calculate_mouse_scaling();
+            break;
+        }
     case SDL_MOUSEWHEEL:
         // Conceptually this can be in multiple directions, so use left/right
         // first because those match the bars on the button
