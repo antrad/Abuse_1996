@@ -12,10 +12,6 @@
 #   include "config.h"
 #endif
 
-#ifdef NO_LIBS
-#include "fakelib.h"
-#endif
-
 #include "lisp.h"
 #include "lisp_gc.h"
 
@@ -127,4 +123,3 @@ void Lisp::InitConstants()
     cdr_symbol = LSymbol::FindOrCreate("cdr");
     load_warning = LSymbol::FindOrCreate("load_warning");
 }
-

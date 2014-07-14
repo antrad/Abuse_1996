@@ -1,3 +1,17 @@
+# TODO
+
+## Xenoveritas TODO
+
+- [ ] Add joystick/gamepad support
+- [ ] Find any dead code and remove it
+- [ ] Rewrite event handling to allow multiple keybindings for the same actions
+
+## Original TODO
+
+- [ ] Go through the old stuff below and figure out what's even still relevent:
+
+----
+
 This is a list of known bugs and features that need fixing/implementing:
 
 FEATURES
@@ -10,7 +24,7 @@ FEATURES
 
 SAM'S TODO
 ----------
- - replace write_PCX calls with SDL_WriteSurfaceBMP
+ - replace `write_PCX` calls with `SDL_WriteSurfaceBMP`
 
 ABUSE-TOOL
 ----------
@@ -25,31 +39,3 @@ DATA MERGE
  - ensure gamma.lsp, hardness.lsp, defaults.prp, edit.lsp etc. are always
    loaded and saved in the config directory, not in the datadir (use
    local_load instead of load?). Same for addon/deathmat/cur_lev.lsp
-
-UNUSED FILES
-------------
-There may be interesting code in there:
- - src/net:
-   - engine.cpp
-   - engine.h
-   - netdrv.cpp
-   - netdrv.h
-   - netfile.cpp
-   - netfile.h
-   - undrv.cpp
- - src:
-   - control.cpp
-   - control.h
-   - fakelib.h
-   - go.cpp
-   - go.h
-   - newlight.cpp
-   - old.nfclient.cpp
-   - old.nfserver.cpp
-   - old_server.cpp
-   - oldhelp.cpp
-   - server2.cpp
-   - server2.h
-   - smoosh.cpp
-   - unixnfc.cpp
-

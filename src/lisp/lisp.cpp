@@ -26,15 +26,11 @@
 #include "lisp_gc.h"
 #include "symbols.h"
 
-#ifdef NO_LIBS
-#   include "fakelib.h"
-#else
-#   include "status.h"
-#   include "specs.h"
-#   include "dprint.h"
-#   include "cache.h"
-#   include "dev.h"
-#endif
+#include "status.h"
+#include "specs.h"
+#include "dprint.h"
+#include "cache.h"
+#include "dev.h"
 
 /* To bypass the whole garbage collection issue of lisp I am going to have
  * separate spaces where lisp objects can reside.  Compiled code and gloabal
@@ -3235,4 +3231,3 @@ LObject *LSymbol::GetValue()
 #endif
     return m_value;
 }
-
