@@ -1294,14 +1294,10 @@ Game::Game(int argc, char **argv)
   zoom = 15;
   no_delay = 0;
 
-  if(get_option("-use_joy"))
-  {
-    has_joystick = joy_init(argc, argv);
-    dprintf("Joystick : ");
-    if(has_joystick) dprintf("detected\n");
-    else dprintf("not detected\n");
-  }
-  else has_joystick = 0;
+  has_joystick = joy_init(argc, argv);
+  dprintf("Joystick : ");
+  if(has_joystick) dprintf("detected\n");
+  else dprintf("not detected\n");
 
     // Clean up that old crap
     char *fastpath = (char *)malloc(strlen(get_save_filename_prefix()) + 13);

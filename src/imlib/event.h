@@ -10,15 +10,19 @@
 
 #ifndef __EVENT_HPP_
 #define __EVENT_HPP_
+
+/* Q: Why are these powers of 2? They're never masked together... */
 #define EV_MOUSE_MOVE     1
 #define EV_MOUSE_BUTTON   2
 #define EV_KEY            4
-#define EV_KEY_SPECIAL    8
-/* #define EV_REDRAW        16 UNUSED */
+/*#define EV_KEY_SPECIAL    8 UNUSED
+ #define EV_REDRAW        16 UNUSED */
 #define EV_SPURIOUS      32
+/* RESIZE is effectively unused (it can never be generated) */
 #define EV_RESIZE        64
 #define EV_KEYRELEASE   128
 #define EV_CLOSE_WINDOW 256
+/* DRAG_WINDOW is effectively unused (it CAN be generated, but is never processed) */
 #define EV_DRAG_WINDOW  512
 #define EV_MESSAGE     1024
 
@@ -74,9 +78,9 @@ public:
 
     int IsPending();
     void Get(Event &ev);
-  void flush_screen();
+    void flush_screen();
 
-  int has_mouse() { return 1; }
+    int has_mouse() { return 1; }
     void SetMouseShape(image *im, ivec2 center)
     {
         m_sprite->SetVisual(im, 1);
@@ -103,4 +107,3 @@ protected:
 };
 
 #endif
-

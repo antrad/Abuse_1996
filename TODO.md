@@ -5,6 +5,7 @@
 - [ ] Add joystick/gamepad support
 - [ ] Find any dead code and remove it
 - [ ] Rewrite event handling to allow multiple keybindings for the same actions
+- [ ] Update configuration system to deal with joysticks/gamepads
 
 ## Original TODO
 

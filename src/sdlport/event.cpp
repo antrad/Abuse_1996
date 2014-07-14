@@ -35,6 +35,12 @@
 #include "game.h"
 #include "setup.h"
 
+// The SDL documentation doesn't describe this, but left/right and up/down
+// can be masked out of the SDL constants.
+
+#define SDL_HAT_LEFTRIGHT(hatpos)   (hatpos & (SDL_HAT_LEFT|SDL_HAT_RIGHT))
+#define SDL_HAT_UPDOWN(hatpos)      (hatpos & (SDL_HAT_UP|SDL_HAT_DOWN))
+
 extern SDL_Window *window;
 extern flags_struct flags;
 extern int get_key_binding(char const *dir, int i);
@@ -170,6 +176,7 @@ void EventHandler::SysEvent(Event &ev)
     case SDL_MOUSEWHEEL:
         // Conceptually this can be in multiple directions, so use left/right
         // first because those match the bars on the button
+        printf("Wheel!\n");
         if (sdlev.wheel.x < 0)
         {
             ev.key = get_key_binding("b4", 0);
@@ -371,5 +378,48 @@ void EventHandler::SysEvent(Event &ev)
             }
             break;
         }
+        break;
+    case SDL_CONTROLLERBUTTONDOWN:
+    case SDL_CONTROLLERBUTTONUP:
+        switch (sdlev.cbutton.button)
+        {
+        case SDL_CONTROLLER_BUTTON_DPAD_UP:
+            printf("Up\n");
+            break;
+        case SDL_CONTROLLER_BUTTON_DPAD_DOWN:
+            printf("Down\n");
+            break;
+        case SDL_CONTROLLER_BUTTON_DPAD_LEFT:
+            printf("Left\n");
+            break;
+        case SDL_CONTROLLER_BUTTON_DPAD_RIGHT:
+            printf("Right\n");
+            break;
+        }
+        break;
+    case SDL_CONTROLLERAXISMOTION:
+        switch (sdlev.caxis.axis)
+        {
+        case SDL_CONTROLLER_AXIS_LEFTX:
+            // Left stick X axis: motion
+            printf("X axis: %d\n", sdlev.caxis.value);
+            break;
+        case SDL_CONTROLLER_AXIS_RIGHTX:
+            // Right stick X axis: mouse
+            printf("Right X axis: %d\n", sdlev.caxis.value);
+            break;
+        case SDL_CONTROLLER_AXIS_RIGHTY:
+            // Right stick Y axis: mouse
+            printf("Right Y axis: %d\n", sdlev.caxis.value);
+            break;
+        case SDL_CONTROLLER_AXIS_TRIGGERRIGHT:
+            // Right trigger: fire
+            printf("Right trigger: %d\n", sdlev.caxis.value);
+            break;
+        }
+    }
+    printf("Event : %x\n", ev.type);
+    if (ev.type == EV_KEY) {
+        printf("Key down: %x", ev.key);
     }
 }
