@@ -141,7 +141,6 @@ public :
 
   void update_screen();
   void get_input();
-  void do_intro();
   void joy_calb(Event &ev);
   void menu_select(Event &ev2);
   int can_morph_into(int type);
@@ -156,5 +155,3 @@ public :
 
 extern int playing_state(int state);
 #endif
-
-

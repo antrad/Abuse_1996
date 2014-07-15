@@ -74,9 +74,9 @@ public:
 
     int IsPending();
     void Get(Event &ev);
-  void flush_screen();
+    void flush_screen();
 
-  int has_mouse() { return 1; }
+    int has_mouse() { return 1; }
     void SetMouseShape(image *im, ivec2 center)
     {
         m_sprite->SetVisual(im, 1);
@@ -88,10 +88,15 @@ public:
                       Min(Max(pos.y, 0), m_screen->Size().y - 1));
         SysWarpMouse(m_pos);
     }
+    void SetIgnoreWheelEvents(bool ignore)
+    {
+        m_ignore_wheel_events = ignore;
+    }
 
 private:
     linked_list m_events;
     int m_pending, last_key;
+    bool m_ignore_wheel_events;
 
     image *m_screen;
 
@@ -103,4 +108,3 @@ protected:
 };
 
 #endif
-
