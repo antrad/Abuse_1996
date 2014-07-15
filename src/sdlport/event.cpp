@@ -174,6 +174,8 @@ void EventHandler::SysEvent(Event &ev)
             break;
         }
     case SDL_MOUSEWHEEL:
+        if (m_ignore_wheel_events)
+            break;
         // Conceptually this can be in multiple directions, so use left/right
         // first because those match the bars on the button
         printf("Wheel!\n");

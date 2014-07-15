@@ -1214,6 +1214,8 @@ void do_title()
         Event ev;
         ev.type = EV_SPURIOUS;
         Timer total;
+        // HACK: Disable wheel for now since it'll trigger skipping the intro
+        wm->SetIgnoreWheelEvents(true);
 
         while (ev.type != EV_KEY && ev.type != EV_MOUSE_BUTTON)
         {
@@ -1239,6 +1241,8 @@ void do_title()
             frame.WaitMs(25.f);
             frame.GetMs();
         }
+        // HACK: And reenable them
+        wm->SetIgnoreWheelEvents(false);
 
         the_game->reset_keymap();
 
@@ -1408,7 +1412,6 @@ Game::Game(int argc, char **argv)
 
   if(dev & EDIT_MODE)
     set_frame_size(0);
-//  do_intro();
   state = START_STATE;         // first set the state to one that has windows
 
 
@@ -1502,11 +1505,6 @@ void Game::update_screen()
     cache.prof_poll_end();
 
   wm->flush_screen();
-
-}
-
-void Game::do_intro()
-{
 
 }
 
@@ -1682,7 +1680,6 @@ void Game::get_input()
                 } break;
                 case INTRO_START_STATE:
                 {
-                    do_intro();
                     if(dev & EDIT_MODE)
                         set_state(RUN_STATE);
                     else
