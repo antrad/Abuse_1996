@@ -36,6 +36,7 @@
 #include "setup.h"
 
 extern SDL_Window *window;
+extern SDL_Surface *surface;
 extern flags_struct flags;
 extern int get_key_binding(char const *dir, int i);
 extern int mouse_xpad, mouse_ypad, mouse_xscale, mouse_yscale;
@@ -316,15 +317,13 @@ void EventHandler::SysEvent(Event &ev)
             ev.key = EV_SPURIOUS;
             break;
         case SDLK_PRINTSCREEN:    // print-screen key
-        /* FIXME
             // Only handle key down
             if(ev.type == EV_KEY)
             {
                 // Grab a screenshot
-                SDL_SaveBMP(SDL_GetVideoSurface(), "screenshot.bmp");
+                SDL_SaveBMP(surface, "screenshot.bmp");
                 the_game->show_help("Screenshot saved to: screenshot.bmp.\n");
             }
-            */
             ev.key = EV_SPURIOUS;
             break;
         default:
