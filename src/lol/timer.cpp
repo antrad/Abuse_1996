@@ -26,7 +26,7 @@
 #   include <sys/timer.h>
 #   include <sys/time_util.h>
 #else
-#   include <SDL.h>
+#   include "SDL.h"
 #endif
 
 #include "common.h"

@@ -6,6 +6,7 @@
 - [ ] Find any dead code and remove it
 - [ ] Rewrite event handling to allow multiple keybindings for the same actions
 - [ ] Update configuration system to deal with joysticks/gamepads
+- [ ] Strongly considering replacing the jFILE/bFILE stuff with SDL's SDL_RW API
 
 ## Original TODO
 

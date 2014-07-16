@@ -28,7 +28,7 @@
 
 #ifdef __APPLE__
 // SDL for OSX needs to override main()
-#   include <SDL.h>
+#   include "SDL.h"
 #endif
 
 #include "common.h"
@@ -377,6 +377,9 @@ int window_state(int state)
 
 void Game::set_state(int new_state)
 {
+    // If we're no longer in the run state, jump back to virtual mouse state
+    if (new_state != RUN_STATE)
+        wm->SetRightStickMouse();
     int d = 0;
     reset_keymap(); // we think all the keys are up right now
 
@@ -1900,6 +1903,8 @@ void Game::step()
       if(f->m_focus)
       {
     f->update_scroll();
+    // Center the control here
+    wm->SetRightStickCenter(f->m_focus->x - f->xoff(), f->m_focus->y - f->yoff());
     int w, h;
 
     w = (f->m_bb.x - f->m_aa.x + 1);

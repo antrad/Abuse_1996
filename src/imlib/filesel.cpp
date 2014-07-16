@@ -150,8 +150,3 @@ Jwindow *file_dialog(char const *prompt, char const *def,
                 FILENAME_str);
   return j;
 }
-
-
-
-
-

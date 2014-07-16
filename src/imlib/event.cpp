@@ -111,4 +111,3 @@ void EventHandler::flush_screen()
 {
     update_dirty(main_screen);
 }
-

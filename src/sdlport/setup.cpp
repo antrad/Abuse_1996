@@ -271,6 +271,7 @@ void parseCommandLine( int argc, char **argv )
         }
         else if( !strcasecmp( argv[ii], "-scale" ) )
         {
+            // FIXME: Pretty sure scale does nothing now
             int result;
             if( sscanf( argv[++ii], "%d", &result ) )
             {

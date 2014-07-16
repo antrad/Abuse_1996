@@ -22,7 +22,7 @@
 #   include "config.h"
 #endif
 
-#include <SDL.h>
+#include "SDL.h"
 
 #include "common.h"
 
@@ -34,12 +34,6 @@
 #include "sprite.h"
 #include "game.h"
 #include "setup.h"
-
-// The SDL documentation doesn't describe this, but left/right and up/down
-// can be masked out of the SDL constants.
-
-#define SDL_HAT_LEFTRIGHT(hatpos)   (hatpos & (SDL_HAT_LEFT|SDL_HAT_RIGHT))
-#define SDL_HAT_UPDOWN(hatpos)      (hatpos & (SDL_HAT_UP|SDL_HAT_DOWN))
 
 extern SDL_Window *window;
 extern flags_struct flags;
@@ -59,6 +53,9 @@ void EventHandler::SysInit()
 
 void EventHandler::SysWarpMouse(ivec2 pos)
 {
+    // This should take into account mouse scaling.
+    pos.x = ((pos.x * mouse_xscale + 0x8000) >> 16) + mouse_xpad;
+    pos.y = ((pos.y * mouse_yscale + 0x8000) >> 16) + mouse_ypad;
     SDL_WarpMouseInWindow(window, pos.x, pos.y);
 }
 
@@ -178,7 +175,6 @@ void EventHandler::SysEvent(Event &ev)
             break;
         // Conceptually this can be in multiple directions, so use left/right
         // first because those match the bars on the button
-        printf("Wheel!\n");
         if (sdlev.wheel.x < 0)
         {
             ev.key = get_key_binding("b4", 0);
@@ -386,42 +382,98 @@ void EventHandler::SysEvent(Event &ev)
         switch (sdlev.cbutton.button)
         {
         case SDL_CONTROLLER_BUTTON_DPAD_UP:
-            printf("Up\n");
+            ev.key = get_key_binding("up", 0);
             break;
         case SDL_CONTROLLER_BUTTON_DPAD_DOWN:
-            printf("Down\n");
+            ev.key = get_key_binding("down", 0);
             break;
         case SDL_CONTROLLER_BUTTON_DPAD_LEFT:
-            printf("Left\n");
+            ev.key = get_key_binding("left", 0);
             break;
         case SDL_CONTROLLER_BUTTON_DPAD_RIGHT:
-            printf("Right\n");
+            ev.key = get_key_binding("right", 0);
             break;
+        default:
+            // Still want to process this as a key press if only to allow the
+            // controller to skip the intro screen.
+            ev.key = -1;
         }
+        ev.type = sdlev.type == SDL_CONTROLLERBUTTONDOWN ?
+            EV_KEY : EV_KEYRELEASE;
         break;
     case SDL_CONTROLLERAXISMOTION:
         switch (sdlev.caxis.axis)
         {
         case SDL_CONTROLLER_AXIS_LEFTX:
             // Left stick X axis: motion
-            printf("X axis: %d\n", sdlev.caxis.value);
+            // TODO (maybe): translate these into joystick events using the
+            // existing joystick system.
+            if (sdlev.caxis.value < 0)
+            {
+                ev.key = get_key_binding("left", 0);
+            }
+            else
+            {
+                ev.key = get_key_binding("right", 0);
+            }
+            ev.type = abs(sdlev.caxis.value) < m_dead_zone ?
+                EV_KEYRELEASE : EV_KEY;
+            //printf("X axis: %d\n", sdlev.caxis.value);
             break;
         case SDL_CONTROLLER_AXIS_RIGHTX:
             // Right stick X axis: mouse
-            printf("Right X axis: %d\n", sdlev.caxis.value);
+            if (abs(sdlev.caxis.value) > m_dead_zone) {
+                if (m_right_stick_x < 0) {
+                    // Translate this into a mouse move event
+                    m_pos.x += sdlev.caxis.value / m_right_stick_scale;
+                } else {
+                    m_pos.x = m_right_stick_x + (sdlev.caxis.value / m_right_stick_player_scale);
+                }
+                ev.mouse_move.x = m_pos.x;
+                SetMousePos(m_pos);
+            }
+            //printf("Right X axis: %d\n", sdlev.caxis.value);
             break;
         case SDL_CONTROLLER_AXIS_RIGHTY:
             // Right stick Y axis: mouse
-            printf("Right Y axis: %d\n", sdlev.caxis.value);
+            if (abs(sdlev.caxis.value) > m_dead_zone) {
+                if (m_right_stick_x < 0) {
+                    // Translate this into a mouse move event
+                    m_pos.y += sdlev.caxis.value / m_right_stick_scale;
+                } else {
+                    m_pos.y = m_right_stick_y + (sdlev.caxis.value / m_right_stick_player_scale);
+                }
+                ev.mouse_move.y = m_pos.y;
+                SetMousePos(m_pos);
+            }
+            //printf("Right Y axis: %d\n", sdlev.caxis.value);
+            break;
+        case SDL_CONTROLLER_AXIS_TRIGGERLEFT:
+            // Left trigger: special
+            ev.key = get_key_binding("b1", 0);
+            if (sdlev.caxis.value > m_dead_zone)
+            {
+                // Go ahead and spam key-ups/key-downs, I guess
+                ev.type = EV_KEY;
+            }
+            else
+            {
+                ev.type = EV_KEYRELEASE;
+            }
             break;
         case SDL_CONTROLLER_AXIS_TRIGGERRIGHT:
             // Right trigger: fire
-            printf("Right trigger: %d\n", sdlev.caxis.value);
+            ev.key = get_key_binding("b2", 0);
+            if (sdlev.caxis.value > m_dead_zone)
+            {
+                // Go ahead and spam key-ups/key-downs, I guess
+                ev.type = EV_KEY;
+            }
+            else
+            {
+                ev.type = EV_KEYRELEASE;
+            }
             break;
         }
-    }
-    printf("Event : %x\n", ev.type);
-    if (ev.type == EV_KEY) {
-        printf("Key down: %x", ev.key);
     }
 }

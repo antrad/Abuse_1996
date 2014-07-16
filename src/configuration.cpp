@@ -228,6 +228,7 @@ void get_movement(int player, int &x, int &y, int &b1, int &b2, int &b3, int &b4
     }
     else
     {
+        // FIXME: Why not b4?
         x = y = b1 = b2 = b3 = 0;
     }
 }

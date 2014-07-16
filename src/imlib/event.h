@@ -11,7 +11,7 @@
 #ifndef __EVENT_HPP_
 #define __EVENT_HPP_
 
-/* Q: Why are these powers of 2? They're never masked together... */
+/* Q: Why are these powers of 2? They're never ORed together... */
 #define EV_MOUSE_MOVE     1
 #define EV_MOUSE_BUTTON   2
 #define EV_KEY            4
@@ -96,11 +96,32 @@ public:
     {
         m_ignore_wheel_events = ignore;
     }
+    void SetRightStickCenter(int x, int y)
+    {
+        m_right_stick_x = x;
+        m_right_stick_y = y;
+    }
+    void SetRightStickMouse()
+    {
+        m_right_stick_x = m_right_stick_y = -1;
+    }
 
 private:
     linked_list m_events;
     int m_pending, last_key;
     bool m_ignore_wheel_events;
+    // "Dead zone" before motion of a stick "counts".
+    // Maximum stick values are 0x7FFF, currently I've
+    // arbitrarily set this to 1/4th.
+    int m_dead_zone = 0x2000;
+    // Scale amount for the right stick when moving the mouse. The range is
+    // -0x7FFF to 0x7FFF, or -32767 to 32767. The default means it will move
+    // a maximum of 3 pixels per tick.
+    int m_right_stick_scale = 0x2000;
+    // Scale amount for the right stick when it's player-locked.
+    // 0x400 gives a range of -31 to 31.
+    int m_right_stick_player_scale = 0x400;
+    int m_right_stick_x, m_right_stick_y;
 
     image *m_screen;
 
