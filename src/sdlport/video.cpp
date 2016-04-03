@@ -52,9 +52,12 @@ void calculate_mouse_scaling();
 //
 void set_mode(int argc, char **argv)
 {
-    int win_width = xres;
-    int win_height = yres;
-    if (win_width < 640)
+	//AR scale custom resolution
+    int win_width = xres*scale;
+    int win_height = yres*scale;
+    
+	//AR don't complicate things, use values as is
+	/*if (win_width < 640)
         win_width *= 2;
     if (win_height < 400)
         win_height *= 2;
@@ -63,7 +66,7 @@ void set_mode(int argc, char **argv)
         // Correct for the weird 320x200 aspect ratio
         win_width = 640;
         win_height = 480;
-    }
+    }*/
 
     // FIXME: Set the icon for this window.  Looks nice on taskbars etc.
     //SDL_WM_SetIcon(SDL_LoadBMP("abuse.bmp"), NULL);
@@ -84,12 +87,15 @@ void set_mode(int argc, char **argv)
         show_startup_error("Video : Unable to create renderer : %s", SDL_GetError());
         exit(1);
     }
-    if (xres == 320 && yres == 200) {
+
+	//AR use values as is
+	SDL_RenderSetLogicalSize(renderer, xres, yres);
+    /*if (xres == 320 && yres == 200) {
         // Lie. This fixes the aspect ratio for us.
         SDL_RenderSetLogicalSize(renderer, 320, 240);
     } else {
         SDL_RenderSetLogicalSize(renderer, xres, yres);
-    }
+    }*/
 
     // Create the screen image
     main_screen = new image(ivec2(xres, yres), NULL, 2);

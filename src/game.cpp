@@ -69,6 +69,8 @@
 #include "demo.h"
 #include "netcfg.h"
 
+#include <SDL_timer.h>//AR
+
 #define SHIFT_RIGHT_DEFAULT 0
 #define SHIFT_DOWN_DEFAULT 30
 
@@ -1031,9 +1033,11 @@ void Game::draw_map(view *v, int interpolate)
       } else
       {
     main_screen->dirt_on();
-    if(xres * yres <= 64000)
+	//AR enable light in higher resolutions
+	light_screen(main_screen, xoff, yoff, white_light, v->ambient);
+    /*if(xres * yres <= 64000)
           light_screen(main_screen, xoff, yoff, white_light, v->ambient);
-    else light_screen(main_screen, xoff, yoff, white_light, 63);            // no lighting for hi - rez
+    else light_screen(main_screen, xoff, yoff, white_light, 63);            // no lighting for hi - rez*/
       }
 
     } else
@@ -1514,7 +1518,10 @@ void Game::update_screen()
 // FIXME: refactor this to use the Lol Engine main fixed-framerate loop?
 int Game::calc_speed()
 {
-    static Timer frame_timer;
+	//AR update entities using SDL_GetTicks() after custom time
+	return 1;
+	
+	/*static Timer frame_timer;
     static int first = 1;
 
     if (first)
@@ -1561,7 +1568,7 @@ int Game::calc_speed()
 
     // Ignore our wait time, we're more interested in the frame time
     frame_timer.GetMs();
-    return ret;
+    return ret;*/
 }
 
 extern int start_edit;
@@ -2403,6 +2410,8 @@ int main(int argc, char *argv[])
             g->update_screen(); // redraw the screen with any changes
         }
 
+		Uint32 AR_lastupdate = 1000;
+
         while (!g->done())
         {
             music_check();
@@ -2439,7 +2448,12 @@ int main(int argc, char *argv[])
             service_net_request();
 
             // process all the objects in the world
-            g->step();
+			//AR update at 20 FPS
+            if(SDL_GetTicks()-AR_lastupdate>=50)
+			{
+				g->step();
+				AR_lastupdate = SDL_GetTicks();
+			}
             server_check();
             g->calc_speed();
 

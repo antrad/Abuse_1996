@@ -13,6 +13,8 @@
 
 struct flags_struct
 {
+	short scale;
+	short editor;
     short fullscreen;
     short mono;
     short nosound;

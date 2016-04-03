@@ -47,7 +47,7 @@ flags_struct flags;
 keys_struct keys;
 
 extern int xres, yres;
-static unsigned int scale;
+unsigned int scale;//AR was static, removed for external
 
 //
 // Display help
@@ -87,20 +87,21 @@ void createRCFile( char *rcfile )
 {
     FILE *fd = NULL;
 
+	//AR fullscreen=0,scale=0,width=640,height=480
     if( (fd = fopen( rcfile, "w" )) != NULL )
     {
         fputs( "; Abuse-SDL Configuration file\n\n", fd );
-        fputs( "; Startup fullscreen\nfullscreen=1\n\n", fd );
+        fputs( "; Startup fullscreen\nfullscreen=0\n\n", fd );		
+		fputs( "; Game screen width\nwidth=640\n\n", fd );
+		fputs( "; Game screen height\nheight=400\n\n", fd );
+		fputs( "; Scale window\nscale=1\n\n", fd );//scale overrides screen size if scale > 0
+		fputs( "; Use anti-aliasing\n; Looks horrible, never enable it\nantialias=0\n\n", fd );
 #if !((defined __APPLE__) || (defined WIN32))
         fputs( "; Location of the datafiles\ndatadir=", fd );
         fputs( ASSETDIR "\n\n", fd );
 #endif
-        fputs( "; Use mono audio only\nmono=0\n\n", fd );
-        fputs( "; Grab the mouse to the window\ngrabmouse=0\n\n", fd );
-        fputs( "; Set the scale factor\nscale=2\n\n", fd );
-        fputs( "; Use anti-aliasing\n; Looks horrible, never enable it\nantialias=0\n\n", fd );
-//        fputs( "; Set the width of the window\nx=320\n\n", fd );
-//        fputs( "; Set the height of the window\ny=200\n\n", fd );
+		fputs( "; Grab the mouse to the window\ngrabmouse=0\n\n", fd );
+        fputs( "; Use mono audio only\nmono=0\n\n", fd );        
         fputs( "; Key mappings\n", fd );
         fputs( "left=LEFT\nright=RIGHT\nup=UP\ndown=DOWN\n", fd );
         fputs( "fire=SPACE\nweapprev=CTRL_R\nweapnext=INSERT\n", fd );
@@ -124,8 +125,10 @@ void readRCFile()
     char buf[255];
     char *result;
 
-    rcfile = (char *)malloc( strlen( get_save_filename_prefix() ) + 9 );
-    sprintf( rcfile, "%s/abuserc", get_save_filename_prefix() );
+	//AR local settings in a text file for easy access
+	rcfile = "config.txt";
+    //rcfile = (char *)malloc( strlen( get_save_filename_prefix() ) + 9 );
+    //sprintf( rcfile, "%s/abuserc", get_save_filename_prefix() );
     if( (fd = fopen( rcfile, "r" )) != NULL )
     {
         while( fgets( buf, sizeof( buf ), fd ) != NULL )
@@ -148,21 +151,24 @@ void readRCFile()
             }
             else if( strcasecmp( result, "scale" ) == 0 )
             {
-                result = strtok( NULL, "\n" );
+				result = strtok( NULL, "\n" );
                 scale = atoi( result );
-//                flags.xres = xres * atoi( result );
-//                flags.yres = yres * atoi( result );
+				if(scale<1) scale = 1;
             }
-/*            else if( strcasecmp( result, "x" ) == 0 )
+            else if( strcasecmp( result, "width" ) == 0 )
             {
+				//AR enable screen width
                 result = strtok( NULL, "\n" );
                 flags.xres = atoi( result );
+				xres = flags.xres;
             }
-            else if( strcasecmp( result, "y" ) == 0 )
+            else if( strcasecmp( result, "height" ) == 0 )
             {
+				//AR enable screen height
                 result = strtok( NULL, "\n" );
                 flags.yres = atoi( result );
-            }*/
+				yres = flags.yres;
+            }
             else if( strcasecmp( result, "antialias" ) == 0 )
             {
                 result = strtok( NULL, "\n" );
@@ -336,13 +342,15 @@ void parseCommandLine( int argc, char **argv )
 //
 void setup( int argc, char **argv )
 {
-    // Initialize default settings
-    flags.fullscreen         = 1;    // Start fullscreen (actually windowed-fullscreen now)
+	// Initialize default settings
+	//AR start in window mode, scale is 1
+	scale                    = 1;    // Default scale amount
+    flags.fullscreen         = 0;    // Start in window (fullscreen is actually windowed-fullscreen now)
     flags.mono               = 0;    // Enable stereo sound
     flags.nosound            = 0;    // Enable sound
     flags.grabmouse          = 0;    // Don't grab the mouse
-    flags.xres = xres        = 320;  // Default window width
-    flags.yres = yres        = 200;  // Default window height
+    flags.xres = xres        = 640;  // Default window width
+    flags.yres = yres        = 400;  // Default window height
     flags.antialias          = 0;    // Don't anti-alias
     keys.up                  = key_value( "UP" );
     keys.down                = key_value( "DOWN" );
@@ -353,8 +361,7 @@ void setup( int argc, char **argv )
     keys.left_2              = key_value( "a" );
     keys.right_2             = key_value( "d" );
     keys.b3                  = key_value( "CTRL_R" );
-    keys.b4                  = key_value( "INSERT" );
-    scale                    = 2;    // Default scale amount
+    keys.b4                  = key_value( "INSERT" );    
 
     // Display our name and version
     printf( "%s %s\n", PACKAGE_NAME, PACKAGE_VERSION );
@@ -463,9 +470,12 @@ void setup( int argc, char **argv )
     // Handle command-line parameters
     parseCommandLine( argc, argv );
 
+	//AR screen size already calculated
+	/*
     // Calculate the scaled window size.
     flags.xres = xres * scale;
     flags.yres = yres * scale;
+	*/
 }
 
 //

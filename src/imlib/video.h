@@ -22,6 +22,7 @@
 #include "image.h"
 
 extern int xres,yres;
+extern unsigned int scale;//AR
 extern int xoff,yoff;
 extern image *main_screen;
 
