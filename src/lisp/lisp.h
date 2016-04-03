@@ -12,7 +12,7 @@
 #define __LISP_HPP_
 
 #include <cstdlib>
-#include <stdint.h>
+#include <SDL_config.h>//AR (#include <SDL_config.h>)
 
 #ifdef L_PROFILE
 #include "timing.h"

@@ -13,7 +13,7 @@
 #endif
 
 #include <cstdlib>
-#include <stdint.h>
+#include <SDL_config.h>//AR (#include <SDL_config.h>)
 
 #if defined __linux__ || defined __APPLE__
 #   include <sys/time.h>

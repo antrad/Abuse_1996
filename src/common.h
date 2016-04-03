@@ -14,7 +14,7 @@
 //
 // Globally required headers
 //
-#include <stdint.h>
+#include <SDL_config.h>//AR (#include <SDL_config.h>)
 #include <stdio.h>
 
 #ifdef _MSC_VER

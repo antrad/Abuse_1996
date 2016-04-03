@@ -113,14 +113,14 @@ private:
     // "Dead zone" before motion of a stick "counts".
     // Maximum stick values are 0x7FFF, currently I've
     // arbitrarily set this to 1/4th.
-    int m_dead_zone = 0x2000;
+    int m_dead_zone;//AR (int m_dead_zone = 0x2000;)
     // Scale amount for the right stick when moving the mouse. The range is
     // -0x7FFF to 0x7FFF, or -32767 to 32767. The default means it will move
     // a maximum of 3 pixels per tick.
-    int m_right_stick_scale = 0x2000;
+    int m_right_stick_scale;//AR (int m_right_stick_scale = 0x2000;)
     // Scale amount for the right stick when it's player-locked.
     // 0x400 gives a range of -31 to 31.
-    int m_right_stick_player_scale = 0x400;
+    int m_right_stick_player_scale;//AR (int m_right_stick_player_scale = 0x400;)
     int m_right_stick_x, m_right_stick_y;
 
     image *m_screen;
