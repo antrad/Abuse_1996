@@ -69,7 +69,10 @@
 #include "demo.h"
 #include "netcfg.h"
 
-#include <SDL_timer.h>//AR
+//AR
+#include "sdlport/setup.h"
+#include <SDL_timer.h>
+//
 
 #define SHIFT_RIGHT_DEFAULT 0
 #define SHIFT_DOWN_DEFAULT 30
@@ -94,6 +97,9 @@ int has_joystick = 0;
 char req_name[100];
 
 extern uint8_t chatting_enabled;
+
+flags_struct flags;
+keys_struct keys;
 
 // Enable TCP/IP driver
 #if HAVE_NETWORK
@@ -1898,69 +1904,116 @@ void net_receive()
   }
 }
 
+//AR tmp
+#include <sstream>
+
 void Game::step()
 {
-  LSpace::Tmp.Clear();
-  if(current_level)
-  {
-    current_level->unactivate_all();
-    total_active = 0;
-    for(view *f = first_view; f; f = f->next)
-    {
-      if(f->m_focus)
-      {
-    f->update_scroll();
-    // Center the control here
-    wm->SetRightStickCenter(f->m_focus->x - f->xoff(), f->m_focus->y - f->yoff());
-    int w, h;
+	//AR virtual crosshair inside a circle
+	static float aimx = 0, aimy = 0;
 
-    w = (f->m_bb.x - f->m_aa.x + 1);
-    h = (f->m_bb.y - f->m_aa.y + 1);
-        total_active += current_level->add_actives(f->xoff()-w / 4, f->yoff()-h / 4,
-                         f->xoff()+w + w / 4, f->yoff()+h + h / 4);
-      }
-    }
-  }
+	flags.in_game = false;
 
-  if(state == RUN_STATE)
-  {
-    if((dev & EDIT_MODE) || (main_net_cfg && (main_net_cfg->state == net_configuration::CLIENT ||
-                         main_net_cfg->state == net_configuration::SERVER)))
-      idle_ticks = 0;
+	LSpace::Tmp.Clear();
+	if(current_level)
+	{
+		current_level->unactivate_all();
+		total_active = 0;
+		for(view *f = first_view; f; f = f->next)
+		{
+			if(f->m_focus)
+			{
+				flags.in_game = true;
 
-    if(demo_man.current_state()==demo_manager::NORMAL && idle_ticks > 420 && demo_start)
-    {
-      idle_ticks = 0;
-      set_state(MENU_STATE);
-    }
-    else if(!(dev & EDIT_MODE))               // if edit mode, then don't step anything
-    {
-      if(key_down(JK_ESC))
-      {
-    set_state(MENU_STATE);
-    set_key_down(JK_ESC, 0);
-      }
-      ambient_ramp = 0;
-      view *v;
-      for(v = first_view; v; v = v->next)
-        v->update_scroll();
+				f->update_scroll();				
+				
+				//AR aim with the controller each update, don't wait for input event (-13 moves center to chest area)
+				if(flags.controller_aim==1)
+				{
+					std::stringstream stream;
+					stream << flags.controller_aim_x << "-" << flags.controller_aim_y << "\n" ;
+					printf(stream.str().c_str());
+					
+					//convert to percentage above "dead zone", don't move if value below "dead zone", range [-32767,32767]
+					float fx = 0, fy = 0;
+					
+					if(fabs(flags.controller_aim_x)>flags.controller_rs_dz)
+						fx = (fabs(flags.controller_aim_x)-flags.controller_rs_dz)/(33000-flags.controller_rs_dz);
 
-      cache.prof_poll_start();
-      current_level->tick();
-      sbar.step();
-    } else
-      dev_scroll();
-  } else if(state == JOY_CALB_STATE)
-  {
-    Event ev;
-    joy_calb(ev);
-  } else if(state == MENU_STATE)
-    main_menu();
+					if(fabs(flags.controller_aim_y)>flags.controller_rs_dz)
+						fy = (fabs(flags.controller_aim_y)-flags.controller_rs_dz)/(33000-flags.controller_rs_dz);
+					
+					//move virtual crosshair inside a circular area, based on right stick state and sensitivity
+					float angle = atan2(flags.controller_aim_y,flags.controller_aim_x);
+					aimx += cos(angle)*(flags.controller_rs_s*fx);
+					aimy += sin(angle)*(flags.controller_rs_s*fy);
 
-  if((key_down('x') || key_down(JK_F4))
-      && (key_down(JK_ALT_L) || key_down(JK_ALT_R))
-      && confirm_quit())
-    finished = true;
+					//calculate aim based on the virtual crosshair
+					angle = atan2(aimy,aimx);
+					
+					//set position of real crosshair
+					wm->SetMousePos(ivec2(
+						f->m_focus->x - f->xoff() + cos(angle)*flags.controller_cd,
+						f->m_focus->y - f->yoff() + sin(angle)*flags.controller_cd - 13));
+
+					//if outside circle reposition to the edge of circle for the next update
+					//100 is just random, sesitivity is controlled using flags.controller_rs_s
+					aimx = cos(angle)*100;
+					aimy = sin(angle)*100;
+				}
+				
+				int w, h;
+
+				w = (f->m_bb.x - f->m_aa.x + 1);
+				h = (f->m_bb.y - f->m_aa.y + 1);
+				total_active += current_level->add_actives(f->xoff()-w / 4, f->yoff()-h / 4,
+					f->xoff()+w + w / 4, f->yoff()+h + h / 4);
+			}
+		}
+	}
+	
+	if(state == RUN_STATE)
+	{
+		if((dev & EDIT_MODE) || (main_net_cfg && (main_net_cfg->state == net_configuration::CLIENT ||
+			main_net_cfg->state == net_configuration::SERVER)))
+			idle_ticks = 0;
+
+		if(demo_man.current_state()==demo_manager::NORMAL && idle_ticks > 420 && demo_start)
+		{
+			idle_ticks = 0;
+			set_state(MENU_STATE);
+		}
+		else if(!(dev & EDIT_MODE)) // if edit mode, then don't step anything
+		{
+			if(key_down(JK_ESC))
+			{
+				set_state(MENU_STATE);
+				set_key_down(JK_ESC, 0);
+			}
+			ambient_ramp = 0;
+			view *v;
+			for(v = first_view; v; v = v->next)
+				v->update_scroll();
+
+			cache.prof_poll_start();
+			current_level->tick();
+			sbar.step();
+		} else
+			dev_scroll();
+	} else if(state == JOY_CALB_STATE)
+	{
+		Event ev;
+		joy_calb(ev);
+	} else if(state == MENU_STATE)
+	{
+		flags.in_game = false;
+		main_menu();//AR this is a main menu LOOP, it handles events and rendering inside !
+	}
+
+	if((key_down('x') || key_down(JK_F4))
+		&& (key_down(JK_ALT_L) || key_down(JK_ALT_R))
+		&& confirm_quit())
+		finished = true;
 }
 
 extern void *current_demo;
@@ -2377,7 +2430,9 @@ int main(int argc, char *argv[])
         game_net_init(argc, argv);
         Lisp::Init();
 
-        dev_init(argc, argv);
+		//AR start editor via config file, or if command line
+		if(flags.editor) AR_dev_init();
+		else dev_init(argc, argv);
 
         Game *g = new Game(argc, argv);
 
@@ -2414,7 +2469,7 @@ int main(int argc, char *argv[])
 
         while (!g->done())
         {
-            music_check();
+			music_check();
 
             if (req_end)
             {
@@ -2448,10 +2503,10 @@ int main(int argc, char *argv[])
             service_net_request();
 
             // process all the objects in the world
-			//AR update at 20 FPS
-            if(SDL_GetTicks()-AR_lastupdate>=50)
+			//AR update physics at custom framerate
+			if(SDL_GetTicks()-AR_lastupdate>=flags.physics_update_time)
 			{
-				g->step();
+				g->step();//there are loops inside, it doesn't leave the menu, until menu says so!
 				AR_lastupdate = SDL_GetTicks();
 			}
             server_check();
