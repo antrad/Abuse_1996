@@ -888,6 +888,30 @@ void dev_init(int argc, char **argv)
   raise_all=prop->getd("raise_all",0);
 }
 
+void AR_dev_init()
+{
+	//TODO...enbale command line options via config
+	scale_mult=1;
+	scale_div=1;
+	dev=0;
+	int i;
+	prop=new property_manager;
+	prop->load("defaults.prp");
+
+	dev|=EDIT_MODE;
+	start_edit=1;
+	start_running=1;
+	disable_autolight=1;
+
+	fg_reversed=prop->getd("fg_reversed",0);
+	mouse_scrolling=prop->getd("mouse_scrolling",0);
+	palettes_locked=prop->getd("palettes_locked",0);
+	view_shift_disabled=prop->getd("view_shift_disabled",0);
+	fps_on=prop->getd("fps_on",0);
+	show_names=prop->getd("show_names",0);
+	raise_all=prop->getd("raise_all",0);
+}
+
 static pmenu *make_menu(int x, int y);
 
 

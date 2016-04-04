@@ -34,7 +34,7 @@
 EventHandler::EventHandler(image *screen, palette *pal)
 {
 	//AR moved from event.h
-	m_dead_zone = 0x2000;
+	m_dead_zone = 5000;
 	m_right_stick_scale = 0x2000;
     m_right_stick_player_scale = 0x400;
 	//

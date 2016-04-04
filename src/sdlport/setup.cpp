@@ -36,6 +36,7 @@
 #include <stdlib.h>
 #include <sys/stat.h>
 #include <signal.h>
+#include <string>
 #include "SDL.h"
 
 #include "specs.h"
@@ -43,8 +44,8 @@
 #include "setup.h"
 #include "errorui.h"
 
-flags_struct flags;
-keys_struct keys;
+extern flags_struct flags;
+extern keys_struct keys;
 
 extern int xres, yres;
 unsigned int scale;//AR was static, removed for external
@@ -87,19 +88,29 @@ void createRCFile( char *rcfile )
 {
     FILE *fd = NULL;
 
-	//AR fullscreen=0,scale=0,width=640,height=480
+	//AR was here
     if( (fd = fopen( rcfile, "w" )) != NULL )
     {
         fputs( "; Abuse-SDL Configuration file\n\n", fd );
         fputs( "; Startup fullscreen\nfullscreen=0\n\n", fd );		
-		fputs( "; Game screen width\nwidth=640\n\n", fd );
-		fputs( "; Game screen height\nheight=400\n\n", fd );
+		fputs( "; Game screen size (original 320x200)\n", fd );
+		fputs( "width=640\n", fd );
+		fputs( "height=400\n\n", fd );
 		fputs( "; Scale window\nscale=1\n\n", fd );//scale overrides screen size if scale > 0
-		fputs( "; Use anti-aliasing\n; Looks horrible, never enable it\nantialias=0\n\n", fd );
+		fputs( "; Use anti-aliasing (looks horrible, never enable it)\nantialias=0\n\n", fd );
 #if !((defined __APPLE__) || (defined WIN32))
         fputs( "; Location of the datafiles\ndatadir=", fd );
         fputs( ASSETDIR "\n\n", fd );
-#endif
+#endif	
+		fputs( "; Physics update time in ms (original 65ms~15FPS)\nphysics=50\n\n", fd );
+		fputs( "; Enable editor\neditor=0\n\n", fd );		
+		
+		fputs( "; CONTROLLER SETTINGS\n\n", fd );
+		fputs( "; Enable aiming\ncontroller_aim=0\n\n", fd );
+		fputs( "; Crosshair distance from player\ncontroller_cd=100\n\n", fd );
+		fputs( "; Right stick/aiming sensitivity\ncontroller_rs_s=100\n\n", fd );
+		fputs( "; Right stick/aiming dead zone\ncontroller_rs_dz=5000\n\n", fd );		
+		
 		fputs( "; Grab the mouse to the window\ngrabmouse=0\n\n", fd );
         fputs( "; Use mono audio only\nmono=0\n\n", fd );        
         fputs( "; Key mappings\n", fd );
@@ -111,7 +122,8 @@ void createRCFile( char *rcfile )
     }
     else
     {
-        printf( "Unable to create 'abuserc' file.\n" );
+		std::string tmp1 = rcfile, tmp2 = "Unable to create " + tmp1 + "file.\n";
+		printf(tmp2.c_str());
     }
 }
 
@@ -134,7 +146,43 @@ void readRCFile()
         while( fgets( buf, sizeof( buf ), fd ) != NULL )
         {
             result = strtok( buf, "=" );
-            if( strcasecmp( result, "fullscreen" ) == 0 )
+			if( strcasecmp( result, "editor" ) == 0 )
+            {
+				//AR enable editor mode
+                result = strtok( NULL, "\n" );
+                flags.editor = atoi( result );
+            }
+			else if( strcasecmp( result, "physics" ) == 0 )
+            {
+				//AR custom physics update time
+                result = strtok( NULL, "\n" );
+                flags.physics_update_time = atoi( result );
+            }
+			else if( strcasecmp( result, "controller_aim" ) == 0 )
+            {
+				//AR controller override
+                result = strtok( NULL, "\n" );
+                flags.controller_aim = atoi( result );
+            }
+			else if( strcasecmp( result, "controller_cd" ) == 0 )
+            {
+				//AR controller crosshair distance
+                result = strtok( NULL, "\n" );
+                flags.controller_cd = atoi( result );
+            }
+			else if( strcasecmp( result, "controller_rs_s" ) == 0 )
+            {
+				//AR controller override
+                result = strtok( NULL, "\n" );
+                flags.controller_rs_s = atoi( result );
+            }
+			else if( strcasecmp( result, "controller_rs_dz" ) == 0 )
+            {
+				//AR controller override
+                result = strtok( NULL, "\n" );
+                flags.controller_rs_dz = atoi( result );
+            }
+			else if( strcasecmp( result, "fullscreen" ) == 0 )
             {
                 result = strtok( NULL, "\n" );
                 flags.fullscreen = atoi( result );
@@ -343,8 +391,8 @@ void parseCommandLine( int argc, char **argv )
 void setup( int argc, char **argv )
 {
 	// Initialize default settings
-	//AR start in window mode, scale is 1
-	scale                    = 1;    // Default scale amount
+	//AR start in window mode, scale is 1, resolution 640x400
+	scale						= 1; // Default scale amount	
     flags.fullscreen         = 0;    // Start in window (fullscreen is actually windowed-fullscreen now)
     flags.mono               = 0;    // Enable stereo sound
     flags.nosound            = 0;    // Enable sound
@@ -361,7 +409,15 @@ void setup( int argc, char **argv )
     keys.left_2              = key_value( "a" );
     keys.right_2             = key_value( "d" );
     keys.b3                  = key_value( "CTRL_R" );
-    keys.b4                  = key_value( "INSERT" );    
+    keys.b4                  = key_value( "INSERT" ); 
+	
+	//AR
+	flags.physics_update_time = 50;// 20 FPS (original 15 FPS)
+	flags.editor = 0;//disable editor mode
+	flags.controller_aim = 0;//controller overide disabled
+	flags.controller_cd	= 100;
+	flags.controller_rs_s = 100;
+	flags.controller_rs_dz = 5000;
 
     // Display our name and version
     printf( "%s %s\n", PACKAGE_NAME, PACKAGE_VERSION );

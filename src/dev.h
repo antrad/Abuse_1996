@@ -25,6 +25,8 @@ extern char level_file[100];
 extern image *small_render;
 
 void dev_init(int argc, char **argv);
+void AR_dev_init();
+
 void dev_cleanup();
 void toggle_edit_mode();
 char const *symbol_str(char const *name);

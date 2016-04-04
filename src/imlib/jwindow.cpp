@@ -308,7 +308,7 @@ Jwindow * WindowManager::CreateWindow(ivec2 pos, ivec2 size,
 void WindowManager::flush_screen()
 {
     ivec2 m1(0, 0);
-
+ 
     if (has_mouse())
     {
         m1 = m_pos - m_center;

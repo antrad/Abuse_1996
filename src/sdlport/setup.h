@@ -12,17 +12,30 @@
 #define _SETUP_H_
 
 struct flags_struct
-{
-	short scale;
-	short editor;
+{	
     short fullscreen;
     short mono;
     short nosound;
     short grabmouse;
     short xres;
     short yres;
-    short overlay;
+    short overlay;	
     int antialias;
+
+	//AR
+	short scale;
+	short editor; //enable editor mode	
+	short physics_update_time; //custom pysics update in miliseconds
+
+	bool in_game;
+
+	//controller settings
+	short controller_aim; //enable
+	int controller_cd; //crosshair distance from player
+	int controller_rs_s; //right stick sensitivity
+	int controller_rs_dz; //dead zone
+	float controller_aim_x, controller_aim_y; //state of right stick
+	//
 };
 
 struct keys_struct

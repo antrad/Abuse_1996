@@ -57,7 +57,8 @@ void EventHandler::SysWarpMouse(ivec2 pos)
     // This should take into account mouse scaling.
     pos.x = ((pos.x * mouse_xscale + 0x8000) >> 16) + mouse_xpad;
     pos.y = ((pos.y * mouse_yscale + 0x8000) >> 16) + mouse_ypad;
-    SDL_WarpMouseInWindow(window, pos.x, pos.y);
+	//AR this repositions the system mouse based on in game values, so I turned it off for controller aiming
+    //SDL_WarpMouseInWindow(window, pos.x, pos.y);
 }
 
 //
@@ -82,8 +83,9 @@ void EventHandler::SysEvent(Event &ev)
 
     // NOTE : that the mouse status should be known
     // even if another event has occurred.
-    ev.mouse_move.x = m_pos.x;
-    ev.mouse_move.y = m_pos.y;
+	
+	ev.mouse_move.x = m_pos.x;
+	ev.mouse_move.y = m_pos.y;	
     ev.mouse_button = m_button;
 
     // Gather next event
@@ -91,27 +93,35 @@ void EventHandler::SysEvent(Event &ev)
     if (!SDL_PollEvent(&sdlev))
         return; // This should not happen
 
-    // Sort the mouse out
-    int x, y;
-    uint8_t buttons = SDL_GetMouseState(&x, &y);
-    // Remove any padding SDL may have added
-    x -= mouse_xpad;
-    if (x < 0)
-        x = 0;
-    y -= mouse_ypad;
-    if (y < 0)
-        y = 0;
-    x = Min((x << 16) / mouse_xscale, main_screen->Size().x - 1);
-    y = Min((y << 16) / mouse_yscale, main_screen->Size().y - 1);
-    ev.mouse_move.x = x;
-    ev.mouse_move.y = y;
-    ev.type = EV_MOUSE_MOVE;
+	// Sort the mouse out
+	int x, y;
+	uint8_t buttons = SDL_GetMouseState(&x, &y);
+	// Remove any padding SDL may have added
+	x -= mouse_xpad;
+	if (x < 0)
+		x = 0;
+	y -= mouse_ypad;
+	if (y < 0)
+		y = 0;
+	x = Min((x << 16) / mouse_xscale, main_screen->Size().x - 1);
+	y = Min((y << 16) / mouse_yscale, main_screen->Size().y - 1);
+	ev.mouse_move.x = x;
+	ev.mouse_move.y = y;
+	ev.type = EV_MOUSE_MOVE;
 
-    // Left button
-    if((buttons & SDL_BUTTON(1)) && !mouse_buttons[1])
-    {
-        ev.type = EV_MOUSE_BUTTON;
-        mouse_buttons[1] = !mouse_buttons[1];
+	//AR God knows where and what player uses as a final value to aim, m_pos or ev.mouse_move !?
+	//this prevents flickering whe aiming with a controller
+	if(flags.controller_aim==1 && flags.in_game)
+	{
+		ev.mouse_move.x = m_pos.x;
+		ev.mouse_move.y = m_pos.y;
+	}
+
+	// Left button
+	if((buttons & SDL_BUTTON(1)) && !mouse_buttons[1])
+	{
+		ev.type = EV_MOUSE_BUTTON;
+		mouse_buttons[1] = !mouse_buttons[1];
         ev.mouse_button |= LEFT_BUTTON;
     }
     else if(!(buttons & SDL_BUTTON(1)) && mouse_buttons[1])
@@ -150,6 +160,7 @@ void EventHandler::SysEvent(Event &ev)
         mouse_buttons[3] = !mouse_buttons[3];
         ev.mouse_button &= (0xff - RIGHT_BUTTON);
     }
+
     m_pos = ivec2(ev.mouse_move.x, ev.mouse_move.y);
     m_button = ev.mouse_button;
 
@@ -419,34 +430,16 @@ void EventHandler::SysEvent(Event &ev)
                 EV_KEYRELEASE : EV_KEY;
             //printf("X axis: %d\n", sdlev.caxis.value);
             break;
-        case SDL_CONTROLLER_AXIS_RIGHTX:
-            // Right stick X axis: mouse
-            if (abs(sdlev.caxis.value) > m_dead_zone) {
-                if (m_right_stick_x < 0) {
-                    // Translate this into a mouse move event
-                    m_pos.x += sdlev.caxis.value / m_right_stick_scale;
-                } else {
-                    m_pos.x = m_right_stick_x + (sdlev.caxis.value / m_right_stick_player_scale);
-                }
-                ev.mouse_move.x = m_pos.x;
-                SetMousePos(m_pos);
-            }
-            //printf("Right X axis: %d\n", sdlev.caxis.value);
-            break;
-        case SDL_CONTROLLER_AXIS_RIGHTY:
-            // Right stick Y axis: mouse
-            if (abs(sdlev.caxis.value) > m_dead_zone) {
-                if (m_right_stick_x < 0) {
-                    // Translate this into a mouse move event
-                    m_pos.y += sdlev.caxis.value / m_right_stick_scale;
-                } else {
-                    m_pos.y = m_right_stick_y + (sdlev.caxis.value / m_right_stick_player_scale);
-                }
-                ev.mouse_move.y = m_pos.y;
-                SetMousePos(m_pos);
-            }
-            //printf("Right Y axis: %d\n", sdlev.caxis.value);
-            break;
+
+			//AR just save the values and update aim inside the game loop
+		case SDL_CONTROLLER_AXIS_RIGHTX:
+			flags.controller_aim_x = sdlev.caxis.value;
+
+			break;
+		case SDL_CONTROLLER_AXIS_RIGHTY:
+			flags.controller_aim_y = sdlev.caxis.value;
+			break;
+
         case SDL_CONTROLLER_AXIS_TRIGGERLEFT:
             // Left trigger: special
             ev.key = get_key_binding("b1", 0);
