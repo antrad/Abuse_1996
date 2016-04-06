@@ -103,6 +103,7 @@ private:
     void DeletePage();
 
 public:
+
     image_descriptor *m_special;
 
     image(bFILE *fp, spec_entry *e = NULL);
@@ -174,6 +175,11 @@ public:
     void unpack_scanline(int16_t line, char bitsperpixel = 1);
     void FlipX();
     void FlipY();
+
+	//AR need size and pixel data to save to .png file using OpenCV
+	uint8_t*	AR_GetPixels()		{return this->m_data;}
+	int			AR_GetWidth()		{return this->m_size.x;}
+	int			AR_GetHeight()		{return this->m_size.y;}
 };
 
 class image_controller
