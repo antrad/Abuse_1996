@@ -1,6 +1,34 @@
-# 2016_4_3
+# News for Abuse 0.9a (unreleased)
 
 - AntonioR's fork of the Xenoveritas version
+
+ABUSE:
+- enabled custom screen size and resolution
+	- light enabled at high resolutions
+- local config file
+	- screen width, height and scale
+	- editor mode
+	- controller aiming, right stick sensitivity, dead zone and crosshair distance from the player
+	- physics update time in ms
+- unlocked framerate for rendering, physics locked at custom value
+- fixed aiming using the right stick on a controller
+	- calculating and updating the crosshair position when aiming with a controller
+	
+ABUSE-TOOL:
+- extracting PCX images in SPEC files to modern image formats using OpenCV
+	- extracting as individual files
+	- extracting as tilemaps
+	- extracting animations as individual files
+	- extracting as a texture atlas using texture packing algorithm
+	- handling transparency in different types of images
+	- padding between images
+	- outline around groups in a texture atlas
+	- external color palettes(tints)
+	- tilemap palettes for tile positions
+	- extraction settings and list of files via "../abuse-tool/extract.txt"
+	- printing to console trough a log, log file saved at "../abuse-tool/log.txt"
+	- list of output texture files, image positions, sizes... saved at "../abuse-tool/texture_info.txt"
+	- created a list of all available SPEC files containing images and added settings for individual SPEC files
 
 # News for Abuse-XV 0.9 (unreleased)
 

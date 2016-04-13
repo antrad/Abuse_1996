@@ -176,10 +176,10 @@ public:
     void FlipX();
     void FlipY();
 
-	//AR need size and pixel data to save to .png file using OpenCV
+	//AR need name and pixel data to save to .png file using OpenCV
+	std::string ar_name, ar_name_o;// removed .pcx, name in SPEC file
+	uint8_t		ar_type;
 	uint8_t*	AR_GetPixels()		{return this->m_data;}
-	int			AR_GetWidth()		{return this->m_size.x;}
-	int			AR_GetHeight()		{return this->m_size.y;}
 };
 
 class image_controller

@@ -5,6 +5,14 @@ src/lol/*:
 src/tools/*:
    Copyright (c) 2005-2001 Sam Hocevar <sam@hocevar.net>
    Licensed under the WTFPL. Please read COPYING.WTFPL for details.
+src/tools/AR_Help.h:
+src/tools/AR_Help.cpp:
+   Copyright (c) 2016 Antonio Radojkovic <antonior.software@gmail.com>
+   Licensed under the WTFPL. Please read COPYING.WTFPL for details.
+src/tools/AR_SPEC.h:
+src/tools/AR_SPEC.cpp:
+   Copyright (c) 2016 Antonio Radojkovic <antonior.software@gmail.com>
+   Licensed under the MIT license. Please read COPYING.MIT for details.
 
 src/sdlport/*:
    Copyright (c) 2001 Anthony Kruize <trandor@labyrinth.net.au>

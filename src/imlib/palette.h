@@ -66,6 +66,9 @@ public :
   int write(bFILE *fp);
   int size();
   ~palette();
+
+  //AR need name for exporting image with tint
+  std::string ar_name;
 } ;
 
 class quant_node : public linked_node

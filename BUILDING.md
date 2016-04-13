@@ -8,6 +8,7 @@
 - [SDL_mixer 1.2](http://www.libsdl.org/projects/SDL_mixer/release-1.2.html)
 - [CMake 2.8.9 or later](http://www.cmake.org/)
 - GL libraries and headers are required for OpenGL support.
+- OpenCV library for extracting PCX images in SPEC files using abuse-tool
 
 ### Windows
 
