@@ -83,30 +83,30 @@ int AR_SPEC::AR_ParseConfig(std::string file_path)
 		//quit if bad command
 		if(!AR_GetAttr(line,attr,value)) return EXIT_FAILURE;
 
-		if(attr=="this->image_format")			this->image_format = value;
-		else if(attr=="this->png_compression")	this->png_compression = AR_ToInt(value);
-		else if(attr=="this->jpeg_quality")		this->jpeg_quality = AR_ToInt(value);
-		else if(attr=="this->alpha")			this->alpha = AR_ToInt(value);
-		else if(attr=="this->alpha_r")			this->alpha_r = AR_ToInt(value);
-		else if(attr=="this->alpha_g")			this->alpha_g = AR_ToInt(value);
-		else if(attr=="this->alpha_b")			this->alpha_b = AR_ToInt(value);
-		else if(attr=="this->output_tilemap")	this->output_tilemap = AR_ToInt(value);		
-		else if(attr=="this->tilemap_rows")		this->tilemap_rows = AR_ToInt(value);
-		else if(attr=="this->tilemap_columns")	this->tilemap_columns = AR_ToInt(value);
-		else if(attr=="this->tilemap_padding")	this->tilemap_padding = AR_ToInt(value);
-		else if(attr=="this->tilemap_palette")
+		if(attr=="image_format")			this->image_format = value;
+		else if(attr=="png_compression")	this->png_compression = AR_ToInt(value);
+		else if(attr=="jpeg_quality")		this->jpeg_quality = AR_ToInt(value);
+		else if(attr=="alpha")				this->alpha = AR_ToInt(value);
+		else if(attr=="alpha_r")			this->alpha_r = AR_ToInt(value);
+		else if(attr=="alpha_g")			this->alpha_g = AR_ToInt(value);
+		else if(attr=="alpha_b")			this->alpha_b = AR_ToInt(value);
+		else if(attr=="output_tilemap")		this->output_tilemap = AR_ToInt(value);		
+		else if(attr=="tilemap_rows")		this->tilemap_rows = AR_ToInt(value);
+		else if(attr=="tilemap_columns")	this->tilemap_columns = AR_ToInt(value);
+		else if(attr=="tilemap_padding")	this->tilemap_padding = AR_ToInt(value);
+		else if(attr=="tilemap_palette")
 		{
 			if(value=="0") this->tilemap_palette = "";
 			else this->tilemap_palette = value;
 		}
-		else if(attr=="this->tilemap_fill")		this->tilemap_fill = value[0];
-		else if(attr=="this->output_animation")	this->output_animation = AR_ToInt(value);
-		else if(attr=="this->outline_r")		this->outline_r = AR_ToInt(value);
-		else if(attr=="this->outline_g")		this->outline_g = AR_ToInt(value);
-		else if(attr=="this->outline_b")		this->outline_b = AR_ToInt(value);
-		else if(attr=="this->group_max")		this->group_max = AR_ToInt(value);
-		else if(attr=="this->pong_the_bong")	this->pong_the_bong = (bool)AR_ToInt(value);
-		else if(attr=="palette_shift")			this->pal_shift = AR_ToInt(value);
+		else if(attr=="tilemap_fill")		this->tilemap_fill = value[0];
+		else if(attr=="output_animation")	this->output_animation = AR_ToInt(value);
+		else if(attr=="outline_r")			this->outline_r = AR_ToInt(value);
+		else if(attr=="outline_g")			this->outline_g = AR_ToInt(value);
+		else if(attr=="outline_b")			this->outline_b = AR_ToInt(value);
+		else if(attr=="group_max")			this->group_max = AR_ToInt(value);
+		else if(attr=="pong_the_bong")		this->pong_the_bong = (bool)AR_ToInt(value);
+		else if(attr=="palette_shift")		this->pal_shift = AR_ToInt(value);
 		else if(attr=="color_palette")
 		{
 			if(value=="0") color_palette = "";
