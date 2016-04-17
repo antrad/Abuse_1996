@@ -33,8 +33,8 @@
 //
 EventHandler::EventHandler(image *screen, palette *pal)
 {
-	//AR moved from event.h
-	m_dead_zone = 5000;
+	//AR moved from event.h, increased from 5000 to 10000 because it didn't detect the release of left stick when moving
+	m_dead_zone = 10000;
 	m_right_stick_scale = 0x2000;
     m_right_stick_player_scale = 0x400;
 	//

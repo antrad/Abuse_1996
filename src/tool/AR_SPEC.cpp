@@ -73,7 +73,11 @@ int AR_SPEC::AR_ParseConfig(std::string file_path)
 	while(std::getline(filein,line))
 	{
 		//stop reading file
-		if(line=="exit") return EXIT_SUCCESS;
+		if(line=="exit")
+		{
+			filein.close();
+			return EXIT_SUCCESS;
+		}
 
 		//skip empty line or ";" which marks a comment
 		if(line.empty() || line[0]==';') continue;
@@ -81,7 +85,12 @@ int AR_SPEC::AR_ParseConfig(std::string file_path)
 		std::string attr, value;
 
 		//quit if bad command
-		if(!AR_GetAttr(line,attr,value)) return EXIT_FAILURE;
+		if(!AR_GetAttr(line,attr,value))
+		{
+			filein.close();
+			this->log->Write("\nERROR - AR_GetAttr() - bad command \"" + line + "\"\n");
+			return EXIT_FAILURE;
+		}
 
 		if(attr=="image_format")			this->image_format = value;
 		else if(attr=="png_compression")	this->png_compression = AR_ToInt(value);
@@ -119,42 +128,22 @@ int AR_SPEC::AR_ParseConfig(std::string file_path)
 				this->log->Write("\nAR_ConvertSPEC().....\"" + value + "\"..... OK");
 			else
 			{
+				filein.close();
 				this->log->Write("\nAR_ConvertSPEC().....\"" + value + "\"..... FAILED");				
 				return EXIT_FAILURE;
 			}
 		}
 		else
 		{
+			filein.close();
 			this->log->Write("\nERROR - AR_GetAttr() - bad command \"" + line + "\"\n");
 			return EXIT_FAILURE;
 		}
 	}
 
+	filein.close();
+
 	return EXIT_SUCCESS;
-}
-
-bool AR_SPEC::AR_GetAttr(std::string line, std::string &attr, std::string &value)
-{
-	attr = value = "";
-
-	std::size_t found = line.find("=");
-
-	if(found==std::string::npos || found==line.size()-1)
-	{
-		this->log->Write("\nERROR - AR_GetAttr() - bad command \"" + line + "\"\n");
-		return false;
-	}
-
-	attr = line.substr(0,found);
-	value = line.substr(found+1,line.size()-1);
-
-	if(attr.empty() || value.empty())
-	{
-		this->log->Write("\nERROR - AR_GetAttr() - bad command \"" + line + "\"\n");
-		return false;
-	}
-
-	return true;
 }
 
 //////////

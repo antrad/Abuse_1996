@@ -130,8 +130,7 @@ public:
 
 	AR_SPEC();
 	
-	int			AR_ParseConfig		(std::string file_path);
-	bool		AR_GetAttr			(std::string line, std::string &attr, std::string &value);
+	int			AR_ParseConfig		(std::string file_path);	
 
 	bool		AR_ConvertSPEC		(std::string file_path);
 	palette*	AR_GetPalette		(std::string file_path);

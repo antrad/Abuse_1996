@@ -2,6 +2,7 @@
  *  Abuse - dark 2D side-scrolling platform game
  *  Copyright (c) 2001 Anthony Kruize <trandor@labyrinth.net.au>
  *  Copyright (c) 2005-2011 Sam Hocevar <sam@hocevar.net>
+ *  Copyright (c) 2016 Antonio Radojkovic <antonior.software@gmail.com>
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -35,7 +36,7 @@
 #include "specs.h"
 #include "setup.h"
 
-extern flags_struct flags;
+extern Settings settings;
 static int sound_enabled = 0;
 static SDL_AudioSpec audioObtained;
 
@@ -45,17 +46,12 @@ static SDL_AudioSpec audioObtained;
 //
 int sound_init( int argc, char **argv )
 {
+	//AR sound and music are always enabled, it just never plays if it is diabled in the config file
+	//or if it failed to load the files (sound_enabled==true)
+
     char *sfxdir, *datadir;
-
-    // Disable sound if requested.
-    if( flags.nosound )
-    {
-        // User requested that sound be disabled
-        printf( "Sound: Disabled (-nosound)\n" );
-        return 0;
-    }
-
-    // Check for the sfx directory, disable sound if we can't find it.
+	
+	// Check for the sfx directory, disable sound if we can't find it.
     datadir = get_filename_prefix();
     sfxdir = (char *)malloc( strlen( datadir ) + 5 + 1 );
     sprintf( sfxdir, "%ssfx", datadir );
@@ -87,10 +83,8 @@ int sound_init( int argc, char **argv )
     audioObtained.channels = tempChannels & 0xFF;
 
     sound_enabled = SFX_INITIALIZED | MUSIC_INITIALIZED;
-
-    printf( "Sound: Enabled\n" );
-
-    // It's all good
+	
+	// It's all good
     return sound_enabled;
 }
 
@@ -161,8 +155,7 @@ sound_effect::~sound_effect()
 //
 void sound_effect::play(int volume, int pitch, int panpot)
 {
-    if (!sound_enabled)
-        return;
+	if(!sound_enabled || settings.no_sound) return;
 
     int channel = Mix_PlayChannel(-1, m_chunk, 0);
     if (channel > -1)
@@ -221,9 +214,12 @@ song::~song()
 
 void song::play( unsigned char volume )
 {
+	if(!sound_enabled || settings.no_music) return;
+
     song_id = 1;
 
-    Mix_PlayMusic(this->music, 0);
+	//AR play music in a loop
+    Mix_PlayMusic(this->music, -1);
     Mix_VolumeMusic(volume);
 }
 

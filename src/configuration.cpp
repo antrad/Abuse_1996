@@ -174,6 +174,7 @@ void get_key_bindings()
 
 void get_movement(int player, int &x, int &y, int &b1, int &b2, int &b3, int &b4)
 {
+	//AR in the middle of nowhere... here is the code to control the player via input states
     if( player < key_players )
     {
 /*        if( key_map[player].joy )

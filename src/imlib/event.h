@@ -92,6 +92,11 @@ public:
                       Min(Max(pos.y, 0), m_screen->Size().y - 1));
         SysWarpMouse(m_pos);
     }
+	//AR
+	ivec2 GetMousePos()
+    {
+         return this->m_pos;
+    }
     void SetIgnoreWheelEvents(bool ignore)
     {
         m_ignore_wheel_events = ignore;

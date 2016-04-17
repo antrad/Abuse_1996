@@ -1365,6 +1365,7 @@ level::level(spec_directory *sd, bFILE *fp, char const *lev_name)
   int32_t i,w;
   uint16_t *m;
   spec_entry *load_all=sd->find("player_info");
+
   for (i=0,w=fg_width*fg_height,m=map_fg; i<w; i++,m++)
   {
     if (!load_all)
@@ -1391,12 +1392,9 @@ level::level(spec_directory *sd, bFILE *fp, char const *lev_name)
   players=make_player_onodes();
   objs=make_not_list(players);
 
-
-
   read_lights(sd,fp,lev_name);
   load_links(fp,sd,objs,players);
   int players_got_loaded=load_player_info(fp,sd,objs);
-
 
   game_object *l=first;
   for (; l; )

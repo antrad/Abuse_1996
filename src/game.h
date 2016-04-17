@@ -26,6 +26,16 @@
 #include "view.h"
 #include "id.h"
 
+//AR - game states
+enum AR_Stuff
+{
+	AR_INTRO,
+	AR_MAINMENU,
+	AR_PLAY,
+	AR_LOADSAVE,
+	AR_QUIT
+};
+
 #define MAPFW                100
 #define MAPFH                100
 #define MAPBW                100
@@ -85,12 +95,16 @@ private:
 
 public :
   int key_down(int key) { return keymap[key/8]&(1<<(key%8)); }
+  //AR x=1 -> key pressed, x=0 key released
   void set_key_down(int key, int x) { if (x) keymap[key/8]|=(1<<(key%8)); else keymap[key/8]&=~(1<<(key%8)); }
   void reset_keymap() { memset(keymap,0,sizeof(keymap)); }
 
   int nplayers;
   view *first_view,*old_view;
   int state,zoom;
+
+  //AR - game state, so I don't have to rely on the original mess with individual update loops
+  int ar_state, ar_stateold;
 
   void step();
   void show_help(char const *st);

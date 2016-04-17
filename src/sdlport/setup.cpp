@@ -2,6 +2,7 @@
  *  Abuse - dark 2D side-scrolling platform game
  *  Copyright (c) 2001 Anthony Kruize <trandor@labyrinth.net.au>
  *  Copyright (c) 2005-2011 Sam Hocevar <sam@hocevar.net>
+ *  Copyright (c) 2016 Antonio Radojkovic <antonior.software@gmail.com>
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -44,11 +45,429 @@
 #include "setup.h"
 #include "errorui.h"
 
-extern flags_struct flags;
-extern keys_struct keys;
+//AR
+#include <fstream>
+#include <sstream>
+extern Settings settings;
+//
 
-extern int xres, yres;
-unsigned int scale;//AR was static, removed for external
+extern int xres, yres;					//video.cpp
+extern int sfx_volume, music_volume;	//loader.cpp
+unsigned int scale;						//AR was static, removed for external
+
+//AR tmp, until I figure out compiling stuff and cmake...
+int AR_ToInt(std::string value)
+{
+	int n = 1;
+
+	std::stringstream stream(value);
+	stream >> n;
+
+	return n;
+}
+
+bool AR_ToBool(std::string value)
+{
+	bool n = false;
+
+	std::stringstream stream(value);
+	stream >> n;
+
+	return n;
+}
+
+bool AR_GetAttr(std::string line, std::string &attr, std::string &value)
+{
+	attr = value = "";
+
+	std::size_t found = line.find("=");
+
+	//no "="
+	if(found==std::string::npos || found==line.size()-1) return false;
+	
+	attr = line.substr(0,found);
+	value = line.substr(found+1,line.size()-1);
+
+	//empty attribute or value
+	if(attr.empty() || value.empty()) return false;
+	
+	return true;
+}
+//
+
+Settings::Settings()
+{
+	//screen
+	this->fullscreen		= false;    // Start in window (fullscreen is actually windowed-fullscreen now)
+	this->vsync				= false;
+	this->xres				= 640;		// Default window width
+	this->yres				= 400;		// Default window height
+	this->scale				= 1;		// default window scale
+	this->linear_filter		= false;    // Don't "anti-alias"		
+
+	//sound
+	this->mono				= false;	// Enable stereo sound
+	this->no_sound			= false;	// Enable sound
+	this->no_music			= false;	// Enable music	
+	this->volume_sound		= 127;
+	this->volume_music		= 127;
+
+	//random
+	this->local_save		= true;
+	this->grab_mouse		= false;	// Don't grab the mouse
+	this->editor			= false;	// disable editor mode
+	this->physics_update	= 50;		// 20 FPS (original 65ms/15 FPS)
+	this->mouse_scale		= 0;		// match desktop
+	
+	//player controls
+	this->up		= key_value("w");
+    this->down		= key_value("s");
+    this->left		= key_value("a");
+    this->right		= key_value("d");
+    this->up_2		= key_value("UP");
+    this->down_2	= key_value("DOWN");
+    this->left_2	= key_value("LEFT");
+    this->right_2	= key_value("RIGHT");
+	this->b1		= key_value("SHIFT_L");	//special
+	this->b2		= key_value("f");		//fire
+    this->b3		= key_value("q");		//weapons
+    this->b4		= key_value("e");
+
+	//controller settings
+	this->ctr_aim		= false;	// controller overide disabled
+	this->ctr_cd		= 100;
+	this->ctr_rst_s		= 10;
+	this->ctr_rst_dz	= 5000;		// aiming
+	this->ctr_lst_dzx	= 10000;	// move left right
+	this->ctr_lst_dzy	= 25000;	// up/jump, down/use
+	this->ctr_aim_x		= 0;
+	this->ctr_aim_y		= 0;
+	this->ctr_mouse_x	= 0;
+	this->ctr_mouse_y	= 0;
+
+	//controller buttons
+	this->ctr_a = "up";
+	this->ctr_b = "down";
+	this->ctr_x = "b3";
+	this->ctr_y = "b4";
+	//
+	this->ctr_lst = "b1";
+	this->ctr_rst = "down";
+	//
+	this->ctr_lsr = "b2";
+	this->ctr_rsr = "b3";
+	//
+	this->ctr_ltg = "b1";
+	this->ctr_rtg = "b2";
+}
+
+//////////
+////////// CREATE DEFAULT "config.txt" FILE
+//////////
+
+bool Settings::CreateConfigFile(std::string file_path)
+{
+	std::ofstream out(file_path.c_str());
+	if(!out.is_open())
+	{
+		std::string tmp = "ERROR - CreateConfigFile() - Failed to create \"" + file_path + "\"\n";
+		printf(tmp.c_str());
+
+		return false;
+	}
+	
+	out << "; Abuse-SDL configuration file (v0.9a)" << std::endl;
+	out << std::endl;
+	//
+	out << "; SCREEN SETTINGS" << std::endl;
+	out << std::endl;
+	out << "fullscreen=" << this->fullscreen << std::endl;
+	out << "vsync=" << this->vsync << std::endl;
+	out << std::endl;
+	out << "; Game screen size (original 320x200)" << std::endl;
+	out << "screen_width=" << this->xres << std::endl;
+	out << "screen_height=" << this->yres << std::endl;
+	out << std::endl;
+	out << "; Scale window" << std::endl;
+	out << "scale=" << this->scale << std::endl;
+	out << std::endl;
+	out << "; Use linear texture filter (nearest is default)" << std::endl;
+	out << "linear_filter=" << this->linear_filter << std::endl;
+	out << std::endl;
+	//
+	out << "; SOUND SETTINGS" << std::endl;
+	out << std::endl;
+	out << "; Volume (0-127)" << std::endl;
+	out << "volume_sound=" << this->volume_sound << std::endl;
+	out << "volume_music=" << this->volume_music << std::endl;
+	out << std::endl;
+	out << "; Use mono audio only" << std::endl;
+	out << "mono=" << this->mono << std::endl;
+	out << std::endl;
+	out << "; Disable music" << std::endl;
+	out << "no_music=" << this->no_music << std::endl;
+	out << std::endl;
+	out << "; Disable sound effects" << std::endl;
+	out << "no_sound=" << this->no_sound << std::endl;
+	out << std::endl;
+	//
+	out << "; RANDOM SETTINGS" << std::endl;
+	out << std::endl;
+	out << "local_save=" << this->local_save << std::endl;	
+	out << std::endl;
+	out << "; Grab the mouse to the window" << std::endl;
+	out << "grab_mouse=" << this->grab_mouse << std::endl;
+	out << std::endl;
+	out << "; Enable editor mode" << std::endl;
+	out << "editor=" << this->editor << std::endl;
+	out << std::endl;
+	out << "; Physics update time in ms (65ms/15FPS original, 50ms/20FPS recommended on higher resolutions)" << std::endl;
+	out << "physics_update=" << this->physics_update << std::endl;
+	out << std::endl;
+	out << "; Fullscreen mouse scaling (0 - match desktop, 1 - match game screen)" << std::endl;
+	out << "mouse_scale=" << this->mouse_scale << std::endl;
+	out << std::endl;	
+	//
+	out << "; PLAYER CONTROLS" << std::endl;
+	out << std::endl;
+	out << "; Key mappings" << std::endl;
+	out << "left=a" << std::endl;
+	out << "right=d" << std::endl;
+	out << "up=w" << std::endl;
+	out << "down=s" << std::endl;
+	out << "special=SHIFT_L" << std::endl;
+	out << "fire=f" << std::endl;
+	out << "weapon_prev=q" << std::endl;
+	out << "weapon_next=e" << std::endl;	
+	out << std::endl;
+	//
+	out << "; Alternative key mappings (only the following controls can have two keyboard bindings)" << std::endl;
+	out << "left_2=LEFT" << std::endl;
+	out << "right_2=RIGHT" << std::endl;
+	out << "up_2=UP" << std::endl;
+	out << "down_2=DOWN" << std::endl;	
+	out << std::endl;
+	//
+	out << "; CONTROLLER SETTINGS" << std::endl;
+	out << std::endl;
+	out << "; Enable aiming" << std::endl;
+	out << "ctr_aim=" << this->ctr_aim << std::endl;
+	out << std::endl;
+	out << "; Crosshair distance from player" << std::endl;
+	out << "ctr_cd=" << this->ctr_cd << std::endl;
+	out << std::endl;
+	out << "; Right stick/aiming sensitivity" << std::endl;
+	out << "ctr_rst_s=" << this->ctr_rst_s << std::endl;
+	out << std::endl;
+	out << "; Right stick/aiming dead zone" << std::endl;
+	out << "ctr_rst_dz=" << this->ctr_rst_dz << std::endl;
+	out << std::endl;
+	out << "; Left stick/movement dead zones" << std::endl;
+	out << "ctr_lst_dzx=" << this->ctr_lst_dzx << std::endl;
+	out << "ctr_lst_dzy=" << this->ctr_lst_dzy << std::endl;
+	out << std::endl;	
+	//
+	out << "; Button mappings (don't use buttons for left/right movement)" << std::endl;
+	//ovo bi treba u readme stavit
+	/*out << "; ctr_a, ctr_b, ctr_x, ctr_y" << std::endl;
+	out << "; ctr_left_stick, ctr_right_stick" << std::endl;
+	out << "; ctr_left_shoulder, ctr_right_shoulder" << std::endl;
+	out << "; ctr_left_trigger, ctr_right_trigger" << std::endl;*/
+	out << "up=ctr_a" << std::endl;	
+	out << "down=ctr_b" << std::endl;
+	out << "special=ctr_left_shoulder" << std::endl;
+	out << "special=ctr_left_trigger" << std::endl;
+	out << "special=ctr_left_stick" << std::endl;
+	out << "fire=ctr_right_shoulder" << std::endl;
+	out << "fire=ctr_right_trigger" << std::endl;
+	out << "fire=ctr_right_stick" << std::endl;
+	out << "weapon_prev=ctr_x" << std::endl;
+	out << "weapon_next=ctr_y" << std::endl;
+	
+	out.close();
+
+	printf("Default \"config.txt\" created\n");
+	
+	return true;
+
+	/*
+	#if !((defined __APPLE__) || (defined WIN32))
+	fputs( "; Location of the datafiles\ndatadir=", fd );
+	fputs( ASSETDIR "\n\n", fd );
+	#endif	
+	*/
+}
+
+//////////
+////////// READ CONFIG FILE
+//////////
+
+bool Settings::ReadConfigFile(std::string folder)
+{
+	std::string file_path = folder + "config.txt";
+
+	std::ifstream filein(file_path.c_str());
+	if(!filein.is_open())
+	{
+		std::string tmp = "ERROR - ReadConfigFile() - Failed to open \"" + file_path + "\"\n";
+		printf(tmp.c_str());
+
+		//try to create it
+		return CreateConfigFile(file_path);
+	}
+
+	std::string line;
+	while(std::getline(filein,line))
+	{
+		//stop reading file
+		if(line=="exit")
+		{
+			filein.close();
+			return true;
+		}
+
+		//skip empty line or ";" which marks a comment
+		if(line.empty() || line[0]==';') continue;
+
+		std::string attr, value;
+
+		//quit if bad command
+		if(!AR_GetAttr(line,attr,value))
+		{
+			filein.close();
+
+			std::string tmp = "ERROR - ReadConfigFile() - Bad command \"" + line + "\"\n";
+			printf(tmp.c_str());			
+
+			return CreateConfigFile(file_path);
+		}
+
+		//screen
+		if(attr=="fullscreen")				this->fullscreen = AR_ToBool(value);
+		else if(attr=="vsync")				this->vsync = AR_ToBool(value);
+		else if(attr=="screen_width")		this->xres = AR_ToInt(value);
+		else if(attr=="screen_height")		this->yres = AR_ToInt(value);
+		else if(attr=="scale")				this->scale = AR_ToInt(value);
+		else if(attr=="linear_filter")		this->linear_filter = AR_ToBool(value);
+
+		//sound
+		else if(attr=="mono")				this->mono = AR_ToBool(value);
+		else if(attr=="no_sound")			this->no_sound = AR_ToBool(value);
+		else if(attr=="no_music")			this->no_music = AR_ToBool(value);
+		else if(attr=="volume_sound")
+		{
+			this->volume_sound = AR_ToInt(value);
+			sfx_volume = this->volume_sound;
+		}
+		else if(attr=="volume_music")
+		{
+			this->volume_music = AR_ToInt(value);
+			music_volume = this->volume_music;
+		}
+
+		//random
+		else if(attr=="local_save")			this->local_save = AR_ToBool(value);
+		else if(attr=="grab_mouse")			this->grab_mouse = AR_ToBool(value);
+		else if(attr=="editor")				this->editor = AR_ToBool(value);
+		else if(attr=="physics_update")		this->physics_update = AR_ToInt(value);
+		else if(attr=="mouse_scale")		this->mouse_scale = AR_ToInt(value);
+		
+		//player controls
+		else if(attr=="up")
+		{
+			if(!ControllerButton(attr,value))	this->up = key_value(value.c_str());
+		}
+		else if(attr=="down")
+		{
+			if(!ControllerButton(attr,value))	this->down = key_value(value.c_str());
+		}
+		else if(attr=="left")
+		{
+			if(!ControllerButton(attr,value))	this->left = key_value(value.c_str());
+		}
+		else if(attr=="right")
+		{
+			if(!ControllerButton(attr,value))	this->right = key_value(value.c_str());
+		}		
+		//
+		else if(attr=="special")
+		{
+			if(!ControllerButton(attr,value))	this->b1 = key_value(value.c_str());
+		}
+		else if(attr=="fire")
+		{
+			if(!ControllerButton(attr,value))	this->b2 = key_value(value.c_str());
+		}
+		else if(attr=="weapon_prev")
+		{
+			if(!ControllerButton(attr,value))	this->b3 = key_value(value.c_str());
+		}
+		else if(attr=="weapon_next")
+		{
+			if(!ControllerButton(attr,value)) this->b4 = key_value(value.c_str());
+		}
+		//
+		else if(attr=="up_2")			this->up_2 = key_value(value.c_str());
+		else if(attr=="down_2")			this->down_2 = key_value(value.c_str());
+		else if(attr=="left_2")			this->left_2 = key_value(value.c_str());
+		else if(attr=="right_2")		this->right_2 = key_value(value.c_str());
+		
+		//controller settings
+		else if(attr=="ctr_aim")		this->ctr_aim = AR_ToBool(value);
+		else if(attr=="ctr_cd")			this->ctr_cd = AR_ToInt(value);
+		else if(attr=="ctr_rst_s")		this->ctr_rst_s = AR_ToInt(value);
+		else if(attr=="ctr_rst_dz")		this->ctr_rst_dz = AR_ToInt(value);
+		else if(attr=="ctr_lst_dzx")	this->ctr_lst_dzx = AR_ToInt(value);
+		else if(attr=="ctr_lst_dzy")	this->ctr_lst_dzy = AR_ToInt(value);
+		else
+		{
+			filein.close();
+			
+			std::string tmp = "ERROR - ReadConfigFile() - Bad command \"" + line + "\"\n";
+			printf(tmp.c_str());
+			
+			return CreateConfigFile(file_path);
+		}
+	}
+
+	filein.close();
+
+	return true;
+
+	/*
+	if( strcasecmp( result, "datadir" ) == 0 )
+	{
+	result = strtok( NULL, "\n" );
+	set_filename_prefix( result );
+	}
+	*/
+}
+
+bool Settings::ControllerButton(std::string c, std::string b)
+{
+	std::string control = c;
+
+	if(c=="special")			control = "b1";
+	else if(c=="fire")			control = "b2";
+	else if(c=="weapon_prev")	control = "b3";
+	else if(c=="weapon_next")	control = "b4";
+
+	if(b=="ctr_a") {this->ctr_a = control;return true;};
+	if(b=="ctr_b") {this->ctr_b = control;return true;};
+	if(b=="ctr_x") {this->ctr_x = control;return true;};
+	if(b=="ctr_y") {this->ctr_y = control;return true;};
+	//
+	if(b=="ctr_left_stick")		{this->ctr_lst = control;return true;};
+	if(b=="ctr_right_stick")	{this->ctr_rst = control;return true;};
+	//
+	if(b=="ctr_left_shoulder")	{this->ctr_lsr = control;return true;};
+	if(b=="ctr_right_shoulder")	{this->ctr_rsr = control;return true;};
+	//
+	if(b=="ctr_left_trigger")	{this->ctr_ltg = control;return true;};
+	if(b=="ctr_right_trigger")	{this->ctr_rtg = control;return true;};
+
+	return false;
+}
 
 //
 // Display help
@@ -82,307 +501,19 @@ void showHelp(const char* executableName)
 }
 
 //
-// Create a default 'abuserc' file
-//
-void createRCFile( char *rcfile )
-{
-    FILE *fd = NULL;
-
-	//AR was here
-    if( (fd = fopen( rcfile, "w" )) != NULL )
-    {
-        fputs( "; Abuse-SDL Configuration file\n\n", fd );
-        fputs( "; Startup fullscreen\nfullscreen=0\n\n", fd );		
-		fputs( "; Game screen size (original 320x200)\n", fd );
-		fputs( "width=640\n", fd );
-		fputs( "height=400\n\n", fd );
-		fputs( "; Scale window\nscale=1\n\n", fd );//scale overrides screen size if scale > 0
-		fputs( "; Use anti-aliasing (looks horrible, never enable it)\nantialias=0\n\n", fd );
-#if !((defined __APPLE__) || (defined WIN32))
-        fputs( "; Location of the datafiles\ndatadir=", fd );
-        fputs( ASSETDIR "\n\n", fd );
-#endif	
-		fputs( "; Physics update time in ms (original 65ms~15FPS)\nphysics=50\n\n", fd );
-		fputs( "; Enable editor\neditor=0\n\n", fd );		
-		
-		fputs( "; CONTROLLER SETTINGS\n\n", fd );
-		fputs( "; Enable aiming\ncontroller_aim=0\n\n", fd );
-		fputs( "; Crosshair distance from player\ncontroller_cd=100\n\n", fd );
-		fputs( "; Right stick/aiming sensitivity\ncontroller_rs_s=100\n\n", fd );
-		fputs( "; Right stick/aiming dead zone\ncontroller_rs_dz=5000\n\n", fd );		
-		
-		fputs( "; Grab the mouse to the window\ngrabmouse=0\n\n", fd );
-        fputs( "; Use mono audio only\nmono=0\n\n", fd );        
-        fputs( "; Key mappings\n", fd );
-        fputs( "left=LEFT\nright=RIGHT\nup=UP\ndown=DOWN\n", fd );
-        fputs( "fire=SPACE\nweapprev=CTRL_R\nweapnext=INSERT\n", fd );
-        fputs( "; Alternative key bindings\n; Note: only the following keys can have two bindings\n", fd );
-        fputs( "left2=a\nright2=d\nup2=w\ndown2=s\n", fd );
-        fclose( fd );
-    }
-    else
-    {
-		std::string tmp1 = rcfile, tmp2 = "Unable to create " + tmp1 + "file.\n";
-		printf(tmp2.c_str());
-    }
-}
-
-//
-// Read in the 'abuserc' file
-//
-void readRCFile()
-{
-    FILE *fd = NULL;
-    char *rcfile;
-    char buf[255];
-    char *result;
-
-	//AR local settings in a text file for easy access
-	rcfile = "config.txt";
-    //rcfile = (char *)malloc( strlen( get_save_filename_prefix() ) + 9 );
-    //sprintf( rcfile, "%s/abuserc", get_save_filename_prefix() );
-    if( (fd = fopen( rcfile, "r" )) != NULL )
-    {
-        while( fgets( buf, sizeof( buf ), fd ) != NULL )
-        {
-            result = strtok( buf, "=" );
-			if( strcasecmp( result, "editor" ) == 0 )
-            {
-				//AR enable editor mode
-                result = strtok( NULL, "\n" );
-                flags.editor = atoi( result );
-            }
-			else if( strcasecmp( result, "physics" ) == 0 )
-            {
-				//AR custom physics update time
-                result = strtok( NULL, "\n" );
-                flags.physics_update_time = atoi( result );
-            }
-			else if( strcasecmp( result, "controller_aim" ) == 0 )
-            {
-				//AR controller override
-                result = strtok( NULL, "\n" );
-                flags.controller_aim = atoi( result );
-            }
-			else if( strcasecmp( result, "controller_cd" ) == 0 )
-            {
-				//AR controller crosshair distance
-                result = strtok( NULL, "\n" );
-                flags.controller_cd = atoi( result );
-            }
-			else if( strcasecmp( result, "controller_rs_s" ) == 0 )
-            {
-				//AR controller override
-                result = strtok( NULL, "\n" );
-                flags.controller_rs_s = atoi( result );
-            }
-			else if( strcasecmp( result, "controller_rs_dz" ) == 0 )
-            {
-				//AR controller override
-                result = strtok( NULL, "\n" );
-                flags.controller_rs_dz = atoi( result );
-            }
-			else if( strcasecmp( result, "fullscreen" ) == 0 )
-            {
-                result = strtok( NULL, "\n" );
-                flags.fullscreen = atoi( result );
-            }
-            else if( strcasecmp( result, "mono" ) == 0 )
-            {
-                result = strtok( NULL, "\n" );
-                flags.mono = atoi( result );
-            }
-            else if( strcasecmp( result, "grabmouse" ) == 0 )
-            {
-                result = strtok( NULL, "\n" );
-                flags.grabmouse = atoi( result );
-            }
-            else if( strcasecmp( result, "scale" ) == 0 )
-            {
-				result = strtok( NULL, "\n" );
-                scale = atoi( result );
-				if(scale<1) scale = 1;
-            }
-            else if( strcasecmp( result, "width" ) == 0 )
-            {
-				//AR enable screen width
-                result = strtok( NULL, "\n" );
-                flags.xres = atoi( result );
-				xres = flags.xres;
-            }
-            else if( strcasecmp( result, "height" ) == 0 )
-            {
-				//AR enable screen height
-                result = strtok( NULL, "\n" );
-                flags.yres = atoi( result );
-				yres = flags.yres;
-            }
-            else if( strcasecmp( result, "antialias" ) == 0 )
-            {
-                result = strtok( NULL, "\n" );
-                if( atoi( result ) )
-                {
-                    flags.antialias = 1;
-                }
-            }
-            else if( strcasecmp( result, "datadir" ) == 0 )
-            {
-                result = strtok( NULL, "\n" );
-                set_filename_prefix( result );
-            }
-            else if( strcasecmp( result, "left" ) == 0 )
-            {
-                result = strtok( NULL,"\n" );
-                keys.left = key_value( result );
-            }
-            else if( strcasecmp( result, "right" ) == 0 )
-            {
-                result = strtok( NULL,"\n" );
-                keys.right = key_value( result );
-            }
-            else if( strcasecmp( result, "up" ) == 0 )
-            {
-                result = strtok( NULL,"\n" );
-                keys.up = key_value( result );
-            }
-            else if( strcasecmp( result, "down" ) == 0 )
-            {
-                result = strtok( NULL,"\n" );
-                keys.down = key_value( result );
-            }
-            else if( strcasecmp( result, "left2" ) == 0 )
-            {
-                result = strtok( NULL,"\n" );
-                keys.left_2 = key_value( result );
-            }
-            else if( strcasecmp( result, "right2" ) == 0 )
-            {
-                result = strtok( NULL,"\n" );
-                keys.right_2 = key_value( result );
-            }
-            else if( strcasecmp( result, "up2" ) == 0 )
-            {
-                result = strtok( NULL,"\n" );
-                keys.up_2 = key_value( result );
-            }
-            else if( strcasecmp( result, "down2" ) == 0 )
-            {
-                result = strtok( NULL,"\n" );
-                keys.down_2 = key_value( result );
-            }
-            else if( strcasecmp( result, "fire" ) == 0 )
-            {
-                result = strtok( NULL,"\n" );
-                keys.b2 = key_value( result );
-            }
-            else if( strcasecmp( result, "special" ) == 0 )
-            {
-                result = strtok( NULL,"\n" );
-                keys.b1 = key_value( result );
-            }
-            else if( strcasecmp( result, "weapprev" ) == 0 )
-            {
-                result = strtok( NULL,"\n" );
-                keys.b3 = key_value( result );
-            }
-            else if( strcasecmp( result, "weapnext" ) == 0 )
-            {
-                result = strtok( NULL,"\n" );
-                keys.b4 = key_value( result );
-            }
-        }
-        fclose( fd );
-    }
-    else
-    {
-        // Couldn't open the abuserc file so let's create a default one
-        createRCFile( rcfile );
-    }
-    free( rcfile );
-}
-
-//
 // Parse the command-line parameters
 //
-void parseCommandLine( int argc, char **argv )
+void parseCommandLine(int argc, char **argv)
 {
-    for( int ii = 1; ii < argc; ii++ )
-    {
-        if( !strcasecmp( argv[ii], "-fullscreen" ) )
-        {
-            flags.fullscreen = 1;
-        }
-        else if( !strcasecmp( argv[ii], "-size" ) )
-        {
-            if( ii + 1 < argc && !sscanf( argv[++ii], "%d", &xres ) )
-            {
-                xres = 320;
-            }
-            if( ii + 1 < argc && !sscanf( argv[++ii], "%d", &yres ) )
-            {
-                yres = 200;
-            }
-        }
-        else if( !strcasecmp( argv[ii], "-scale" ) )
-        {
-            // FIXME: Pretty sure scale does nothing now
-            int result;
-            if( sscanf( argv[++ii], "%d", &result ) )
-            {
-                scale = result;
-/*                flags.xres = xres * scale;
-                flags.yres = yres * scale; */
-            }
-        }
-/*        else if( !strcasecmp( argv[ii], "-x" ) )
-        {
-            int x;
-            if( sscanf( argv[++ii], "%d", &x ) )
-            {
-                flags.xres = x;
-            }
-        }
-        else if( !strcasecmp( argv[ii], "-y" ) )
-        {
-            int y;
-            if( sscanf( argv[++ii], "%d", &y ) )
-            {
-                flags.yres = y;
-            }
-        }*/
-        else if( !strcasecmp( argv[ii], "-nosound" ) )
-        {
-            flags.nosound = 1;
-        }
-        else if( !strcasecmp( argv[ii], "-antialias" ) )
-        {
-            flags.antialias = 1;
-        }
-        else if( !strcasecmp( argv[ii], "-mono" ) )
-        {
-            flags.mono = 1;
-        }
-        else if( !strcasecmp( argv[ii], "-datadir" ) )
-        {
-            char datadir[255];
-            if( ii + 1 < argc && sscanf( argv[++ii], "%s", datadir ) )
-            {
-                set_filename_prefix( datadir );
-            }
-        }
-        else if( !strcasecmp( argv[ii], "-h" ) || !strcasecmp( argv[ii], "--help" ) )
-        {
-            showHelp(argv[0]);
-            exit( 0 );
-        }
-        else if ( !strcasecmp( argv[ii], "-pause" ) )
-        {
-            // Debug command to force a pause here
-            printf("Pausing, press any key to resume (attach debugger now!) . . .");
-            getc(stdin);
-            printf("\n");
-        }
-    }
+	//AR this is called before settings.ReadConfigFile(), so I can override stuff via console
+
+	for(int i=1;i<argc;i++)
+	{
+		if(!strcasecmp(argv[i],"-remote_save"))
+		{
+			settings.local_save = false;
+		}
+	}
 }
 
 //
@@ -390,36 +521,7 @@ void parseCommandLine( int argc, char **argv )
 //
 void setup( int argc, char **argv )
 {
-	// Initialize default settings
-	//AR start in window mode, scale is 1, resolution 640x400
-	scale						= 1; // Default scale amount	
-    flags.fullscreen         = 0;    // Start in window (fullscreen is actually windowed-fullscreen now)
-    flags.mono               = 0;    // Enable stereo sound
-    flags.nosound            = 0;    // Enable sound
-    flags.grabmouse          = 0;    // Don't grab the mouse
-    flags.xres = xres        = 640;  // Default window width
-    flags.yres = yres        = 400;  // Default window height
-    flags.antialias          = 0;    // Don't anti-alias
-    keys.up                  = key_value( "UP" );
-    keys.down                = key_value( "DOWN" );
-    keys.left                = key_value( "LEFT" );
-    keys.right               = key_value( "RIGHT" );
-    keys.up_2                = key_value( "w" );
-    keys.down_2              = key_value( "s" );
-    keys.left_2              = key_value( "a" );
-    keys.right_2             = key_value( "d" );
-    keys.b3                  = key_value( "CTRL_R" );
-    keys.b4                  = key_value( "INSERT" ); 
-	
-	//AR
-	flags.physics_update_time = 50;// 20 FPS (original 15 FPS)
-	flags.editor = 0;//disable editor mode
-	flags.controller_aim = 0;//controller overide disabled
-	flags.controller_cd	= 100;
-	flags.controller_rs_s = 100;
-	flags.controller_rs_dz = 5000;
-
-    // Display our name and version
+	// Display our name and version
     printf( "%s %s\n", PACKAGE_NAME, PACKAGE_VERSION );
 
     // Initialize SDL with video and audio support
@@ -520,18 +622,21 @@ void setup( int argc, char **argv )
     set_filename_prefix( ASSETDIR );
 #endif
 
+	//handle command-line parameters
+    parseCommandLine(argc,argv);
+
+	//AR override save game directory to local directory
+	if(settings.local_save) set_save_filename_prefix("user/");
+
+	printf("Setting save dir to %s\n", get_save_filename_prefix());
+
     // Load the users configuration
-    readRCFile();
+    settings.ReadConfigFile(get_save_filename_prefix());
 
-    // Handle command-line parameters
-    parseCommandLine( argc, argv );
-
-	//AR screen size already calculated
-	/*
-    // Calculate the scaled window size.
-    flags.xres = xres * scale;
-    flags.yres = yres * scale;
-	*/
+	// Initialize default settings
+	scale = settings.scale;
+	xres = settings.xres;
+	yres = settings.yres;
 }
 
 //
@@ -539,30 +644,38 @@ void setup( int argc, char **argv )
 //
 int get_key_binding(char const *dir, int i)
 {
-    if( strcasecmp( dir, "left" ) == 0 )
-        return keys.left;
-    else if( strcasecmp( dir, "right" ) == 0 )
-        return keys.right;
-    else if( strcasecmp( dir, "up" ) == 0 )
-        return keys.up;
-    else if( strcasecmp( dir, "down" ) == 0 )
-        return keys.down;
-    else if( strcasecmp( dir, "left2" ) == 0 )
-        return keys.left_2;
-    else if( strcasecmp( dir, "right2" ) == 0 )
-        return keys.right_2;
-    else if( strcasecmp( dir, "up2" ) == 0 )
-        return keys.up_2;
-    else if( strcasecmp( dir, "down2" ) == 0 )
-        return keys.down_2;
-    else if( strcasecmp( dir, "b1" ) == 0 )
-        return keys.b1;
-    else if( strcasecmp( dir, "b2" ) == 0 )
-        return keys.b2;
-    else if( strcasecmp( dir, "b3" ) == 0 )
-        return keys.b3;
-    else if( strcasecmp( dir, "b4" ) == 0 )
-        return keys.b4;
+	if(strcasecmp(dir,"left")==0)			return settings.left;
+	else if(strcasecmp(dir,"right")==0)		return settings.right;
+	else if(strcasecmp(dir,"up")==0)		return settings.up;
+	else if(strcasecmp(dir,"down")==0)		return settings.down;
+	else if(strcasecmp(dir,"left2")==0)		return settings.left_2;
+	else if(strcasecmp(dir,"right2")==0)	return settings.right_2;
+	else if(strcasecmp(dir,"up2")==0)		return settings.up_2;
+	else if(strcasecmp(dir,"down2")==0)		return settings.down_2;
+	else if(strcasecmp(dir,"b1")==0)		return settings.b1;
+	else if(strcasecmp(dir,"b2")==0)		return settings.b2;
+	else if(strcasecmp(dir,"b3")==0)		return settings.b3;
+	else if(strcasecmp(dir,"b4")==0)		return settings.b4;
 
-    return 0;
+	return 0;
+}
+
+//AR controller
+std::string get_ctr_binding(std::string c)
+{
+    if(c=="ctr_a")			return settings.ctr_a;
+	else if(c=="ctr_b")		return settings.ctr_b;
+	else if(c=="ctr_x")		return settings.ctr_x;
+	else if(c=="ctr_y")		return settings.ctr_y;
+	//
+	else if(c=="ctr_lst")	return settings.ctr_lst;
+	else if(c=="ctr_rst")	return settings.ctr_rst;
+	//
+	else if(c=="ctr_lsr")	return settings.ctr_lsr;
+	else if(c=="ctr_rsh")	return settings.ctr_rsr;
+	//
+	else if(c=="ctr_ltg")	return settings.ctr_ltg;
+	else if(c=="ctr_rtg")	return settings.ctr_rtg;
+	
+	return "";
 }

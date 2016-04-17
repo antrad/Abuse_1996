@@ -31,6 +31,34 @@ int AR_ToInt(std::string value)
 	return n;
 }
 
+bool AR_ToBool(std::string value)
+{
+	bool n = false;
+
+	std::stringstream stream(value);
+	stream >> n;
+
+	return n;
+}
+
+bool AR_GetAttr(std::string line, std::string &attr, std::string &value)
+{
+	attr = value = "";
+
+	std::size_t found = line.find("=");
+
+	//no "="
+	if(found==std::string::npos || found==line.size()-1) return false;
+	
+	attr = line.substr(0,found);
+	value = line.substr(found+1,line.size()-1);
+
+	//empty attribute or value
+	if(attr.empty() || value.empty()) return false;
+	
+	return true;
+}
+
 //////////
 ////////// Log
 //////////

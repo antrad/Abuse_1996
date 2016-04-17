@@ -2,6 +2,7 @@
  *  Abuse - dark 2D side-scrolling platform game
  *  Copyright (c) 1995 Crack dot Com
  *  Copyright (c) 2005-2011 Sam Hocevar <sam@hocevar.net>
+ *  Copyright (c) 2016 Antonio Radojkovic <antonior.software@gmail.com>
  *
  *  This software was released into the Public Domain. As with most public
  *  domain software, no warranty is made or implied by Crack dot Com, by
@@ -98,8 +99,7 @@ char req_name[100];
 
 extern uint8_t chatting_enabled;
 
-flags_struct flags;
-keys_struct keys;
+Settings settings;
 
 // Enable TCP/IP driver
 #if HAVE_NETWORK
@@ -1703,7 +1703,7 @@ void Game::get_input()
                 } break;
                 case PAUSE_STATE:
                 {
-                    if(ev.type == EV_KEY && (ev.key == JK_SPACE || ev.key == JK_ENTER))
+                    if(ev.type == EV_KEY && (ev.key == JK_SPACE || ev.key == JK_ENTER || ev.key == JK_ESC))
                     {
                         set_state(RUN_STATE);
                     }
@@ -1904,15 +1904,12 @@ void net_receive()
   }
 }
 
-//AR tmp
-#include <sstream>
-
 void Game::step()
 {
-	//AR virtual crosshair inside a circle
+	//AR virtual crosshair inside a circle, solves atan2(axisy,axisx) aiming dead zone problems
 	static float aimx = 0, aimy = 0;
 
-	flags.in_game = false;
+	settings.in_game = false;
 
 	LSpace::Tmp.Clear();
 	if(current_level)
@@ -1923,43 +1920,39 @@ void Game::step()
 		{
 			if(f->m_focus)
 			{
-				flags.in_game = true;
+				settings.in_game = true;
 
 				f->update_scroll();				
 				
 				//AR aim with the controller each update, don't wait for input event (-13 moves center to chest area)
-				if(flags.controller_aim==1)
+				if(settings.ctr_aim==1)
 				{
-					std::stringstream stream;
-					stream << flags.controller_aim_x << "-" << flags.controller_aim_y << "\n" ;
-					printf(stream.str().c_str());
-					
 					//convert to percentage above "dead zone", don't move if value below "dead zone", range [-32767,32767]
 					float fx = 0, fy = 0;
 					
-					if(fabs(flags.controller_aim_x)>flags.controller_rs_dz)
-						fx = (fabs(flags.controller_aim_x)-flags.controller_rs_dz)/(33000-flags.controller_rs_dz);
+					if(fabs(settings.ctr_aim_x)>settings.ctr_rst_dz)
+						fx = (fabs(settings.ctr_aim_x)-settings.ctr_rst_dz)/(33000-settings.ctr_rst_dz);
 
-					if(fabs(flags.controller_aim_y)>flags.controller_rs_dz)
-						fy = (fabs(flags.controller_aim_y)-flags.controller_rs_dz)/(33000-flags.controller_rs_dz);
+					if(fabs(settings.ctr_aim_y)>settings.ctr_rst_dz)
+						fy = (fabs(settings.ctr_aim_y)-settings.ctr_rst_dz)/(33000-settings.ctr_rst_dz);
 					
 					//move virtual crosshair inside a circular area, based on right stick state and sensitivity
-					float angle = atan2(flags.controller_aim_y,flags.controller_aim_x);
-					aimx += cos(angle)*(flags.controller_rs_s*fx);
-					aimy += sin(angle)*(flags.controller_rs_s*fy);
+					float angle = atan2(settings.ctr_aim_y,settings.ctr_aim_x);
+					aimx += cos(angle)*(settings.ctr_rst_s*fx);
+					aimy += sin(angle)*(settings.ctr_rst_s*fy);
 
 					//calculate aim based on the virtual crosshair
 					angle = atan2(aimy,aimx);
 					
 					//set position of real crosshair
 					wm->SetMousePos(ivec2(
-						f->m_focus->x - f->xoff() + cos(angle)*flags.controller_cd,
-						f->m_focus->y - f->yoff() + sin(angle)*flags.controller_cd - 13));
+						f->m_focus->x - f->xoff() + cos(angle)*settings.ctr_cd,
+						f->m_focus->y - f->yoff() + sin(angle)*settings.ctr_cd - 13));
 
 					//if outside circle reposition to the edge of circle for the next update
-					//100 is just random, sesitivity is controlled using flags.controller_rs_s
-					aimx = cos(angle)*100;
-					aimy = sin(angle)*100;
+					//10 is just random, sesitivity is controlled using settings.ctr_rst_s
+					aimx = cos(angle)*10;
+					aimy = sin(angle)*10;
 				}
 				
 				int w, h;
@@ -2006,7 +1999,7 @@ void Game::step()
 		joy_calb(ev);
 	} else if(state == MENU_STATE)
 	{
-		flags.in_game = false;
+		settings.in_game = false;
 		main_menu();//AR this is a main menu LOOP, it handles events and rendering inside !
 	}
 
@@ -2137,8 +2130,6 @@ int external_print = 0;
 
 void start_sound(int argc, char **argv)
 {
-  sfx_volume = music_volume = 127;
-
   for(int i = 1; i < argc; i++)
     if(!strcmp(argv[i], "-sfx_volume"))
     {
@@ -2284,28 +2275,22 @@ void check_for_lisp(int argc, char **argv)
 
 void music_check()
 {
-  if(sound_avail & MUSIC_INITIALIZED)
-  {
-    if(current_song && !current_song->playing())
-    {
-      current_song->play(music_volume);
-      dprintf("song finished\n");
-    }
-    if(!current_song)
-    {
+	if(sound_avail & MUSIC_INITIALIZED)
+	{
+		if(!current_song)
+		{
+			current_song = new song("music/intro.hmi");
+			current_song->play(music_volume);
 
-      current_song = new song("music/intro.hmi");
-      current_song->play(music_volume);
-
-/*      if(DEFINEDP(symbol_function(l_next_song)))  // if user function installed, call it to load up next song
-      {
-    int sp = LSpace::Current;
-    LSpace::Current = SPACE_PERM;
-    ((LSymbol *)l_next_song)->EvalFunction(NULL);
-    LSpace::Current = sp;
-      } */
-    }
-  }
+			/*      if(DEFINEDP(symbol_function(l_next_song)))  // if user function installed, call it to load up next song
+			{
+			int sp = LSpace::Current;
+			LSpace::Current = SPACE_PERM;
+			((LSymbol *)l_next_song)->EvalFunction(NULL);
+			LSpace::Current = sp;
+			} */
+		}
+	}
 }
 
 void setup(int argc, char **argv);
@@ -2431,12 +2416,13 @@ int main(int argc, char *argv[])
         Lisp::Init();
 
 		//AR start editor via config file, or if command line
-		if(flags.editor) AR_dev_init();
+		if(settings.editor) AR_dev_init();
 		else dev_init(argc, argv);
 
+		//AR the intro loop is in the constructor itself
         Game *g = new Game(argc, argv);
 
-        dev_cont = new dev_controll();
+		dev_cont = new dev_controll();
         dev_cont->load_stuff();
 
         g->get_input(); // prime the net
@@ -2467,55 +2453,57 @@ int main(int argc, char *argv[])
 
 		Uint32 AR_lastupdate = 1000;
 
-        while (!g->done())
-        {
-			music_check();
-
-            if (req_end)
-            {
-                delete current_level; current_level = NULL;
-
-                show_end();
-
-                the_game->set_state(MENU_STATE);
-                req_end = 0;
-            }
-
-            if (demo_man.current_state() == demo_manager::NORMAL)
-                net_receive();
-
-            // see if a request for a level load was made during the last tick
-            if (req_name[0])
-            {
-                g->load_level(req_name);
-                req_name[0] = 0;
-                g->draw(g->state == SCENE_STATE);
-            }
-
-            //if (demo_man.current_state() != demo_manager::PLAYING)
-                g->get_input();
-
-            if (demo_man.current_state() == demo_manager::NORMAL)
-                net_send();
-            else
-                demo_man.do_inputs();
-
-            service_net_request();
-
-            // process all the objects in the world
-			//AR update physics at custom framerate
-			if(SDL_GetTicks()-AR_lastupdate>=flags.physics_update_time)
+		while(!g->done())
+		{
+			//AR update game at custom framerate, original is 15 FPS, physics are locked at 15 FPS
+			//render at full speed
+			if(SDL_GetTicks()-AR_lastupdate>=settings.physics_update)
 			{
-				g->step();//there are loops inside, it doesn't leave the menu, until menu says so!
 				AR_lastupdate = SDL_GetTicks();
-			}
-            server_check();
-            g->calc_speed();
 
-            // see if a request for a level load was made during the last tick
-            if (!req_name[0])
-                g->update_screen(); // redraw the screen with any changes
-        }
+				music_check();
+
+				if (req_end)
+				{
+					delete current_level; current_level = NULL;
+
+					show_end();
+
+					the_game->set_state(MENU_STATE);
+					req_end = 0;
+				}
+
+				if (demo_man.current_state() == demo_manager::NORMAL)
+					net_receive();
+
+				// see if a request for a level load was made during the last tick
+				if (req_name[0])
+				{
+					g->load_level(req_name);
+					req_name[0] = 0;
+					g->draw(g->state == SCENE_STATE);
+				}
+
+				//if (demo_man.current_state() != demo_manager::PLAYING)
+				g->get_input();
+
+				if (demo_man.current_state() == demo_manager::NORMAL)
+					net_send();
+				else
+					demo_man.do_inputs();
+
+				service_net_request();
+
+				// process all the objects in the world
+				g->step();//there are loops inside, it doesn't leave the menu, until menu says so!				
+
+				server_check();
+				g->calc_speed();
+			}
+
+			// see if a request for a level load was made during the last tick
+			if(!req_name[0]) g->update_screen(); // redraw the screen with any changes
+		}
 
         net_uninit();
 
