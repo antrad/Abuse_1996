@@ -2455,51 +2455,50 @@ int main(int argc, char *argv[])
 
 		while(!g->done())
 		{
-			//AR update game at custom framerate, original is 15 FPS, physics are locked at 15 FPS
-			//render at full speed
+			music_check();
+
+			if (req_end)
+			{
+				delete current_level; current_level = NULL;
+
+				show_end();
+
+				the_game->set_state(MENU_STATE);
+				req_end = 0;
+			}
+
+			if (demo_man.current_state() == demo_manager::NORMAL)
+				net_receive();
+
+			// see if a request for a level load was made during the last tick
+			if (req_name[0])
+			{
+				g->load_level(req_name);
+				req_name[0] = 0;
+				g->draw(g->state == SCENE_STATE);
+			}
+
+			//if (demo_man.current_state() != demo_manager::PLAYING)
+			g->get_input();
+
+			if (demo_man.current_state() == demo_manager::NORMAL)
+				net_send();
+			else
+				demo_man.do_inputs();
+
+			service_net_request();
+			
+			// process all the objects in the world
 			if(SDL_GetTicks()-AR_lastupdate>=settings.physics_update)
 			{
+				//AR update game at custom framerate, original is 15 FPS, physics are locked at 15 FPS
 				AR_lastupdate = SDL_GetTicks();
-
-				music_check();
-
-				if (req_end)
-				{
-					delete current_level; current_level = NULL;
-
-					show_end();
-
-					the_game->set_state(MENU_STATE);
-					req_end = 0;
-				}
-
-				if (demo_man.current_state() == demo_manager::NORMAL)
-					net_receive();
-
-				// see if a request for a level load was made during the last tick
-				if (req_name[0])
-				{
-					g->load_level(req_name);
-					req_name[0] = 0;
-					g->draw(g->state == SCENE_STATE);
-				}
-
-				//if (demo_man.current_state() != demo_manager::PLAYING)
-				g->get_input();
-
-				if (demo_man.current_state() == demo_manager::NORMAL)
-					net_send();
-				else
-					demo_man.do_inputs();
-
-				service_net_request();
-
-				// process all the objects in the world
-				g->step();//there are loops inside, it doesn't leave the menu, until menu says so!				
-
-				server_check();
-				g->calc_speed();
+				
+				g->step();//AR there are loops inside, it doesn't leave the menu loop, until menu says so!
 			}
+
+			server_check();
+			g->calc_speed();
 
 			// see if a request for a level load was made during the last tick
 			if(!req_name[0]) g->update_screen(); // redraw the screen with any changes
@@ -2550,6 +2549,7 @@ int main(int argc, char *argv[])
 
         base->packet.packet_reset();
     }
+
     while (main_net_cfg && main_net_cfg->restart_state());
 
     delete stat_man;

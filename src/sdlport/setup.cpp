@@ -100,15 +100,15 @@ Settings::Settings()
 	//screen
 	this->fullscreen		= false;    // Start in window (fullscreen is actually windowed-fullscreen now)
 	this->vsync				= false;
-	this->xres				= 640;		// Default window width
-	this->yres				= 400;		// Default window height
+	this->xres				= 320;		// Default window width
+	this->yres				= 200;		// Default window height
 	this->scale				= 1;		// default window scale
 	this->linear_filter		= false;    // Don't "anti-alias"		
 
 	//sound
-	this->mono				= false;	// Enable stereo sound
-	this->no_sound			= false;	// Enable sound
-	this->no_music			= false;	// Enable music	
+	this->mono				= false;	// disable stereo sound
+	this->no_sound			= false;	// disable sound
+	this->no_music			= false;	// disable music	
 	this->volume_sound		= 127;
 	this->volume_music		= 127;
 
@@ -116,7 +116,7 @@ Settings::Settings()
 	this->local_save		= true;
 	this->grab_mouse		= false;	// Don't grab the mouse
 	this->editor			= false;	// disable editor mode
-	this->physics_update	= 50;		// 20 FPS (original 65ms/15 FPS)
+	this->physics_update	= 65;		// original 65ms/15 FPS
 	this->mouse_scale		= 0;		// match desktop
 	
 	//player controls
@@ -221,7 +221,7 @@ bool Settings::CreateConfigFile(std::string file_path)
 	out << "; Enable editor mode" << std::endl;
 	out << "editor=" << this->editor << std::endl;
 	out << std::endl;
-	out << "; Physics update time in ms (65ms/15FPS original, 50ms/20FPS recommended on higher resolutions)" << std::endl;
+	out << "; Physics update time in ms (65ms/15FPS original)" << std::endl;
 	out << "physics_update=" << this->physics_update << std::endl;
 	out << std::endl;
 	out << "; Fullscreen mouse scaling (0 - match desktop, 1 - match game screen)" << std::endl;
@@ -268,11 +268,6 @@ bool Settings::CreateConfigFile(std::string file_path)
 	out << std::endl;	
 	//
 	out << "; Button mappings (don't use buttons for left/right movement)" << std::endl;
-	//ovo bi treba u readme stavit
-	/*out << "; ctr_a, ctr_b, ctr_x, ctr_y" << std::endl;
-	out << "; ctr_left_stick, ctr_right_stick" << std::endl;
-	out << "; ctr_left_shoulder, ctr_right_shoulder" << std::endl;
-	out << "; ctr_left_trigger, ctr_right_trigger" << std::endl;*/
 	out << "up=ctr_a" << std::endl;	
 	out << "down=ctr_b" << std::endl;
 	out << "special=ctr_left_shoulder" << std::endl;
@@ -343,34 +338,26 @@ bool Settings::ReadConfigFile(std::string folder)
 		}
 
 		//screen
-		if(attr=="fullscreen")				this->fullscreen = AR_ToBool(value);
-		else if(attr=="vsync")				this->vsync = AR_ToBool(value);
-		else if(attr=="screen_width")		this->xres = AR_ToInt(value);
-		else if(attr=="screen_height")		this->yres = AR_ToInt(value);
-		else if(attr=="scale")				this->scale = AR_ToInt(value);
-		else if(attr=="linear_filter")		this->linear_filter = AR_ToBool(value);
+		if(attr=="fullscreen")			this->fullscreen = AR_ToBool(value);
+		else if(attr=="vsync")			this->vsync = AR_ToBool(value);
+		else if(attr=="screen_width")	this->xres = AR_ToInt(value);
+		else if(attr=="screen_height")	this->yres = AR_ToInt(value);
+		else if(attr=="scale")			this->scale = AR_ToInt(value);
+		else if(attr=="linear_filter")	this->linear_filter = AR_ToBool(value);
 
 		//sound
-		else if(attr=="mono")				this->mono = AR_ToBool(value);
-		else if(attr=="no_sound")			this->no_sound = AR_ToBool(value);
-		else if(attr=="no_music")			this->no_music = AR_ToBool(value);
-		else if(attr=="volume_sound")
-		{
-			this->volume_sound = AR_ToInt(value);
-			sfx_volume = this->volume_sound;
-		}
-		else if(attr=="volume_music")
-		{
-			this->volume_music = AR_ToInt(value);
-			music_volume = this->volume_music;
-		}
-
+		else if(attr=="mono")			this->mono = AR_ToBool(value);
+		else if(attr=="no_sound")		this->no_sound = AR_ToBool(value);
+		else if(attr=="no_music")		this->no_music = AR_ToBool(value);
+		else if(attr=="volume_sound")	this->volume_sound = AR_ToInt(value);		
+		else if(attr=="volume_music")	this->volume_music = AR_ToInt(value);
+		
 		//random
-		else if(attr=="local_save")			this->local_save = AR_ToBool(value);
-		else if(attr=="grab_mouse")			this->grab_mouse = AR_ToBool(value);
-		else if(attr=="editor")				this->editor = AR_ToBool(value);
-		else if(attr=="physics_update")		this->physics_update = AR_ToInt(value);
-		else if(attr=="mouse_scale")		this->mouse_scale = AR_ToInt(value);
+		else if(attr=="local_save")		this->local_save = AR_ToBool(value);
+		else if(attr=="grab_mouse")		this->grab_mouse = AR_ToBool(value);
+		else if(attr=="editor")			this->editor = AR_ToBool(value);
+		else if(attr=="physics_update")	this->physics_update = AR_ToInt(value);
+		else if(attr=="mouse_scale")	this->mouse_scale = AR_ToInt(value);
 		
 		//player controls
 		else if(attr=="up")
@@ -407,10 +394,10 @@ bool Settings::ReadConfigFile(std::string folder)
 			if(!ControllerButton(attr,value)) this->b4 = key_value(value.c_str());
 		}
 		//
-		else if(attr=="up_2")			this->up_2 = key_value(value.c_str());
-		else if(attr=="down_2")			this->down_2 = key_value(value.c_str());
-		else if(attr=="left_2")			this->left_2 = key_value(value.c_str());
-		else if(attr=="right_2")		this->right_2 = key_value(value.c_str());
+		else if(attr=="up_2")		this->up_2 = key_value(value.c_str());
+		else if(attr=="down_2")		this->down_2 = key_value(value.c_str());
+		else if(attr=="left_2")		this->left_2 = key_value(value.c_str());
+		else if(attr=="right_2")	this->right_2 = key_value(value.c_str());
 		
 		//controller settings
 		else if(attr=="ctr_aim")		this->ctr_aim = AR_ToBool(value);
@@ -637,6 +624,8 @@ void setup( int argc, char **argv )
 	scale = settings.scale;
 	xres = settings.xres;
 	yres = settings.yres;
+	sfx_volume = settings.volume_sound;
+	music_volume = settings.volume_music;
 }
 
 //
