@@ -1,87 +1,107 @@
 Abuse README
 ============
 
-This is a fork of the original Abuse SDL port from <http://abuse.zoy.org/>. It
-switches the build system to CMake to make crossplatform building easier.
+This is a fork of the Abuse SDL2 port from <http://github.com/Xenoveritas/abuse>,
+which itself is a fork of the original Abuse SDL port from <http://abuse.zoy.org>.
 
 ----
 
 1. Introduction
 2. Additional Features
-3. Requirements
-4. Running Abuse
-5. Configuration
-6. Installing the datafiles
-7. Notes
-8. Special Thanks
-9. Feedback
+3. Building The Project
+4. Configuration
+5. Hardcoded keys
+6. Notes
+7. Special Thanks
+8. Feedback
+9. Links
 
 ----
 
 ## 1. INTRODUCTION
 
-Welcome to Abuse, the port of the classic game Abuse to the Simple
-DirectMedia Layer. Abuse was originally developed by Crack dot Com and
-released in 1995 for MS-DOS. A Linux version was also made available at
-a later date. It had a few limitations the most restrictive of which was
-that it only ran on an 8-bit display, and only in a window.
+When I released my Quake 2D demo back in 2012 many people compared it to Abuse. While I was waiting for my new PC to get fixed I was stuck with a PC bought in 2005.
+My gaming options were limited, and I found out Abuse was available for free, so I wanted to check it out:
+- It ran in DOSBox at 320x200 resolution, which is fine, but since it was a shooter it felt disorienting, like playing a FPS in a very low FOV.
+- The screen tearing was horrible and I couldn't enable vsync.
+- Aiming with the mouse was very difficult, because, even in fullscreen, the mouse was still behaving like it was 320x200 resolution and was too sensitive.
 
-The version of Abuse will run at any color depth and supports fullscreen mode,
-as well as many other new features. It should also be more portable and
-hopefully run on a variety of *nix variants, as well as Windows and Mac OS X.
+Reading the readme file I saw there was a high resolution option, but it seemed to be only available in the shareware version, or in editor mode,
+and the game would automatically turn off the in-game lights, because it would be too demanding for the PCs in 1996 on high resolutions.
+Not to mention a bug would cause the entire screen to go black the second time a level was loaded.
+
+Then I found out the source code was released and was looking for modern ports:
+- The 2001 SDL port was for Linux only.
+- Then I found a 2001 Windows port, but the game would not run. I managed to get the sorce code to compile and fixed the crashing issue,
+  but I only got around 10-15 frames per minute.
+- Then I found the 2011 version, and again it was Linux only.
+- Then finally the Xenoveritas port showed up in the search results, and was exactly what I needed; a working Windows port.
 
 ## 2. ADDITIONAL FEATURES
 
-Abuse has the following extra features over the original:
+These are the major changes I made compared to Xenoveritas version:
 
-  * Runs at a screen bit depth of 8, 16, 24 or 32.
-  * Fullscreen display.
-  * Scaling by any amount (eg. 2, 3 or 4)
-  * SDL2 support for hardware scaling and anti-aliasing.
-  * Stereo sound with panning.
-  * Mouse wheel support for changing weapons.
-  * Customizable keys.
+  * Enabled custom resolutions and enabled lights at high resolutions
+  * Re-enabled OpenGL rendering to enable vsync
+  * Game screen scaling in window or fullscreen mode using F11 and F12
+  * Added or re-enabled several settings in the config file
+  * Physics update time can be changed via config file
+  * Local save game files and configuration files
+  * XBox360 controller support with rebindable buttons via the config file (toggle controller aiming using F9)
+  * Updated abuse-tool so it can extract the images in Abuse SPEC files to modern image formats
+	as individual images, tilemaps or a texture atlas with information about image, tile and animation frame sizes and positions.
+	
+	***!!! moga bi link stavit ovdje !!!***
 
-## 3. REQUIREMENTS
+## 3. BUILDING THE PROJECT
 
 Abuse has the following requirements:
 
   * SDL2 2.0.3 or above.
   * SDL_mixer 2.0.0 or above.
+  * GLee for OpenGL rendering
+  * OpenCV 2.1 for abuse-tool
 
-## 4. RUNNING ABUSE
+Read the BUILDING.md file provided by Xenoveritas to see how to build the projects.
+Do note this version also uses OpenGL(GLee) and OpenCV, so you will need to link to those libraries too.
 
-Generally, just launch it however is appropriate for your platform after
-running the `install` build.
-If Abuse has been installed properly, the command:
+## 4. CONFIGURATION
 
-    abuse
+Abuse configuration file has been updated in this version. The file is stored locally in the "user" folder as "config.txt",
+where also the save game files and other original configuration files, like gamma settings, can be found.
 
-will start the game.
+Lines starting with a ';' are comments. Setting an option to '1' turns it on, and '0' turns it off.
+Following settings can be changed via the config file:
 
-The following command-line switches can be used:
+fullscreen - fullscreen or window mode
+vsync - vertical sync
+screen_width - game screen width
+screen_height - game screen height
+scale - window scale
+linear_filter - use linear texture filter (nearest is default)
 
-    -datadir <arg>    Set the location of the datafiles
-    -edit             Start in editor mode
-    -f <arg>          Load the map file named <arg>
-    -fullscreen       Enable fullscreen mode
-    -antialias        Enable anti-aliasing
-    -lisp             Start in lisp interpreter mode
-    -mono             Disable stereo sound
-    -nodelay          Run at maximum speed
-    -nosound          Disable sound
-    -scale <arg>      Scale by <arg> amount
+volume_sound - sound volume
+volume_music - music volume
+mono - use mono audio only
+no_music - disable music
+no_sound - disable sound effects
 
-## 5. CONFIGURATION
+local_save - save config and other files locally
+grab_mouse - grab the mouse to the window
+editor - enable editor mode
+physics_update - physics update time in ms
+mouse_scale - mouse to game scaling based on desktop or game screen size
 
-Abuse also has a configuration file where these options can be set
-instead of using the command line. The file "abuserc" will be created in
-your ~/.abuse directory the first time Abuse is run.
+To change the keys used in the game, simply type the key after the option:
+left - move left
+right - move right
+up - climb ladder
+down - use lift, press switch
+special - use special ability
+fire - fire weapon
+weapon_prev - select previous available weapon
+weapon_next - select next available weapon
 
-Lines starting with a ';' are comments.
-Setting an option to '1' turns it on, and '0' turns it off.
-
-To change the keys used in the game, simply type the key after the option.
 The following special keys can also be used:
 
 | Code                          | Represents
@@ -110,77 +130,92 @@ The default key settings are as follows:
 | Prev Weapon | Left or Right Ctrl
 | Next Weapon | Insert
 
-The mouse always controls your aim, with Left button for fire and
-Right button for special.  The mouse wheel can be used for changing weapons.
+The mouse controls your aim, with Left button for fire and Right button for special.
+The mouse wheel can be used for changing weapons.
 
-## 6. INSTALLING THE DATAFILES
+The game has almost full controller support now, there are several settings you can change in the config file:
+ctr_aim - enable aiming with the right stick
+ctr_cd - crosshair distance from player
+ctr_rst_s - right stick/aiming sensitivity
+ctr_rst_dz - right stick/aiming dead zone
+ctr_lst_dzx - left stick left/right movement dead zones
+ctr_lst_dzy - left stick up/down movement dead zones
 
-This repository contains the majority of the data files. The only data currently
-missing are the sound effects and the music as they weren't released into the
-public domain.
+To bind controller buttons to in game action use the following names for the buttons;
+ctr_a, ctr_b, ctr_x, ctr_y
+ctr_left_shoulder, ctr_right_shoulder
+ctr_left_trigger, ctr_right_trigger
+ctr_left_stick, ctr_right_stick
 
-You can still grab them off of <http://abuse.zoy.org/> and extract them into
-the data directory, and they will be used by the build script.
+See "5. Hardcoded keys" for the hardcoded controller bindings.
 
-Under Windows and Mac OS X, Abuse looks for the data files in a path relative to
-the executable. Using the CMake `install` and `publish` targets will set up
-the directory in the correct way. (See BUILDING.md for more information about
-that.)
+## 5. Hardcoded keys
 
-Under Linux, by default, Abuse expects the datafiles to be installed in the
-following location:
+There are several keys in the game that are hardcoded to some function originally or were added during porting:
 
-    /usr/local/share/games/abuse
+- 1-7 - weapon selection
+- Home, control left, control right - previous weapon
+- Page up, insert - next weapon
+- Numpad 2,4,5,6,8 - player movement 
+- escape, space, enter - reset level on death
+- h, F1 - show help/controls screen
+- c - chat console
+- p - pause game
+- F9 - toggle controller aiming
+- F10 - toggle window/fullscreen mode
+- F11 - scale window/screen up
+- F12 - scale window/screen down
+- Print screen - take a screenshot
 
-However it is possible to change this and tell Abuse where to find the
-files if they are in another location.
+Controller defaults:
 
-The location can be set when Abuse is compiled. See the INSTALL.md file for
-instructions on how to do this.
+- D-pad, left stick - move left, right, up, down in game and in menus
+- home - show help/controls screen
+- back - behaves like the escape key
+- start - behaves like enter key
 
-You can also specify the location with the -datadir argument when
-Abuse is run. See section 4 above.
+## 6. NOTES
 
-Finally, the location can be set in the configuration file. See section
-5 above.
+### Low rendering speed:
+	If I understand the rendering process correctly, everything is first rendered to a in game image format by copying bytes of data from the image buffers.
+	Then those are again copied to SDL_Surface, then SDL_BlitSurface is called to convert the pixel values to OpenGL format. The resulting SDL_Surface pixel buffer
+	is then used to set the pixels of the OpenGL texture using glTexImage2D. Just then we finally render to the backbuffer and update the screen.
+	There must be a way to skip some of these steps, you can check out "sdlport/video.cpp" if you have an idea how.
 
-## 7. NOTES
+### 15 FPS:
+	The game is designed to run at 15 FPS, higher or lower framerate speeds up or slows down the game. I haven't figured out how physics, animations and
+	other time based stuff work, to make the game world update normally at higer framerate. While the game is rendered at higher framerate,
+	I have set up a timer that limits the game physics update speed with a default value of 65 ms(15 FPS).
+	
+### Music volume lowers the sound effects volume too:
+	May have something to do with it being MIDI music, I don't know.
 
-### Scaling:
-  Scaling is still experimental and not very fast.  Try scaling by different
-  amounts to see which ones work the best.
+## 7. SPECIAL THANKS
 
-### OpenGL:
-  OpenGL can be used to provide hardware accelerated scaling and anti-aliasing.
-  You will require a 3D card with the appropriate drivers and GL libraries
-  installed for this to work.
+To everybody who worked on Abuse and its ports; from the people at Crack Dot Com who made the original game,
+to Xenoveritas and others who kept it alive for 20 years.
 
-### fRaBs:
-  The current release of fRaBs has some naming issues under Linux.
-  In the 'addon/leon/' directory a lot of the files are uppercase when Abuse
-  is expecting them to be lowercase.
-  Renaming the files to be all lowercase will fix this problem.
+## 8. FEEDBACK
 
-## 8. SPECIAL THANKS
+I am more or less done with this project. I might update the abuse-tool to extract the levels to a useable format.
+If you find bugs or have some problems with the game send me an email and I will see what I can do.
 
-Go to Jonathan Clark, Dave Taylor and the rest of the Crack Dot Com team
-for making the best 2D platform shooter ever, and then releasing the
-code that makes Abuse possible.
+## 9. LINKS
 
-Also, thanks go to Jonathan Clark for allowing Anthony to distribute the
-original datafiles with Abuse.
+Original source code https://archive.org/details/abuse_sourcecode
+Jeremy Scott's Windows port [2001] http://web.archive.org/web/20051023123223/http://www.webpages.uidaho.edu/~scot4875/
+Abuse SDL [2002] http://web.archive.org/web/20070205093016/http://www.labyrinth.net.au/~trandor/abuse/
+Sam Hocevar Abuse Page [2011] http://abuse.zoy.org/
+Xenoveritas SDL2 port [2014] http://github.com/Xenoveritas/abuse
 
-Thanks also to everyone who has contributed ideas, bug reports and patches.
-See the AUTHORS file for details.
+Abuse home page http://web.archive.org/web/20010517011228/http://abuse2.com/
+Free Abuse (Frabs) home page http://web.archive.org/web/20010124070000/http://www.cs.uidaho.edu/~cass0664/fRaBs/
 
-## 9. FEEDBACK
+Frabs download http://www.dosgames.com/g_act.php
+Abuse Desura download http://www.desura.com/games/abuse/download
 
-For this fork, please use the [GitHub page](https://github.com/Xenoveritas/abuse)
-if you have any questions, comments, or find bugs.
-
-The original code was taken from <http://abuse.zoy.org/>, but any issues on
-non-Linux platforms should be directed to the GitHub page.
+HMI to MIDI converter http://www.ttdpatch.net/midi/games.html
 
 ----
 
-Have fun!
+Thank you for playing Abuse!

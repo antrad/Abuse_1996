@@ -18,7 +18,7 @@ class Settings
 {
 public:
 	//screen
-	bool	fullscreen;
+	int		fullscreen;		//0 - window, 1 - fullscreen window, 2 - fullscreen
 	bool	vsync;
 	short	xres;			//game screen resolution
 	short	yres;	

@@ -82,8 +82,7 @@ void set_mode(int argc, char **argv)
 	desktop.w = 320;
 	desktop.h = 200;
 
-	if(SDL_GetDesktopDisplayMode(0,&desktop)!=0)
-		printf("ERROR - failed to get display info\n");
+	if(SDL_GetDesktopDisplayMode(0,&desktop)!=0) printf("ERROR - failed to get display info\n");
 
 	//AR scale window
     window_w = xres*scale;
@@ -92,6 +91,11 @@ void set_mode(int argc, char **argv)
 	//fullscreen "scale"
 	ogl_w = window_w;
 	ogl_h = window_h;
+
+	int window_type = 0;
+
+	if(settings.fullscreen==1)		window_type = SDL_WINDOW_FULLSCREEN_DESKTOP;
+	else if(settings.fullscreen==2)	window_type = SDL_WINDOW_FULLSCREEN;
     
 	// FIXME: Set the icon for this window.  Looks nice on taskbars etc.
     //SDL_WM_SetIcon(SDL_LoadBMP("abuse.bmp"), NULL);
@@ -99,7 +103,7 @@ void set_mode(int argc, char **argv)
     window = SDL_CreateWindow("Abuse",
         SDL_WINDOWPOS_UNDEFINED,SDL_WINDOWPOS_UNDEFINED,
         window_w, window_h,
-        SDL_WINDOW_OPENGL|(settings.fullscreen ? SDL_WINDOW_FULLSCREEN_DESKTOP : 0));
+        window_type|SDL_WINDOW_OPENGL);
 
     if(!window)
     {
@@ -169,17 +173,18 @@ void set_mode(int argc, char **argv)
         exit(1);
     }
     main_screen->clear();
-
-	//print some info
-	SDL_DisplayMode mode;
-    SDL_GetWindowDisplayMode(window, &mode);
-    printf("Video : %dx%d %dbpp\n", mode.w, mode.h, SDL_BITSPERPIXEL(mode.format));
-
-    //hide the mouse cursor and set up the mouse
+	
+	//hide the mouse cursor and set up the mouse
     SDL_ShowCursor(0);
     calculate_mouse_scaling(); 
 
-	if(settings.fullscreen==1) video_change_settings(0,true);
+	if(settings.fullscreen!=0) video_change_settings(0,true);
+
+	//print some info
+	//AR shows 640x480 when the size is lower than that... ???
+	/*SDL_DisplayMode mode;
+    SDL_GetWindowDisplayMode(window, &mode);
+    printf("Video : %dx%d %dbpp\n", mode.w, mode.h, SDL_BITSPERPIXEL(mode.format));*/
 
     update_dirty(main_screen);
 }

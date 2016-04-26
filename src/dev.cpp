@@ -2,6 +2,7 @@
  *  Abuse - dark 2D side-scrolling platform game
  *  Copyright (c) 1995 Crack dot Com
  *  Copyright (c) 2005-2011 Sam Hocevar <sam@hocevar.net>
+ *  Copyright (c) 2016 Antonio Radojkovic <antonior.software@gmail.com>
  *
  *  This software was released into the Public Domain. As with most public
  *  domain software, no warranty is made or implied by Crack dot Com, by
@@ -37,6 +38,12 @@
 #include "sbar.h"
 #include "compiled.h"
 #include "chat.h"
+
+//AR
+#include "sdlport/setup.h"
+extern Settings settings;
+extern int get_key_binding( char const *dir, int i );
+//
 
 #define make_above_tile(x) ((x)|0x4000)
 char backw_on=0,forew_on=0,show_menu_on=0,ledit_on=0,pmenu_on=0,omenu_on=0,commandw_on=0,tbw_on=0,
@@ -160,6 +167,19 @@ class amb_cont : public scroller
 
 int confirm_quit()
 {
+	//AR let me know we are stuck here
+	the_game->ar_stateold = the_game->ar_state;
+	the_game->ar_state = AR_QUIT;
+
+	//AR controller ui movement, icon size 32x25
+	static int lg_movex = 32;
+	static int lg_movey = 25;
+	int mx, my;//mouse position
+	int border_left, border_right;
+
+	int old_mx = wm->GetMousePos().x;
+	int old_my = wm->GetMousePos().y;	
+
     Jwindow *quitw;
     image *ok_image, *cancel_image;
 
@@ -175,6 +195,17 @@ int confirm_quit()
               symbol_str("quit_title"));
 
     wm->grab_focus(quitw);
+
+	//AR initial position of the mouse in the window for controller use
+	if(settings.ctr_aim)
+	{
+		mx = quitw->m_pos.x + 10 + lg_movex/2;
+		my = quitw->m_pos.y + wm->font()->Size().y*2 + lg_movey/2;
+		wm->SetMousePos(ivec2(mx,my));
+		border_left = mx;
+		border_right = mx + lg_movex;
+	}
+
     int fin = 0, quit = 0;
 
     while(!fin)
@@ -196,6 +227,21 @@ int confirm_quit()
         if((ev.type == EV_KEY && ev.key == JK_ESC)
            || ev.type == EV_CLOSE_WINDOW)
             fin = 1;
+
+		//AR move cursor over icons
+		if(settings.ctr_aim && ev.type==EV_KEY)
+		{
+			if((ev.key==get_key_binding("left",0) || ev.key==get_key_binding("left2",0)))
+			{
+				if(mx-lg_movex>=border_left) mx -= lg_movex;
+				wm->SetMousePos(ivec2(mx,my));
+			}
+			if((ev.key==get_key_binding("right",0) || ev.key==get_key_binding("right2",0)))
+			{
+				if(mx+lg_movex<=border_right) mx += lg_movex;
+				wm->SetMousePos(ivec2(mx,my));
+			}
+		}
     }
 
     delete ok_image;
@@ -205,6 +251,11 @@ int confirm_quit()
 
     wm->close_window(quitw);
     wm->flush_screen();
+
+	//AR let me know we leaving
+	the_game->ar_state = the_game->ar_stateold;
+	if(settings.ctr_aim) wm->SetMousePos(ivec2(old_mx,old_my));//put mouse where it was on entering
+
     return quit;
 }
 
@@ -825,7 +876,11 @@ void dev_init(int argc, char **argv)
   dev=0;
   int i;
   prop=new property_manager;
-  prop->load("defaults.prp");
+
+  std::string path_fin = get_save_filename_prefix();
+  path_fin += "defaults.prp";
+
+  prop->load(path_fin.c_str());
 
   for (i=1; i<argc; i++)
   {
@@ -894,9 +949,12 @@ void AR_dev_init()
 	scale_mult=1;
 	scale_div=1;
 	dev=0;
-	int i;
 	prop=new property_manager;
-	prop->load("defaults.prp");
+	
+	std::string path_fin = get_save_filename_prefix();
+	path_fin += "defaults.prp";
+
+	prop->load(path_fin.c_str());
 
 	dev|=EDIT_MODE;
 	start_edit=1;
@@ -3394,16 +3452,23 @@ void dev_controll::show_mem()
 
 void dev_cleanup()
 {
-  if (start_edit)
-    prop->save("defaults.prp");
-  delete prop;
-  if (listable_objs)
-  {
-    free(listable_objs);
-    listable_objs=NULL;
-  }
-  crc_manager.clean_up();
+	if (start_edit)
+	{
+		std::string path_fin = get_save_filename_prefix();
+		path_fin += "defaults.prp";
 
+		prop->load(path_fin.c_str());
+	}
+
+	delete prop;
+
+	if (listable_objs)
+	{
+		free(listable_objs);
+		listable_objs=NULL;
+	}
+
+	crc_manager.clean_up();
 }
 
 

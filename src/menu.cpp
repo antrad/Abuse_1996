@@ -2,6 +2,7 @@
  *  Abuse - dark 2D side-scrolling platform game
  *  Copyright (c) 1995 Crack dot Com
  *  Copyright (c) 2005-2011 Sam Hocevar <sam@hocevar.net>
+ *  Copyright (c) 2016 Antonio Radojkovic <antonior.software@gmail.com>
  *
  *  This software was released into the Public Domain. As with most public
  *  domain software, no warranty is made or implied by Crack dot Com, by
@@ -38,6 +39,12 @@
 #include "netcfg.h"
 
 #include "net/sock.h"
+
+//AR
+#include "sdlport/setup.h"
+extern Settings settings;
+extern int get_key_binding( char const *dir, int i );
+//
 
 extern net_protocol *prot;
 
@@ -333,26 +340,26 @@ static void create_volume_window()
 
 void save_difficulty()
 {
-  FILE *fp=open_FILE("hardness.lsp","wb");
-  if (!fp)
-    dprintf("Unable to write to file hardness.lsp\n");
-  else
-  {
-    fprintf(fp,"(setf difficulty '");
-    if (DEFINEDP(symbol_value(l_difficulty)))
-    {
-      if (symbol_value(l_difficulty)==l_extreme)
-        fprintf(fp,"extreme)\n");
-      else if (symbol_value(l_difficulty)==l_hard)
-        fprintf(fp,"hard)\n");
-      else if (symbol_value(l_difficulty)==l_easy)
-        fprintf(fp,"easy)\n");
-      else
-        fprintf(fp,"medium)\n");
-    } else
-       fprintf(fp,"medium)\n");
-    fclose(fp);
-  }
+	std::string path_fin = get_save_filename_prefix();
+	path_fin += "hardness.lsp";
+
+	FILE *fp = open_FILE(path_fin.c_str(),"wb");
+
+	if(!fp) dprintf("Unable to write to file hardness.lsp\n");
+	else
+	{
+		fprintf(fp,"(setf difficulty '");
+		if(DEFINEDP(symbol_value(l_difficulty)))
+		{
+			if (symbol_value(l_difficulty)==l_extreme)		fprintf(fp,"extreme)\n");
+			else if (symbol_value(l_difficulty)==l_hard)	fprintf(fp,"hard)\n");
+			else if (symbol_value(l_difficulty)==l_easy)	fprintf(fp,"easy)\n");
+			else fprintf(fp,"medium)\n");
+		}
+		else fprintf(fp,"medium)\n");
+
+		fclose(fp);
+	}
 }
 
 void fade_out(int steps);
@@ -631,11 +638,32 @@ ico_button *make_conditional_buttons(int x,int &y)
 
 void main_menu()
 {
+	//AR let me know we are stuck here
+	the_game->ar_stateold = the_game->ar_state;
+	the_game->ar_state = AR_MAINMENU;
+	
     int y=yres/2-100;
     ico_button *list=make_conditional_buttons(xres-33,y);
     list=make_default_buttons(xres-33,y,list);
 
-    InputManager *inm=new InputManager(main_screen,list);
+	//AR controller ui movement, icon size 32x25
+	static int lg_movex = 32;
+	static int lg_movey = 25;
+	int mx, my;//mouse position
+	int border_up = yres/2-100, border_down = y;
+
+	int old_mx = wm->GetMousePos().x;
+	int old_my = wm->GetMousePos().y;
+
+	//AR initial position of the mouse in the window for controller use
+	if(settings.ctr_aim)
+	{
+		mx = xres-33 + lg_movex/2;
+		my = yres/2-100 + lg_movey/2;
+		wm->SetMousePos(ivec2(mx,my));
+	}
+	
+	InputManager *inm=new InputManager(main_screen,list);
     inm->allow_no_selections();
     inm->clear_current();
 
@@ -647,7 +675,7 @@ void main_menu()
     time_marker start;
     wm->flush_screen();
     do
-    {
+	{
         time_marker new_time;
 
         if (wm->IsPending())
@@ -701,6 +729,7 @@ void main_menu()
                 stop_menu=1;
             else if (ev.message.id==ID_QUIT)
             {
+				//AR WTF is that screen doing in dev.cpp ?
                 if (confirm_quit())
                     stop_menu=1;
                 else
@@ -709,13 +738,32 @@ void main_menu()
                     start.get_time();
                 }
             }
-        }
+		}
+		
+		//AR move cursor over icons
+		if(settings.ctr_aim && ev.type==EV_KEY)
+		{
+			if((ev.key==get_key_binding("up",0) || ev.key==get_key_binding("up2",0)))
+			{
+				if(my-lg_movey>border_up) my -= lg_movey;
+				wm->SetMousePos(ivec2(mx,my));
+			}
+			if((ev.key==get_key_binding("down",0) || ev.key==get_key_binding("down2",0)))
+			{
+				if(my+lg_movey<border_down) my += lg_movey;
+				wm->SetMousePos(ivec2(mx,my));
+			}
+		}
     } while (!stop_menu);
 
     delete inm;
 
     if (ev.type==EV_MESSAGE && ev.message.id==ID_QUIT)   // propogate the quit message
         the_game->end_session();
+
+	//AR let me know we leaving
+	the_game->ar_state = the_game->ar_stateold;
+	if(settings.ctr_aim) wm->SetMousePos(ivec2(old_mx,old_my));//put mouse where it was on entering
 }
 
 

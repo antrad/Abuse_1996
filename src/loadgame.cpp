@@ -2,6 +2,7 @@
  *  Abuse - dark 2D side-scrolling platform game
  *  Copyright (c) 1995 Crack dot Com
  *  Copyright (c) 2005-2011 Sam Hocevar <sam@hocevar.net>
+ *  Copyright (c) 2016 Antonio Radojkovic <antonior.software@gmail.com>
  *
  *  This software was released into the Public Domain. As with most public
  *  domain software, no warranty is made or implied by Crack dot Com, by
@@ -30,6 +31,12 @@
 #include "dev.h"
 #include "id.h"
 #include "demo.h"
+
+//AR
+#include "sdlport/setup.h"
+extern Settings settings;
+extern int get_key_binding( char const *dir, int i );
+//
 
 extern void *save_order;         // load from "saveordr.lsp", contains a list ordering the save games
 
@@ -86,7 +93,9 @@ Jwindow *create_num_window(int mx, int total_saved, int lines, image **thumbnail
   for (i=0; i<total_saved-1; i++)
     buts[i]->next=buts[i+1];
 
-  return wm->CreateWindow(ivec2(mx, yres / 2 - (Jwindow::top_border() + maxih * 5) / 2), ivec2(-1), buts[0]);
+  Jwindow *l_win = wm->CreateWindow(ivec2(mx, yres / 2 - (Jwindow::top_border() + maxih * 5) / 2), ivec2(-1), buts[0]);
+  
+  return l_win;
 }
 
 int get_save_spot()
@@ -165,6 +174,10 @@ int show_load_icon()
 
 int load_game(int show_all, char const *title)   // return 0 if the player escapes, else return the number of the game to load
 {
+	//AR this creates the small load/save game window
+	//and takes complete control of the program until it leaves the loop
+	//(it is called somewhere via clisp.cpp)	
+
     int total_saved=0;
     image *thumbnails[MAX_SAVE_GAMES];
     int start_num=0;
@@ -237,6 +250,26 @@ int load_game(int show_all, char const *title)   // return 0 if the player escap
 
     preview->m_surf->PutImage(first, ivec2(preview->x1(), preview->y1()));
 
+	//AR let me know we are stuck here
+	the_game->ar_stateold = the_game->ar_state;
+	the_game->ar_state = AR_LOADSAVE;
+
+	//AR controller ui movement, number icon size 30x25
+	static int lg_movex = 30;
+	static int lg_movey = 25;
+	int mx, my;//mouse position
+
+	int old_mx = wm->GetMousePos().x;
+	int old_my = wm->GetMousePos().y;
+
+	//AR initial position of the mouse in the window for controller use
+	if(settings.ctr_aim)
+	{
+		mx = l_win->m_pos.x + lg_movex/2;
+		my = l_win->m_pos.y + lg_movey/2;
+		wm->SetMousePos(ivec2(mx,my));
+	}
+
     Event ev;
     int got_level=0;
     int quit=0;
@@ -254,9 +287,37 @@ int load_game(int show_all, char const *title)   // return 0 if the player escap
             preview->m_surf->PutImage(thumbnails[draw_num], ivec2(preview->x1(), preview->y1()));
         }
 
-        if ((ev.type==EV_CLOSE_WINDOW) || (ev.type==EV_KEY && ev.key==JK_ESC))
-            quit=1;
+        if ((ev.type==EV_CLOSE_WINDOW) || (ev.type==EV_KEY && ev.key==JK_ESC)) quit=1;
+
+		//AR move cursor over icons
+		if(settings.ctr_aim && ev.type==EV_KEY)
+		{
+			if((ev.key==get_key_binding("left",0) || ev.key==get_key_binding("left2",0)))
+			{
+				if(mx-lg_movex>l_win->m_pos.x) mx -= lg_movex;
+				wm->SetMousePos(ivec2(mx,my));
+			}
+			if((ev.key==get_key_binding("right",0) || ev.key==get_key_binding("right2",0)))
+			{
+				if(mx+lg_movex<l_win->m_pos.x+l_win->m_size.x) mx += lg_movex;
+				wm->SetMousePos(ivec2(mx,my));
+			}
+			if((ev.key==get_key_binding("up",0) || ev.key==get_key_binding("up2",0)))
+			{
+				if(my-lg_movey>l_win->m_pos.y) my -= lg_movey;
+				wm->SetMousePos(ivec2(mx,my));
+			}
+			if((ev.key==get_key_binding("down",0) || ev.key==get_key_binding("down2",0)))
+			{
+				if(my+lg_movey<l_win->m_pos.y+l_win->m_size.y) my += lg_movey;
+				wm->SetMousePos(ivec2(mx,my));
+			}
+		}
     } while (!got_level && !quit);
+
+	//AR let me know we leaving
+	the_game->ar_state = the_game->ar_stateold;
+	if(settings.ctr_aim) wm->SetMousePos(ivec2(old_mx,old_my));//put mouse where it was on entering
 
     wm->close_window(l_win);
     wm->close_window(preview);

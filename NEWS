@@ -1,4 +1,4 @@
-# News for Abuse 0.9a (unreleased)
+# News for Abuse 0.9a (2016)
 
 - AntonioR's fork of the Xenoveritas version
 
@@ -11,8 +11,15 @@ ABUSE:
 	- controller aiming, right stick sensitivity, dead zone and crosshair distance from the player
 	- physics update time in ms
 - unlocked framerate for rendering, physics locked at custom value
-- fixed aiming using the right stick on a controller
+- re-enabled OpenGL rendering, enabled vsync
+- fullscreen scaling and "fit screen" scaling using F11 and F12
+- merged flags_struct and keys_struct into one settings class
+- Xbox controller support:
+	- fixed aiming using the right stick
+	- fixed player movement using left stick and dpad
 	- calculating and updating the crosshair position when aiming with a controller
+	- rebindable controller buttons, saving and loading of button bindings via config file
+	- navigating the main menu and save/load screens using dpad or left stick
 	
 ABUSE-TOOL:
 - extracting PCX images in SPEC files to modern image formats using OpenCV

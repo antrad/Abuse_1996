@@ -98,7 +98,7 @@ bool AR_GetAttr(std::string line, std::string &attr, std::string &value)
 Settings::Settings()
 {
 	//screen
-	this->fullscreen		= false;    // Start in window (fullscreen is actually windowed-fullscreen now)
+	this->fullscreen		= 0;		// Start in window
 	this->vsync				= false;
 	this->xres				= 320;		// Default window width
 	this->yres				= 200;		// Default window height
@@ -181,6 +181,7 @@ bool Settings::CreateConfigFile(std::string file_path)
 	//
 	out << "; SCREEN SETTINGS" << std::endl;
 	out << std::endl;
+	out << ";0 - window, 1 - fullscreen window, 2 - fullscreen" << std::endl;
 	out << "fullscreen=" << this->fullscreen << std::endl;
 	out << "vsync=" << this->vsync << std::endl;
 	out << std::endl;
@@ -338,7 +339,7 @@ bool Settings::ReadConfigFile(std::string folder)
 		}
 
 		//screen
-		if(attr=="fullscreen")			this->fullscreen = AR_ToBool(value);
+		if(attr=="fullscreen")			this->fullscreen = AR_ToInt(value);
 		else if(attr=="vsync")			this->vsync = AR_ToBool(value);
 		else if(attr=="screen_width")	this->xres = AR_ToInt(value);
 		else if(attr=="screen_height")	this->yres = AR_ToInt(value);
@@ -509,7 +510,10 @@ void parseCommandLine(int argc, char **argv)
 void setup( int argc, char **argv )
 {
 	// Display our name and version
-    printf( "%s %s\n", PACKAGE_NAME, PACKAGE_VERSION );
+    //printf( "%s %s\n", PACKAGE_NAME, PACKAGE_VERSION );
+
+	//AR
+	printf( "%s %s\n", "Abuse", "0.9a" );
 
     // Initialize SDL with video and audio support
     if( SDL_Init( SDL_INIT_VIDEO | SDL_INIT_AUDIO | SDL_INIT_JOYSTICK | SDL_INIT_GAMECONTROLLER ) < 0 )
