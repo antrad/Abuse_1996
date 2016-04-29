@@ -1471,6 +1471,8 @@ void get_prof_assoc_filename(char *filename, char *prof_filename)
   *s2=0;
 }
 
+#include <sstream>
+
 void level::level_loaded_notify()
 {
 	char *n;
@@ -1482,25 +1484,42 @@ void level::level_loaded_notify()
 	std::string path = n;
 	if(path.size()<6) return;
 
-	char nm[100];
-	sprintf(nm,"music/abuse%c%c.hmi",path[path.size()-6],path[path.size()-5]);
+	//find the music file, if level has no music load music from some previous level (lower number)
+	std::stringstream stream;
+	stream << path[path.size()-6] << path[path.size()-5];
+	int i;
+	stream >> i;
+	
+	while(i>=0)
+	{
+		char zero = '0';
+		if(i>=10) zero = '\0';
 
-	bFILE *fp = open_file(nm,"rb");
-	if(fp->open_failure())
-	{
-		delete fp;
-	}
-	else
-	{
-		if(current_song)
+		char nm[100];
+		sprintf(nm,"music/abuse%c%d.hmi",zero,i);
+
+		bFILE *fp = open_file(nm,"rb");
+		if(fp->open_failure())
 		{
-			current_song->stop();
-			delete current_song;
+			//music file not found
+			delete fp;
+			i--;
 		}
+		else
+		{
+			//music file found
+			if(current_song)
+			{
+				current_song->stop();
+				delete current_song;
+			}
 
-		delete fp;
-		current_song = new song(nm);
-		current_song->play(music_volume);
+			delete fp;
+			current_song = new song(nm);
+			current_song->play(music_volume);
+
+			return;
+		}
 	}
 	
 	/*if (DEFINEDP(symbol_function(l_level_loaded)))
