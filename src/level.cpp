@@ -1473,42 +1473,48 @@ void get_prof_assoc_filename(char *filename, char *prof_filename)
 
 void level::level_loaded_notify()
 {
-  char *n;
-  if (first_name)
-    n=first_name;
-  else
-    n=name();
-  if (strstr(n,"levels/level"))
-  {
-    char nm[100];
-    sprintf(nm,"music/abuse%c%c.hmi",n[12],n[13]);
-    bFILE *fp=open_file(nm,"rb");
-    if (fp->open_failure())
-    {
-      delete fp;
-    }
-    else
-    {
-      if (current_song) { current_song->stop(); delete current_song; }
+	char *n;
 
-      delete fp;
-      current_song=new song(nm);
-      current_song->play(music_volume);
-    }
-  }
+	if(first_name) n = first_name;
+	else n = name();
 
-/*  if (DEFINEDP(symbol_function(l_level_loaded)))
-  {
-    LSpace *sp = LSpace::Current;
-    LSpace::Current = &LSpace::Perm;
+	//AR level music matches level number -> level[01].spe
+	std::string path = n;
+	if(path.size()<6) return;
 
-    void *arg_list=NULL;
-    PtrRef r1(arg_list);
-    push_onto_list(LString::Create(n),arg_list);
-    ((LSymbol *)l_level_loaded)->EvalFunction(arg_list);
+	char nm[100];
+	sprintf(nm,"music/abuse%c%c.hmi",path[path.size()-6],path[path.size()-5]);
 
-    LSpace::Current = sp;
-  } */
+	bFILE *fp = open_file(nm,"rb");
+	if(fp->open_failure())
+	{
+		delete fp;
+	}
+	else
+	{
+		if(current_song)
+		{
+			current_song->stop();
+			delete current_song;
+		}
+
+		delete fp;
+		current_song = new song(nm);
+		current_song->play(music_volume);
+	}
+	
+	/*if (DEFINEDP(symbol_function(l_level_loaded)))
+	{
+	LSpace *sp = LSpace::Current;
+	LSpace::Current = &LSpace::Perm;
+
+	void *arg_list=NULL;
+	PtrRef r1(arg_list);
+	push_onto_list(LString::Create(n),arg_list);
+	((LSymbol *)l_level_loaded)->EvalFunction(arg_list);
+
+	LSpace::Current = sp;
+	}*/
 }
 
 

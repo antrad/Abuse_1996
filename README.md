@@ -161,6 +161,7 @@ There are several keys in the game that are hardcoded to some function originall
 - h, F1 - show help/controls screen
 - c - chat console
 - p - pause game
+- F8 - toggle mouse scaling
 - F9 - toggle controller aiming
 - F10 - toggle window/fullscreen mode
 - F11 - scale window/screen up

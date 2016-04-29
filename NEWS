@@ -20,6 +20,7 @@ ABUSE:
 	- calculating and updating the crosshair position when aiming with a controller
 	- rebindable controller buttons, saving and loading of button bindings via config file
 	- navigating the main menu and save/load screens using dpad or left stick
+- fixed level music not being played correctly when level was loaded
 	
 ABUSE-TOOL:
 - extracting PCX images in SPEC files to modern image formats using OpenCV
