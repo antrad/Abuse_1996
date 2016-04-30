@@ -38,9 +38,14 @@ public:
 	bool	editor;				//enable editor mode	
 	short	physics_update;		//custom pysics update time in miliseconds
 	short	mouse_scale;		//mouse scaling in fullscreen, 0 - match desktop, 1 - match game screen
+	bool	big_font;			//big font doesn't render properly (there are lines under letters and stuff)
 	//
-	short	overlay;		//AR ???
-	bool	in_game;	
+	short	overlay; //AR ???
+	bool	in_game;
+	bool	bullet_time;		//every game should have it
+	float	bullet_time_add;	//percentage
+
+	std::string quick_load;		//quick load
 
 	//player controls
 	int		left, right, up, down;
@@ -49,6 +54,7 @@ public:
 	int		b2;	//fire
 	int		b3;	//weapon prev
 	int		b4;	//weapon next
+	int		bt;	//bullet time
 
 	//controller settings
 	bool	ctr_aim;								//enable

@@ -164,6 +164,7 @@ public :
   void grow_views(int amount);
   void play_sound(int id, int vol, int32_t x, int32_t y);
   void request_level_load(char *name);
+  void request_level_load(std::string name);//AR
   void request_end();
 };
 

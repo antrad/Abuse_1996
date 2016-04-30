@@ -269,6 +269,7 @@ int load_game(int show_all, char const *title)   // return 0 if the player escap
 		my = l_win->m_pos.y + lg_movey/2;
 		wm->SetMousePos(ivec2(mx,my));
 	}
+	//
 
     Event ev;
     int got_level=0;
@@ -313,11 +314,14 @@ int load_game(int show_all, char const *title)   // return 0 if the player escap
 				wm->SetMousePos(ivec2(mx,my));
 			}
 		}
+		//
+
     } while (!got_level && !quit);
 
 	//AR let me know we leaving
 	the_game->ar_state = the_game->ar_stateold;
 	if(settings.ctr_aim) wm->SetMousePos(ivec2(old_mx,old_my));//put mouse where it was on entering
+	//
 
     wm->close_window(l_win);
     wm->close_window(preview);

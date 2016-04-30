@@ -1104,6 +1104,11 @@ void Game::request_level_load(char *name)
   strcpy(req_name, name);
 }
 
+void Game::request_level_load(std::string name)
+{
+	strcpy(req_name,name.c_str());
+}
+
 extern int start_doubled;
 
 template<int N> static void Fade(image *im, int steps)
@@ -1370,18 +1375,19 @@ Game::Game(int argc, char **argv)
     printf("No font defined, set symbol default-font to an image name\n");
     exit(0);
   }
+  
   int font_pict;
   if(big_font_pict != -1)
   {
-    if(small_font_pict != -1)
-    {
-      if(xres/(start_doubled ? 2 : 1)>400)
-      {
-    font_pict = big_font_pict;
-      }
-      else font_pict = small_font_pict;
-    } else font_pict = big_font_pict;
-  } else font_pict = small_font_pict;
+	  if(small_font_pict != -1)
+	  {
+		  //AR big font doesn't render properly
+		  if(settings.big_font && (xres/(start_doubled ? 2 : 1)>400)) font_pict = big_font_pict;		  
+		  else font_pict = small_font_pict;
+	  }
+	  else font_pict = big_font_pict;
+  }
+  else font_pict = small_font_pict;
 
   if(console_font_pict == -1) console_font_pict = font_pict;
   game_font = new JCFont(cache.img(font_pict));
@@ -1978,6 +1984,7 @@ void Game::step()
 		}
 		else if(!(dev & EDIT_MODE)) // if edit mode, then don't step anything
 		{
+			//AR active play state
 			if(key_down(JK_ESC))
 			{
 				set_state(MENU_STATE);
@@ -2454,7 +2461,9 @@ int main(int argc, char *argv[])
             g->update_screen(); // redraw the screen with any changes
         }
 
-		Uint32 AR_lastupdate = 1000;
+		Uint32 ar_lastupdate = 0;
+		float ar_bullettime = 0.0f;
+		Uint32 ar_bt_timer = 0;
 
 		while(!g->done())
 		{
@@ -2490,12 +2499,33 @@ int main(int argc, char *argv[])
 				demo_man.do_inputs();
 
 			service_net_request();
+
+			//AR bullet time
+			if(settings.bullet_time)
+			{
+				if(SDL_GetTicks()-ar_bt_timer>50)
+				{
+					ar_bullettime += 0.15;
+					ar_bt_timer = SDL_GetTicks();
+				}
+				if(ar_bullettime>settings.bullet_time_add) ar_bullettime = settings.bullet_time_add;
+			}
+			else
+			{
+				if(SDL_GetTicks()-ar_bt_timer>50)
+				{
+					ar_bullettime -= 0.15;
+					ar_bt_timer = SDL_GetTicks();
+				}
+				if(ar_bullettime<0) ar_bullettime = 0;
+			}
+			//
 			
 			// process all the objects in the world
-			if(SDL_GetTicks()-AR_lastupdate>=settings.physics_update)
+			if(SDL_GetTicks()-ar_lastupdate>=(settings.physics_update + ar_bullettime*settings.physics_update))
 			{
 				//AR update game at custom framerate, original is 15 FPS, physics are locked at 15 FPS
-				AR_lastupdate = SDL_GetTicks();
+				ar_lastupdate = SDL_GetTicks();
 				
 				g->step();//AR there are loops inside, it doesn't leave the menu loop, until menu says so!
 			}

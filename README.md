@@ -39,7 +39,7 @@ Then I found out the source code was released and was looking for modern ports:
 
 ## 2. ADDITIONAL FEATURES
 
-These are the major changes I made compared to Xenoveritas version:
+These are the changes I made compared to Xenoveritas version:
 
   * Enabled custom resolutions and enabled lights at high resolutions
   * Re-enabled OpenGL rendering to enable vsync
@@ -47,11 +47,13 @@ These are the major changes I made compared to Xenoveritas version:
   * Added or re-enabled several settings in the config file
   * Physics update time can be changed via config file
   * Local save game files and configuration files
+  * Quick load using F9
+  * Bullet time
   * XBox360 controller support with rebindable buttons via the config file (toggle controller aiming using F9)
   * Updated abuse-tool so it can extract the images in Abuse SPEC files to modern image formats
 	as individual images, tilemaps or a texture atlas with information about image, tile and animation frame sizes and positions.
 	
-	***!!! moga bi link stavit ovdje !!!***
+	*** moga bi link stavit ovdje ***
 
 ## 3. BUILDING THE PROJECT
 
@@ -98,6 +100,7 @@ right - move right
 up - climb ladder
 down - use lift, press switch
 special - use special ability
+special2 - use bullet time (not in the original version)
 fire - fire weapon
 weapon_prev - select previous available weapon
 weapon_next - select next available weapon
@@ -154,15 +157,16 @@ See "5. Hardcoded keys" for the hardcoded controller bindings.
 There are several keys in the game that are hardcoded to some function originally or were added during porting:
 
 - 1-7 - weapon selection
-- Home, control left, control right - previous weapon
-- Page up, insert - next weapon
+- Right control - previous weapon
+- Insert - next weapon
 - Numpad 2,4,5,6,8 - player movement 
 - escape, space, enter - reset level on death
 - h, F1 - show help/controls screen
 - c - chat console
 - p - pause game
-- F8 - toggle mouse scaling
-- F9 - toggle controller aiming
+- F7 - toggle mouse scale
+- F8 - toggle controller aiming
+- F9 - quick load
 - F10 - toggle window/fullscreen mode
 - F11 - scale window/screen up
 - F12 - scale window/screen down

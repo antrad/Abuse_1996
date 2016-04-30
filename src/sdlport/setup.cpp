@@ -102,7 +102,7 @@ Settings::Settings()
 	this->vsync				= false;
 	this->xres				= 320;		// Default window width
 	this->yres				= 200;		// Default window height
-	this->scale				= 1;		// default window scale
+	this->scale				= 2;		// default window scale
 	this->linear_filter		= false;    // Don't "anti-alias"		
 
 	//sound
@@ -118,6 +118,10 @@ Settings::Settings()
 	this->editor			= false;	// disable editor mode
 	this->physics_update	= 65;		// original 65ms/15 FPS
 	this->mouse_scale		= 0;		// match desktop
+	this->big_font			= false;
+	//
+	this->bullet_time		= false;
+	this->bullet_time_add	= 1.2f;
 	
 	//player controls
 	this->up		= key_value("w");
@@ -132,6 +136,7 @@ Settings::Settings()
 	this->b2		= key_value("f");		//fire
     this->b3		= key_value("q");		//weapons
     this->b4		= key_value("e");
+	this->bt		= key_value("CTRL_L");
 
 	//controller settings
 	this->ctr_aim		= false;	// controller overide disabled
@@ -157,7 +162,7 @@ Settings::Settings()
 	this->ctr_lsr = "b2";
 	this->ctr_rsr = "b3";
 	//
-	this->ctr_ltg = "b1";
+	this->ctr_ltg = "bt";
 	this->ctr_rtg = "b2";
 }
 
@@ -227,7 +232,13 @@ bool Settings::CreateConfigFile(std::string file_path)
 	out << std::endl;
 	out << "; Fullscreen mouse scaling (0 - match desktop, 1 - match game screen)" << std::endl;
 	out << "mouse_scale=" << this->mouse_scale << std::endl;
-	out << std::endl;	
+	out << std::endl;
+	out << "; Enable big font on high resolution" << std::endl;
+	out << "big_font=" << this->big_font << std::endl;
+	out << std::endl;
+	out << "; Bullet time (%)" << std::endl;
+	out << "bullet_time=" << (int)(this->bullet_time_add*100) << std::endl;
+	out << std::endl;
 	//
 	out << "; PLAYER CONTROLS" << std::endl;
 	out << std::endl;
@@ -239,7 +250,8 @@ bool Settings::CreateConfigFile(std::string file_path)
 	out << "special=SHIFT_L" << std::endl;
 	out << "fire=f" << std::endl;
 	out << "weapon_prev=q" << std::endl;
-	out << "weapon_next=e" << std::endl;	
+	out << "weapon_next=e" << std::endl;
+	out << "special2=CTRL_L" << std::endl;
 	out << std::endl;
 	//
 	out << "; Alternative key mappings (only the following controls can have two keyboard bindings)" << std::endl;
@@ -271,9 +283,9 @@ bool Settings::CreateConfigFile(std::string file_path)
 	out << "; Button mappings (don't use buttons for left/right movement)" << std::endl;
 	out << "up=ctr_a" << std::endl;	
 	out << "down=ctr_b" << std::endl;
-	out << "special=ctr_left_shoulder" << std::endl;
-	out << "special=ctr_left_trigger" << std::endl;
+	out << "special=ctr_left_shoulder" << std::endl;	
 	out << "special=ctr_left_stick" << std::endl;
+	out << "special2=ctr_left_trigger" << std::endl;
 	out << "fire=ctr_right_shoulder" << std::endl;
 	out << "fire=ctr_right_trigger" << std::endl;
 	out << "fire=ctr_right_stick" << std::endl;
@@ -359,6 +371,8 @@ bool Settings::ReadConfigFile(std::string folder)
 		else if(attr=="editor")			this->editor = AR_ToBool(value);
 		else if(attr=="physics_update")	this->physics_update = AR_ToInt(value);
 		else if(attr=="mouse_scale")	this->mouse_scale = AR_ToInt(value);
+		else if(attr=="big_font")		this->big_font = AR_ToBool(value);
+		else if(attr=="bullet_time")	this->bullet_time_add = AR_ToInt(value)/100.0f;
 		
 		//player controls
 		else if(attr=="up")
@@ -392,7 +406,11 @@ bool Settings::ReadConfigFile(std::string folder)
 		}
 		else if(attr=="weapon_next")
 		{
-			if(!ControllerButton(attr,value)) this->b4 = key_value(value.c_str());
+			if(!ControllerButton(attr,value))	this->b4 = key_value(value.c_str());
+		}
+		else if(attr=="special2")
+		{
+			if(!ControllerButton(attr,value))	this->bt = key_value(value.c_str());
 		}
 		//
 		else if(attr=="up_2")		this->up_2 = key_value(value.c_str());
@@ -439,6 +457,7 @@ bool Settings::ControllerButton(std::string c, std::string b)
 	else if(c=="fire")			control = "b2";
 	else if(c=="weapon_prev")	control = "b3";
 	else if(c=="weapon_next")	control = "b4";
+	else if(c=="special2")		control = "bt";
 
 	if(b=="ctr_a") {this->ctr_a = control;return true;};
 	if(b=="ctr_b") {this->ctr_b = control;return true;};
@@ -649,6 +668,7 @@ int get_key_binding(char const *dir, int i)
 	else if(strcasecmp(dir,"b2")==0)		return settings.b2;
 	else if(strcasecmp(dir,"b3")==0)		return settings.b3;
 	else if(strcasecmp(dir,"b4")==0)		return settings.b4;
+	else if(strcasecmp(dir,"bt")==0)		return settings.bt;
 
 	return 0;
 }

@@ -435,6 +435,7 @@ void menu_handler(Event &ev, InputManager *inm)
         if (v->m_focus)
           v->reset_player();
 
+	  settings.quick_load = level_file;//AR
     } break;
 
 
@@ -450,6 +451,8 @@ void menu_handler(Event &ev, InputManager *inm)
 
         the_game->load_level(name);
         the_game->set_state(RUN_STATE);
+
+		settings.quick_load = name;//AR
       }
     } break;
 
@@ -641,6 +644,7 @@ void main_menu()
 	//AR let me know we are stuck here
 	the_game->ar_stateold = the_game->ar_state;
 	the_game->ar_state = AR_MAINMENU;
+	//
 	
     int y=yres/2-100;
     ico_button *list=make_conditional_buttons(xres-33,y);
@@ -662,6 +666,7 @@ void main_menu()
 		my = yres/2-100 + lg_movey/2;
 		wm->SetMousePos(ivec2(mx,my));
 	}
+	//
 	
 	InputManager *inm=new InputManager(main_screen,list);
     inm->allow_no_selections();
@@ -729,7 +734,7 @@ void main_menu()
                 stop_menu=1;
             else if (ev.message.id==ID_QUIT)
             {
-				//AR WTF is that screen doing in dev.cpp ?
+				//AR what is that screen doing in dev.cpp ?
                 if (confirm_quit())
                     stop_menu=1;
                 else
@@ -754,6 +759,8 @@ void main_menu()
 				wm->SetMousePos(ivec2(mx,my));
 			}
 		}
+		//
+
     } while (!stop_menu);
 
     delete inm;
@@ -764,6 +771,7 @@ void main_menu()
 	//AR let me know we leaving
 	the_game->ar_state = the_game->ar_stateold;
 	if(settings.ctr_aim) wm->SetMousePos(ivec2(old_mx,old_my));//put mouse where it was on entering
+	//
 }
 
 

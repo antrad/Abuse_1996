@@ -269,7 +269,7 @@ void EventHandler::SysEvent(Event &ev)
         case SDLK_UP:           ev.key = JK_UP; break;
         case SDLK_LEFT:         ev.key = JK_LEFT; break;
         case SDLK_RIGHT:        ev.key = JK_RIGHT; break;
-        case SDLK_LCTRL:        ev.key = JK_CTRL_L; break;
+		case SDLK_LCTRL:        ev.key = JK_CTRL_L; break;
         case SDLK_RCTRL:        ev.key = JK_CTRL_R; break;
         case SDLK_LALT:         ev.key = JK_ALT_L; break;
         case SDLK_RALT:         ev.key = JK_ALT_R; break;
@@ -289,8 +289,7 @@ void EventHandler::SysEvent(Event &ev)
         case SDLK_F3:           ev.key = JK_F3; break;
         case SDLK_F4:           ev.key = JK_F4; break;
         case SDLK_F5:           ev.key = JK_F5; break;
-        case SDLK_F6:           ev.key = JK_F6; break;
-        case SDLK_F7:           ev.key = JK_F7; break;
+        case SDLK_F6:           ev.key = JK_F6; break;        
 		case SDLK_INSERT:       ev.key = JK_INSERT; break;
         case SDLK_KP_0:         ev.key = JK_INSERT; break;
         case SDLK_PAGEUP:       ev.key = JK_PAGEUP; break;
@@ -301,39 +300,45 @@ void EventHandler::SysEvent(Event &ev)
 		case SDLK_KP_4:         ev.key = JK_LEFT; break;
 		case SDLK_KP_6:         ev.key = JK_RIGHT; break;
 
-			//change settings, only handle key down
+			//random controls
 
-		case SDLK_F8://AR toggle mouse scale			
-			if(ev.type == EV_KEY)
+		case SDLK_F7://AR toggle mouse scale
+			if(ev.type==EV_KEYRELEASE)
 			{
 				if(settings.mouse_scale==0) settings.mouse_scale = 1;
 				else settings.mouse_scale = 0;
+				calculate_mouse_scaling();
 			}
 			ev.key = EV_SPURIOUS;
 			break;
 
-		case SDLK_F9://AR toggle controller aim
-			if(ev.type == EV_KEY) settings.ctr_aim = !settings.ctr_aim;
+		case SDLK_F8://AR toggle controller aim
+			if(ev.type==EV_KEYRELEASE) settings.ctr_aim = !settings.ctr_aim;
 			ev.key = EV_SPURIOUS;
 			break;
 
+		case SDLK_F9://AR quick load
+			if(ev.type==EV_KEYRELEASE && !settings.quick_load.empty()) the_game->request_level_load(settings.quick_load);
+			ev.key = EV_SPURIOUS;			
+			break;
+
 		case SDLK_F10://toggle fullscreen, 			
-			if(ev.type == EV_KEY) video_change_settings(0,true);
+			if(ev.type==EV_KEYRELEASE) video_change_settings(0,true);
 			ev.key = EV_SPURIOUS;
 			break;
 
 		case SDLK_F11://AR scale window up
-			if(ev.type == EV_KEY) video_change_settings(1,false);
+			if(ev.type==EV_KEYRELEASE) video_change_settings(1,false);
 			ev.key = EV_SPURIOUS;
 			break;
 
 		case SDLK_F12://AR scale window down
-			if(ev.type == EV_KEY) video_change_settings(-1,false);
+			if(ev.type==EV_KEYRELEASE) video_change_settings(-1,false);
 			ev.key = EV_SPURIOUS;
 			break;
 
 		case SDLK_PRINTSCREEN://grab a screenshot
-			if(ev.type == EV_KEY)
+			if(ev.type==EV_KEYRELEASE)
 			{
 				SDL_SaveBMP(surface, "screenshot.bmp");
 				the_game->show_help("Screenshot saved to: screenshot.bmp.\n");
@@ -347,9 +352,11 @@ void EventHandler::SysEvent(Event &ev)
 			if((int)sdlev.key.keysym.sym>JK_MAX_KEY) ev.key = JK_MAX_KEY;
 			else ev.key = (int)sdlev.key.keysym.sym;
 
+			//AR this shift stuff messes up WSAD player controls when shift is pressed
+
             // Need to handle the case of shift being pressed
             // There has to be a better way
-            if((sdlev.key.keysym.mod & KMOD_SHIFT) != 0)
+            /*if((sdlev.key.keysym.mod & KMOD_SHIFT) != 0)
             {
                 if(sdlev.key.keysym.sym >= SDLK_a &&
                     sdlev.key.keysym.sym <= SDLK_z)
@@ -391,7 +398,7 @@ void EventHandler::SysEvent(Event &ev)
                         break;
                     }
                 }
-            }
+            }*/
             break;
         }
         break;

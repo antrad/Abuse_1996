@@ -1492,12 +1492,11 @@ void level::level_loaded_notify()
 	
 	while(i>=0)
 	{
-		char zero = '0';
-		if(i>=10) zero = '\0';
-
 		char nm[100];
-		sprintf(nm,"music/abuse%c%d.hmi",zero,i);
 
+		if(i<10) sprintf(nm,"music/abuse%c%d.hmi",'0',i);
+		else sprintf(nm,"music/abuse%d.hmi",i);
+		
 		bFILE *fp = open_file(nm,"rb");
 		if(fp->open_failure())
 		{

@@ -607,23 +607,7 @@ int view::handle_event(Event &ev)
 {
     if( ev.type == EV_KEY )
     {
-        if( ev.key == (int)',' )
-        {
-            if( total_weapons )
-            {
-                last_weapon();
-            }
-            return 1;
-        }
-        else if( ev.key == (int)'.' )
-        {
-            if( total_weapons )
-            {
-                next_weapon();
-            }
-            return 1;
-        }
-        else if( ev.key == get_key_binding( "b3", 0 ) )
+        if( ev.key == get_key_binding( "b3", 0 ) )
         {
             if( total_weapons )
             {
@@ -657,8 +641,7 @@ int view::handle_event(Event &ev)
                 }
             } break;
 
-            case JK_HOME:
-            case JK_CTRL_L:
+			//AR left hardcoded because of the help screen
             case JK_CTRL_R:
             {
                 if( total_weapons )
@@ -667,8 +650,8 @@ int view::handle_event(Event &ev)
                 }
                 return 1;
             } break;
-            case JK_PAGEUP:
-            case JK_INSERT:
+            
+			case JK_INSERT:
             {
                 if( total_weapons )
                 {

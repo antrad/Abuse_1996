@@ -43,6 +43,11 @@
 #include "jdir.h"
 #include "netcfg.h"
 
+//AR
+#include "sdlport/setup.h"
+extern Settings settings;
+//
+
 #define ENGINE_MAJOR 1
 #define ENGINE_MINOR 20
 
@@ -1884,6 +1889,10 @@ long c_caller(long number, void *args)
     {
       char *fn=lstring_value(CAR(args));
       current_level->save(fn,1);
+	  
+	  //AR
+	  settings.quick_load = get_save_filename_prefix();
+	  settings.quick_load += fn;
     } break;
     case 224 :
     {
@@ -1902,6 +1911,8 @@ long c_caller(long number, void *args)
         strcpy( fn, lstring_value(CAR(args)) );
       }
       the_game->request_level_load(fn);
+
+	  settings.quick_load = fn;//AR
     } break;
     case 226 :
     {

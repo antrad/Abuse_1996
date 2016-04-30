@@ -24,6 +24,11 @@
 #include "jwindow.h"
 #include "configuration.h"
 
+//AR
+#include "sdlport/setup.h"
+extern Settings settings;
+//
+
 extern int get_key_binding(char const *dir, int i);
 
 int key_players = 0;
@@ -34,6 +39,8 @@ struct player_keys
     int joy, left, right, up, down, b1, b2, b3, b4;
     // Alternate keys to allow two key bindings for the same action
     int left_2, right_2, up_2, down_2;
+
+	int bt;//AR bullet time
 };
 
 static player_keys *key_map = NULL;
@@ -152,6 +159,7 @@ void get_key_bindings()
         key_map[i].b3 = get_key_binding( "b3", i + 1 );
         key_map[i].b2 = get_key_binding( "b2", i + 1 );
         key_map[i].b1 = get_key_binding( "b1", i + 1 );
+		key_map[i].bt = get_key_binding( "bt", i + 1 );
 #else
         key_map[i].left = 258;
         key_map[i].left_2 = 258;
@@ -225,12 +233,18 @@ void get_movement(int player, int &x, int &y, int &b1, int &b2, int &b3, int &b4
                 b4 = 1;
             else
                 b4 = 0;
+
+			 if( is_pressed( key_map[player].bt ) )
+                settings.bullet_time = true;
+            else
+                settings.bullet_time = false;
         }
     }
     else
     {
         // FIXME: Why not b4?
         x = y = b1 = b2 = b3 = 0;
+		settings.bullet_time = false;
     }
 }
 
