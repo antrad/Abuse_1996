@@ -103,7 +103,8 @@ Settings::Settings()
 	this->xres				= 320;		// Default window width
 	this->yres				= 200;		// Default window height
 	this->scale				= 2;		// default window scale
-	this->linear_filter		= false;    // Don't "anti-alias"		
+	this->linear_filter		= false;    // Don't "anti-alias"	
+	this->hires				= false;
 
 	//sound
 	this->mono				= false;	// disable stereo sound
@@ -122,6 +123,10 @@ Settings::Settings()
 	//
 	this->bullet_time		= false;
 	this->bullet_time_add	= 1.2f;
+
+	this->player_touching_console = false;
+
+	this->cheat_god = cheat_bullettime = false;
 	
 	//player controls
 	this->up		= key_value("w");
@@ -139,16 +144,17 @@ Settings::Settings()
 	this->bt		= key_value("CTRL_L");
 
 	//controller settings
-	this->ctr_aim		= false;	// controller overide disabled
-	this->ctr_cd		= 100;
-	this->ctr_rst_s		= 10;
-	this->ctr_rst_dz	= 5000;		// aiming
-	this->ctr_lst_dzx	= 10000;	// move left right
-	this->ctr_lst_dzy	= 25000;	// up/jump, down/use
-	this->ctr_aim_x		= 0;
-	this->ctr_aim_y		= 0;
-	this->ctr_mouse_x	= 0;
-	this->ctr_mouse_y	= 0;
+	this->ctr_aim			= false;	// controller overide disabled
+	this->ctr_aim_correctx	= 0;
+	this->ctr_cd			= 100;
+	this->ctr_rst_s			= 10;
+	this->ctr_rst_dz		= 5000;		// aiming
+	this->ctr_lst_dzx		= 10000;	// move left right
+	this->ctr_lst_dzy		= 25000;	// up/jump, down/use
+	this->ctr_aim_x			= 0;
+	this->ctr_aim_y			= 0;
+	this->ctr_mouse_x		= 0;
+	this->ctr_mouse_y		= 0;
 
 	//controller buttons
 	this->ctr_a = "up";
@@ -164,6 +170,9 @@ Settings::Settings()
 	//
 	this->ctr_ltg = "bt";
 	this->ctr_rtg = "b2";
+	//
+	this->ctr_f5 = SDL_CONTROLLER_BUTTON_LEFTSTICK;
+	this->ctr_f9 = SDL_CONTROLLER_BUTTON_RIGHTSTICK;
 }
 
 //////////
@@ -200,6 +209,12 @@ bool Settings::CreateConfigFile(std::string file_path)
 	out << "; Use linear texture filter (nearest is default)" << std::endl;
 	out << "linear_filter=" << this->linear_filter << std::endl;
 	out << std::endl;
+	out << "; Enable high resolution screens and icons" << std::endl;
+	out << "hires=" << this->hires << std::endl;
+	out << std::endl;
+	out << "; Enable big font on high resolution" << std::endl;
+	out << "big_font=" << this->big_font << std::endl;
+	out << std::endl;
 	//
 	out << "; SOUND SETTINGS" << std::endl;
 	out << std::endl;
@@ -232,10 +247,7 @@ bool Settings::CreateConfigFile(std::string file_path)
 	out << std::endl;
 	out << "; Fullscreen mouse scaling (0 - match desktop, 1 - match game screen)" << std::endl;
 	out << "mouse_scale=" << this->mouse_scale << std::endl;
-	out << std::endl;
-	out << "; Enable big font on high resolution" << std::endl;
-	out << "big_font=" << this->big_font << std::endl;
-	out << std::endl;
+	out << std::endl;	
 	out << "; Bullet time (%)" << std::endl;
 	out << "bullet_time=" << (int)(this->bullet_time_add*100) << std::endl;
 	out << std::endl;
@@ -266,6 +278,9 @@ bool Settings::CreateConfigFile(std::string file_path)
 	out << "; Enable aiming" << std::endl;
 	out << "ctr_aim=" << this->ctr_aim << std::endl;
 	out << std::endl;
+	out << "; Correct crosshair position (x)" << std::endl;
+	out << "ctr_aim_x=" << this->ctr_aim_correctx << std::endl;
+	out << std::endl;
 	out << "; Crosshair distance from player" << std::endl;
 	out << "ctr_cd=" << this->ctr_cd << std::endl;
 	out << std::endl;
@@ -291,6 +306,8 @@ bool Settings::CreateConfigFile(std::string file_path)
 	out << "fire=ctr_right_stick" << std::endl;
 	out << "weapon_prev=ctr_x" << std::endl;
 	out << "weapon_next=ctr_y" << std::endl;
+	out << "quick_save=ctr_left_stick" << std::endl;
+	out << "quick_load=ctr_right_stick" << std::endl;
 	
 	out.close();
 
@@ -357,6 +374,7 @@ bool Settings::ReadConfigFile(std::string folder)
 		else if(attr=="screen_height")	this->yres = AR_ToInt(value);
 		else if(attr=="scale")			this->scale = AR_ToInt(value);
 		else if(attr=="linear_filter")	this->linear_filter = AR_ToBool(value);
+		else if(attr=="hires")			this->hires = AR_ToBool(value);
 
 		//sound
 		else if(attr=="mono")			this->mono = AR_ToBool(value);
@@ -420,11 +438,28 @@ bool Settings::ReadConfigFile(std::string folder)
 		
 		//controller settings
 		else if(attr=="ctr_aim")		this->ctr_aim = AR_ToBool(value);
+		else if(attr=="ctr_aim_x")		this->ctr_aim_correctx = AR_ToInt(value);
 		else if(attr=="ctr_cd")			this->ctr_cd = AR_ToInt(value);
 		else if(attr=="ctr_rst_s")		this->ctr_rst_s = AR_ToInt(value);
 		else if(attr=="ctr_rst_dz")		this->ctr_rst_dz = AR_ToInt(value);
 		else if(attr=="ctr_lst_dzx")	this->ctr_lst_dzx = AR_ToInt(value);
 		else if(attr=="ctr_lst_dzy")	this->ctr_lst_dzy = AR_ToInt(value);
+		else if(attr=="quick_save" || attr=="quick_load")
+		{
+			int b = 0;
+
+			if(value=="ctr_a")						b = SDL_CONTROLLER_BUTTON_A;
+			else if(value=="ctr_b")					b = SDL_CONTROLLER_BUTTON_B;
+			else if(value=="ctr_x")					b = SDL_CONTROLLER_BUTTON_X;
+			else if(value=="ctr_y")					b = SDL_CONTROLLER_BUTTON_Y;
+			else if(value=="ctr_left_stick")		b = SDL_CONTROLLER_BUTTON_LEFTSTICK;
+			else if(value=="ctr_right_stick")		b = SDL_CONTROLLER_BUTTON_RIGHTSTICK;
+			else if(value=="ctr_left_shoulder")		b = SDL_CONTROLLER_BUTTON_LEFTSHOULDER;
+			else if(value=="ctr_right_shoulder")	b = SDL_CONTROLLER_BUTTON_RIGHTSHOULDER;
+
+			if(attr=="quick_save") this->ctr_f5 = b;
+			else this->ctr_f9 = b;
+		}		
 		else
 		{
 			filein.close();

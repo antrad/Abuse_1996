@@ -287,8 +287,7 @@ void EventHandler::SysEvent(Event &ev)
         case SDLK_F1:           ev.key = JK_F1; break;
         case SDLK_F2:           ev.key = JK_F2; break;
         case SDLK_F3:           ev.key = JK_F3; break;
-        case SDLK_F4:           ev.key = JK_F4; break;
-        case SDLK_F5:           ev.key = JK_F5; break;
+        case SDLK_F4:           ev.key = JK_F4; break;        
         case SDLK_F6:           ev.key = JK_F6; break;        
 		case SDLK_INSERT:       ev.key = JK_INSERT; break;
         case SDLK_KP_0:         ev.key = JK_INSERT; break;
@@ -301,6 +300,19 @@ void EventHandler::SysEvent(Event &ev)
 		case SDLK_KP_6:         ev.key = JK_RIGHT; break;
 
 			//random controls
+
+		case SDLK_F5://AR quick save in dedicated quick save slot when touching the console
+			if(ev.type==EV_KEYRELEASE && settings.player_touching_console)
+			{				
+				if(current_level->save("save0001.spe",1)==1)
+				{
+					the_game->show_help("Station secured!");
+					cache.sfx(1031)->play(127);//id 1031 should be save05.wav
+					settings.quick_load = get_save_filename_prefix();
+					settings.quick_load += "save0001.spe";
+				}
+			}
+			break;
 
 		case SDLK_F7://AR toggle mouse scale
 			if(ev.type==EV_KEYRELEASE)
@@ -405,6 +417,32 @@ void EventHandler::SysEvent(Event &ev)
 
 	case SDL_CONTROLLERBUTTONDOWN:
 	case SDL_CONTROLLERBUTTONUP:
+		if(settings.ctr_f5==sdlev.cbutton.button)//AR quick save
+		{
+			if(sdlev.type==SDL_CONTROLLERBUTTONUP)
+				if(settings.player_touching_console)
+				{				
+					if(current_level->save("save0001.spe",1)==1)
+					{
+						the_game->show_help("Station secured!");
+						cache.sfx(1031)->play(127);//id 1031 should be save05.wav
+						settings.quick_load = get_save_filename_prefix();
+						settings.quick_load += "save0001.spe";
+					}
+				}
+				ev.type = sdlev.type == SDL_CONTROLLERBUTTONDOWN ? EV_KEY : EV_KEYRELEASE;
+				ev.key = EV_SPURIOUS;
+				return;
+		}
+		else if(settings.ctr_f9==sdlev.cbutton.button)//AR quick load
+		{
+			if(sdlev.type==SDL_CONTROLLERBUTTONUP)
+				if(!settings.quick_load.empty()) the_game->request_level_load(settings.quick_load);
+			ev.type = sdlev.type == SDL_CONTROLLERBUTTONDOWN ? EV_KEY : EV_KEYRELEASE;
+			ev.key = EV_SPURIOUS;
+			return;
+		}
+
 		switch (sdlev.cbutton.button)
 		{
 			//AR convert to key events

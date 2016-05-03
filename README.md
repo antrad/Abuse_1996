@@ -41,15 +41,17 @@ Then I found out the source code was released and was looking for modern ports:
 
 These are the changes I made compared to Xenoveritas version:
 
-  * Enabled custom resolutions and enabled lights at high resolutions
+  * Enabled custom resolutions and enabled lights on high resolutions
   * Re-enabled OpenGL rendering to enable vsync
-  * Game screen scaling in window or fullscreen mode using F11 and F12
-  * Added or re-enabled several settings in the config file
+  * Game screen scaling in window and fullscreen mode using F11 and F12
+  * Fixed level music not being played correctly
+  * Added or re-enabled various settings in the config file
   * Physics update time can be changed via config file
   * Local save game files and configuration files
-  * Quick load using F9
-  * Bullet time
+  * Quick load using F9, quick save using F5 on save consoles
+  * Added cheats via chat console: bullettime, god, giveall, flypower, sneakypower, fastpower, healthpower
   * XBox360 controller support with rebindable buttons via the config file (toggle controller aiming using F9)
+  
   * Updated abuse-tool so it can extract the images in Abuse SPEC files to modern image formats
 	as individual images, tilemaps or a texture atlas with information about image, tile and animation frame sizes and positions.
 	
@@ -59,8 +61,8 @@ These are the changes I made compared to Xenoveritas version:
 
 Abuse has the following requirements:
 
-  * SDL2 2.0.3 or above.
-  * SDL_mixer 2.0.0 or above.
+  * SDL2 2.0.3 or above
+  * SDL_mixer 2.0.0 or above
   * GLee for OpenGL rendering
   * OpenCV 2.1 for abuse-tool
 
@@ -207,19 +209,19 @@ If you find bugs or have some problems with the game send me an email and I will
 
 ## 9. LINKS
 
-Original source code https://archive.org/details/abuse_sourcecode
-Jeremy Scott's Windows port [2001] http://web.archive.org/web/20051023123223/http://www.webpages.uidaho.edu/~scot4875/
-Abuse SDL [2002] http://web.archive.org/web/20070205093016/http://www.labyrinth.net.au/~trandor/abuse/
-Sam Hocevar Abuse Page [2011] http://abuse.zoy.org/
-Xenoveritas SDL2 port [2014] http://github.com/Xenoveritas/abuse
+Original source code <https://archive.org/details/abuse_sourcecode>
+Jeremy Scott's Windows port [2001] <http://web.archive.org/web/20051023123223/http://www.webpages.uidaho.edu/~scot4875/>
+Abuse SDL [2002] <http://web.archive.org/web/20070205093016/http://www.labyrinth.net.au/~trandor/abuse/>
+Sam Hocevar Abuse Page [2011] <http://abuse.zoy.org/>
+Xenoveritas SDL2 port [2014] <http://github.com/Xenoveritas/abuse>
 
-Abuse home page http://web.archive.org/web/20010517011228/http://abuse2.com/
-Free Abuse (Frabs) home page http://web.archive.org/web/20010124070000/http://www.cs.uidaho.edu/~cass0664/fRaBs/
+Abuse home page <http://web.archive.org/web/20010517011228/http://abuse2.com/>
+Free Abuse (Frabs) home page <http://web.archive.org/web/20010124070000/http://www.cs.uidaho.edu/~cass0664/fRaBs/>
 
-Frabs download http://www.dosgames.com/g_act.php
-Abuse Desura download http://www.desura.com/games/abuse/download
+Frabs download <http://www.dosgames.com/g_act.php>
+Abuse Desura download <http://www.desura.com/games/abuse/download>
 
-HMI to MIDI converter http://www.ttdpatch.net/midi/games.html
+HMI to MIDI converter <http://www.ttdpatch.net/midi/games.html>
 
 ----
 

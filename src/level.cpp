@@ -1496,7 +1496,7 @@ void level::level_loaded_notify()
 
 		if(i<10) sprintf(nm,"music/abuse%c%d.hmi",'0',i);
 		else sprintf(nm,"music/abuse%d.hmi",i);
-		
+
 		bFILE *fp = open_file(nm,"rb");
 		if(fp->open_failure())
 		{
@@ -2217,6 +2217,8 @@ void level::load_cache_info(spec_directory *sd, bFILE *fp)
 
 int level::save(char const *filename, int save_all)
 {
+	//AR clisp.case 223 saves the game in game
+
     char name[255], bkname[255];
 
     sprintf( name, "%s%s", get_save_filename_prefix(), filename );

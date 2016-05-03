@@ -24,6 +24,7 @@ public:
 	short	yres;	
 	short	scale;			//windows scale
 	bool	linear_filter;	//"antialias"
+	bool	hires;			//enable hires screens and icons
 
 	//sound
 	bool	mono;
@@ -45,7 +46,11 @@ public:
 	bool	bullet_time;		//every game should have it
 	float	bullet_time_add;	//percentage
 
-	std::string quick_load;		//quick load
+	std::string quick_load;			//quick load
+	bool player_touching_console;	//only allow quicksave if player is touching the console
+
+	//cheats
+	bool cheat_god, cheat_bullettime;
 
 	//player controls
 	int		left, right, up, down;
@@ -58,6 +63,7 @@ public:
 
 	//controller settings
 	bool	ctr_aim;								//enable
+	int		ctr_aim_correctx;						//for some reason game adds black bars on widescreen resolutions and it messes up crosshair position
 	int		ctr_cd;									//crosshair distance from player
 	int		ctr_rst_s;								//right stick sensitivity
 	int		ctr_rst_dz, ctr_lst_dzx, ctr_lst_dzy;	//dead zones
@@ -70,6 +76,8 @@ public:
 	std::string ctr_lst, ctr_rst;					//stick buttons
 	std::string ctr_lsr, ctr_rsr;					//shoulder buttons
 	std::string ctr_ltg, ctr_rtg;					//trigger buttons
+
+	int ctr_f5, ctr_f9;
 
 	Settings();
 

@@ -91,7 +91,7 @@ public:
   int process_input(char cmd, uint8_t *&pk);
 
   void add_ammo   (int weapon_type, int total);
-  int has_weapon  (int weapon_type) { return god || (weapons[weapon_type]!=-1); }
+  int has_weapon  (int weapon_type) { return (weapons[weapon_type]!=-1); }
   void give_weapon(int weapontype);
   int weapon_total(int weapon_type);
 

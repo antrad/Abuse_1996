@@ -1154,7 +1154,12 @@ long c_caller(long number, void *args)
       current_level->attacker(current_object)->picture_space(x1,y1,x2,y2);
       current_object->picture_space(xp1,yp1,xp2,yp2);
       if (xp1>x2 || xp2<x1 || yp1>y2 || yp2<y1) return 0;
-      else return 1;
+      else
+	  {
+		  //AR enable quick save if player(56) is touching the save console(61)
+		  if(current_level->attacker(current_object)->otype==56 && current_object->otype==61) settings.player_touching_console = true;
+		  return 1;
+	  }
     } break;
     case 23 : current_object->add_power(lnumber_value(CAR(args))); break;
     case 24 : current_object->add_hp(lnumber_value(CAR(args))); break;

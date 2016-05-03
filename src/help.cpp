@@ -43,7 +43,7 @@ void help_handle_event(Event &ev)
 
   if (the_game->state!=HELP_STATE)
   {
-    if (ev.type==EV_KEY && (ev.key=='h' || ev.key=='?' || ev.key==JK_F1) && help_screens)
+    if (ev.type==EV_KEY && ev.key==JK_F1 && help_screens)
     {
       if (!main_net_cfg || (main_net_cfg->state!=net_configuration::SERVER && main_net_cfg->state!=net_configuration::CLIENT))
       {

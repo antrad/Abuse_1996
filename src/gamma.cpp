@@ -180,7 +180,9 @@ void gamma_correct(palette *&pal, int force_menu)
 
             gammapath = (char *)malloc(strlen(get_save_filename_prefix()) + 10);
             sprintf(gammapath, "%sgamma.lsp", get_save_filename_prefix());
-            fp = open_FILE(gammapath, "wb");
+            
+			fp = fopen(gammapath, "wb");//AR open_FILE() didn't work
+
             if(fp)
             {
                 fprintf(fp, "(setq darkest_gray %ld)\n", dg);

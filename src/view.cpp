@@ -44,6 +44,11 @@
 #define SHIFT_DOWN_DEFAULT 24
 #define SHIFT_RIGHT_DEFAULT 0
 
+//AR
+#include "sdlport/setup.h"
+extern Settings settings;
+//
+
 extern int get_key_binding( char const *dir, int i );
 view *player_list=NULL;
 int morph_sel_frame_color;
@@ -114,8 +119,8 @@ int view::weapon_total(int type)
     printf("weapon out of range\n");
     return 0;
   }
-  if (god) return 100;
-  else if (weapons[type]==-1) return 0;
+  
+  if (weapons[type]==-1) return 0;
   else return weapons[type];
 }
 
@@ -423,6 +428,7 @@ void view::get_input()
     base->packet.write_uint16((uint16_t)sug_p.y);
 }
 
+#include <string>
 
 void view::add_chat_key(int key)  // return string if buf is complete
 {
@@ -445,6 +451,78 @@ void view::add_chat_key(int key)  // return string if buf is complete
 
   if (len>38 || key==JK_ENTER)
   {
+	  //AR cheats - tmp console solution
+	  std::string chat_text = m_chat_buf;	 
+
+	  if(chat_text.empty() || chat_text=="exit" || chat_text=="quit")
+	  {
+		  chat->toggle();
+	  }	  
+	  else if(chat_text=="god")
+	  {
+		  settings.cheat_god = !settings.cheat_god;
+
+		  if(settings.cheat_god) chat_text += " ENABLED";
+		  else chat_text += " DISABLED";
+
+		  strcpy(m_chat_buf,chat_text.c_str());
+	  }
+	  else if(chat_text=="giveall")
+	  {
+		  chat_text += " DONE";
+
+		  for(int i=0;i<total_weapons-1;i++) weapons[i] = 999;
+		  sbar.redraw(main_screen);
+
+		  strcpy(m_chat_buf,chat_text.c_str());
+	  }
+	  else if(chat_text=="bullettime")
+	  {
+		  settings.cheat_bullettime = !settings.cheat_bullettime;
+
+		  if(settings.cheat_bullettime) chat_text += " ENABLED";
+		  else chat_text += " DISABLED";
+
+		  strcpy(m_chat_buf,chat_text.c_str());
+	  }
+	  //cop.cpp -> special_power=4
+	  else if(chat_text=="nopower")
+	  {
+		  this->m_focus->lvars[4] = 0;//NO_POWER
+
+		  chat_text += " ENABLED";
+		  strcpy(m_chat_buf,chat_text.c_str());
+	  }
+	  else if(chat_text=="fastpower")
+	  {
+		  this->m_focus->lvars[4] = 1;//FAST_POWER
+
+		  chat_text += " ENABLED";
+		  strcpy(m_chat_buf,chat_text.c_str());
+	  }
+	  else if(chat_text=="flypower")
+	  {
+		  this->m_focus->lvars[4] = 2;//FLY_POWER
+
+		  chat_text += " ENABLED";
+		  strcpy(m_chat_buf,chat_text.c_str());
+	  }
+	  else if(chat_text=="sneakypower")
+	  {
+		  this->m_focus->lvars[4] = 3;//SNEAKY_POWER
+
+		  chat_text += " ENABLED";
+		  strcpy(m_chat_buf,chat_text.c_str());
+	  }
+	  else if(chat_text=="healthpower")
+	  {
+		  this->m_focus->lvars[4] = 4;//HEALTH_POWER
+
+		  chat_text += " ENABLED";
+		  strcpy(m_chat_buf,chat_text.c_str());
+	  }
+	  //
+
     if (DEFINEDP(l_chat_input->GetFunction()))
     {
       game_object *o=current_object;

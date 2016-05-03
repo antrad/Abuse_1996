@@ -170,7 +170,7 @@ void sound_effect::play(int volume, int pitch, int panpot)
 
 song::song(char const * filename)
 {
-    data = NULL;
+	data = NULL;
     Name = strdup(filename);
     song_id = 0;
 
@@ -203,8 +203,8 @@ song::song(char const * filename)
 
 song::~song()
 {
-    if(playing())
-        stop();
+    if(playing()) stop();
+
     free(data);
     free(Name);
 
@@ -215,8 +215,8 @@ song::~song()
 void song::play( unsigned char volume )
 {
 	if(!sound_enabled || settings.no_music) return;
-
-    song_id = 1;
+	
+	song_id = 1;
 
 	//AR play music in a loop
     Mix_PlayMusic(this->music, -1);

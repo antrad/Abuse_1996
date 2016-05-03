@@ -234,10 +234,12 @@ void get_movement(int player, int &x, int &y, int &b1, int &b2, int &b3, int &b4
             else
                 b4 = 0;
 
-			 if( is_pressed( key_map[player].bt ) )
-                settings.bullet_time = true;
-            else
-                settings.bullet_time = false;
+			//AR
+			if(settings.cheat_bullettime)
+			{
+				if(is_pressed(key_map[player].bt)) settings.bullet_time = true;
+				else settings.bullet_time = false;
+			}
         }
     }
     else

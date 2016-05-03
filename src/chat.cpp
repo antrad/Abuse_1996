@@ -27,7 +27,7 @@ chat_console::chat_console(JCFont *font, int width, int height) :
     cx = 0;
     cy = h - 1;
     lastx = xres / 2 - screen_w() / 2;
-    lasty = yres - h;
+    lasty = yres / 2 - h;
 }
 
 void chat_console::clear()
