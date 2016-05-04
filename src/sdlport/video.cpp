@@ -94,8 +94,10 @@ void set_mode(int argc, char **argv)
 
 	int window_type = 0;
 
-	if(settings.fullscreen==1)		window_type = SDL_WINDOW_FULLSCREEN_DESKTOP;
-	else if(settings.fullscreen==2)	window_type = SDL_WINDOW_FULLSCREEN;
+	if(settings.fullscreen==1)		window_type |= SDL_WINDOW_FULLSCREEN_DESKTOP;
+	else if(settings.fullscreen==2)	window_type |= SDL_WINDOW_FULLSCREEN;
+
+	if(settings.borderless)			window_type |= SDL_WINDOW_BORDERLESS;
     
 	// FIXME: Set the icon for this window.  Looks nice on taskbars etc.
     //SDL_WM_SetIcon(SDL_LoadBMP("abuse.bmp"), NULL);
@@ -175,6 +177,7 @@ void set_mode(int argc, char **argv)
     main_screen->clear();
 	
 	//hide the mouse cursor and set up the mouse
+	if(settings.grab_input) SDL_SetWindowGrab(window,SDL_TRUE);
     SDL_ShowCursor(0);
     calculate_mouse_scaling(); 
 

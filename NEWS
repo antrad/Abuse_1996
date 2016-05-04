@@ -6,7 +6,7 @@ ABUSE:
 - enabled custom screen size and resolution
 	- light enabled at high resolutions
 - local config file
-	- screen width, height and scale
+	- screen width, height, scale, borderless window, grab input
 	- editor mode
 	- controller aiming, right stick sensitivity, dead zone and crosshair distance from the player
 	- physics update time in ms
@@ -20,11 +20,14 @@ ABUSE:
 	- calculating and updating the crosshair position when aiming with a controller
 	- rebindable controller buttons, saving and loading of button bindings via config file
 	- navigating the main menu and save/load screens using dpad or left stick
+	- toggle controller use using F8
+- toggle mouse scale type using F7
 - fixed level music not being played correctly when level was loaded
 - quick load using F9, quick save using F5 on save consoles
 - fixed gamma setting not being saved
 - added cheats via chat console: bullettime, god, giveall, flypower, sneakypower, fastpower, healthpower
 - enabled some high resolution images from the 1997 Mac OS release
+- toggle window input grab using F6
 
 ABUSE-TOOL:
 - extracting PCX images in SPEC files to modern image formats using OpenCV

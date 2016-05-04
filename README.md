@@ -46,7 +46,7 @@ These are the changes I made compared to Xenoveritas version:
   * Game screen scaling in window and fullscreen mode using F11 and F12
   * Enabled some high resolution images from the 1997 Mac OS release
   * Fixed level music not being played correctly, added "victory" music in the end game screen
-  * Added or re-enabled various settings in the config file (physics update time, editor mode, high resolution mode...)
+  * Added or re-enabled various settings in the config file (borderless window, grab input, editor mode, high resolution images...)
   * Local save game files and configuration files
   * Quick load using F9, quick save using F5 on save consoles
   * Added cheats via chat console: bullettime, god, giveall, flypower, sneakypower, fastpower, healthpower
@@ -157,7 +157,8 @@ There are several keys in the game that are hardcoded to some function originall
 - c - cheat/chat console
 - p - pause game
 - F5 - quick save on save consoles (1 or "save0001.spe" is the dedicated quick save slot)
-- F7 - toggle mouse scale
+- F6 - toggle window input grab
+- F7 - toggle mouse scale type
 - F8 - toggle controller use
 - F9 - quick load
 - F10 - toggle window/fullscreen mode
@@ -215,12 +216,12 @@ If you find bugs or have some problems with the game send me an email and I will
 ###### Info about the game
 [Moby games page] (http://www.mobygames.com/game/abuse)  
 [Abuse homepage] (http://web.archive.org/web/20010517011228/http://abuse2.com)  
-[Free Abuse (Frabs) homepage] (http://web.archive.org/web/20010124070000/http://www.cs.uidaho.edu/~cass0664/fRaBs)  
+[Free Abuse(Frabs) homepage] (http://web.archive.org/web/20010124070000/http://www.cs.uidaho.edu/~cass0664/fRaBs)  
 [Abuse fan page] (http://web.archive.org/web/19970701080256/http://games.3dreview.com/abuse/index.html)  
 
 ###### Downloads
-[Frabs download] (http://www.dosgames.com/g_act.php)  
 [Abuse Desura download] (http://www.desura.com/games/abuse/download)  
+[Free Abuse(Frabs) download] (http://www.dosgames.com/g_act.php)  
 
 ###### Source code releases
 [Original source code] (https://archive.org/details/abuse_sourcecode)  

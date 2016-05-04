@@ -98,13 +98,14 @@ bool AR_GetAttr(std::string line, std::string &attr, std::string &value)
 Settings::Settings()
 {
 	//screen
-	this->fullscreen		= 0;		// Start in window
+	this->fullscreen		= 0;		// start in window
+	this->borderless		= false;
 	this->vsync				= false;
-	this->xres				= 320;		// Default window width
-	this->yres				= 200;		// Default window height
+	this->xres				= 320;		// default window width
+	this->yres				= 200;		// default window height
 	this->scale				= 2;		// default window scale
-	this->linear_filter		= false;    // Don't "anti-alias"	
-	this->hires				= 0;
+	this->linear_filter		= false;    // don't "anti-alias"	
+	this->hires				= 0;	
 
 	//sound
 	this->mono				= false;	// disable stereo sound
@@ -115,7 +116,7 @@ Settings::Settings()
 
 	//random
 	this->local_save		= true;
-	this->grab_mouse		= false;	// Don't grab the mouse
+	this->grab_input		= false;	// don't grab the input
 	this->editor			= false;	// disable editor mode
 	this->physics_update	= 65;		// original 65ms/15 FPS
 	this->mouse_scale		= 0;		// match desktop
@@ -141,7 +142,7 @@ Settings::Settings()
 	this->b2		= key_value("f");		//fire
     this->b3		= key_value("q");		//weapons
     this->b4		= key_value("e");
-	this->bt		= key_value("CTRL_L");
+	this->bt		= key_value("CTRL_L");	//special2, bulettime
 
 	//controller settings
 	this->ctr_aim			= false;	// controller overide disabled
@@ -197,6 +198,7 @@ bool Settings::CreateConfigFile(std::string file_path)
 	out << std::endl;
 	out << ";0 - window, 1 - fullscreen window, 2 - fullscreen" << std::endl;
 	out << "fullscreen=" << this->fullscreen << std::endl;
+	out << "borderless=" << this->borderless << std::endl;
 	out << "vsync=" << this->vsync << std::endl;
 	out << std::endl;
 	out << "; Game screen size (original 320x200)" << std::endl;
@@ -236,8 +238,8 @@ bool Settings::CreateConfigFile(std::string file_path)
 	out << std::endl;
 	out << "local_save=" << this->local_save << std::endl;	
 	out << std::endl;
-	out << "; Grab the mouse to the window" << std::endl;
-	out << "grab_mouse=" << this->grab_mouse << std::endl;
+	out << "; Grab the mouse and keyboard to the window" << std::endl;
+	out << "grab_input=" << this->grab_input << std::endl;
 	out << std::endl;
 	out << "; Enable editor mode" << std::endl;
 	out << "editor=" << this->editor << std::endl;
@@ -369,6 +371,7 @@ bool Settings::ReadConfigFile(std::string folder)
 
 		//screen
 		if(attr=="fullscreen")			this->fullscreen = AR_ToInt(value);
+		else if(attr=="borderless")		this->borderless = AR_ToBool(value);
 		else if(attr=="vsync")			this->vsync = AR_ToBool(value);
 		else if(attr=="screen_width")	this->xres = AR_ToInt(value);
 		else if(attr=="screen_height")	this->yres = AR_ToInt(value);
@@ -385,7 +388,7 @@ bool Settings::ReadConfigFile(std::string folder)
 		
 		//random
 		else if(attr=="local_save")		this->local_save = AR_ToBool(value);
-		else if(attr=="grab_mouse")		this->grab_mouse = AR_ToBool(value);
+		else if(attr=="grab_input")		this->grab_input = AR_ToBool(value);
 		else if(attr=="editor")			this->editor = AR_ToBool(value);
 		else if(attr=="physics_update")	this->physics_update = AR_ToInt(value);
 		else if(attr=="mouse_scale")	this->mouse_scale = AR_ToInt(value);

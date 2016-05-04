@@ -288,8 +288,7 @@ void EventHandler::SysEvent(Event &ev)
         case SDLK_F2:           ev.key = JK_F2; break;
         case SDLK_F3:           ev.key = JK_F3; break;
         case SDLK_F4:           ev.key = JK_F4; break;        
-        case SDLK_F6:           ev.key = JK_F6; break;        
-		case SDLK_INSERT:       ev.key = JK_INSERT; break;
+        case SDLK_INSERT:       ev.key = JK_INSERT; break;
         case SDLK_KP_0:         ev.key = JK_INSERT; break;
         case SDLK_PAGEUP:       ev.key = JK_PAGEUP; break;
         case SDLK_PAGEDOWN:     ev.key = JK_PAGEDOWN; break;
@@ -312,6 +311,16 @@ void EventHandler::SysEvent(Event &ev)
 					settings.quick_load += "save0001.spe";
 				}
 			}
+			ev.key = EV_SPURIOUS;
+			break;
+
+		case SDLK_F6://AR toggle window input grab
+			if(ev.type==EV_KEYRELEASE)
+			{
+				if(SDL_GetWindowGrab(window)) SDL_SetWindowGrab(window,SDL_FALSE);
+				else SDL_SetWindowGrab(window,SDL_TRUE);
+			}
+			ev.key = EV_SPURIOUS;
 			break;
 
 		case SDLK_F7://AR toggle mouse scale
@@ -474,6 +483,14 @@ void EventHandler::SysEvent(Event &ev)
 		break;
 
 	case SDL_CONTROLLERAXISMOTION:
+		//AR completely ignore if disabled in the settings
+		//buttons don't matter, because those don't have sensitive sensors that accidentally get triggered by heartbeats and stuff...
+		if(!settings.ctr_aim)
+		{
+			ev.type = EV_SPURIOUS;
+			return;
+		}
+
 		switch (sdlev.caxis.axis)
 		{
 		case SDL_CONTROLLER_AXIS_LEFTX:
@@ -543,8 +560,15 @@ void EventHandler::SysEvent(Event &ev)
 			break;
 
 			//AR just save the values and update aim inside the game loop
-		case SDL_CONTROLLER_AXIS_RIGHTX:	settings.ctr_aim_x = sdlev.caxis.value;	break;
-		case SDL_CONTROLLER_AXIS_RIGHTY:	settings.ctr_aim_y = sdlev.caxis.value;	break;
+		case SDL_CONTROLLER_AXIS_RIGHTX:
+			settings.ctr_aim_x = sdlev.caxis.value;
+			ev.type = EV_SPURIOUS;
+			break;
+
+		case SDL_CONTROLLER_AXIS_RIGHTY:
+			settings.ctr_aim_y = sdlev.caxis.value;
+			ev.type = EV_SPURIOUS;
+			break;
 
 		case SDL_CONTROLLER_AXIS_TRIGGERLEFT:
 			//AR convert to key events

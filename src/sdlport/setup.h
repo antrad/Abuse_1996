@@ -18,13 +18,14 @@ class Settings
 {
 public:
 	//screen
-	int		fullscreen;		//0 - window, 1 - fullscreen window, 2 - fullscreen
+	int		fullscreen;		//0 - window, 1 - fullscreen window, 2 - "real" fullscreen
+	bool	borderless;		//borderless window
 	bool	vsync;
 	short	xres;			//game screen resolution
 	short	yres;	
 	short	scale;			//windows scale
 	bool	linear_filter;	//"antialias"
-	int		hires;			//enable hires screens and icons
+	int		hires;			//enable hires screens and icons	
 
 	//sound
 	bool	mono;
@@ -35,7 +36,7 @@ public:
 
 	//random
 	bool	local_save;
-	bool	grab_mouse;			//AR ???
+	bool	grab_input;			//lock the input to the window
 	bool	editor;				//enable editor mode	
 	short	physics_update;		//custom pysics update time in miliseconds
 	short	mouse_scale;		//mouse scaling in fullscreen, 0 - match desktop, 1 - match game screen
