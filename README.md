@@ -50,8 +50,7 @@ These are the changes I made compared to Xenoveritas version:
   * Local save game files and configuration files
   * Quick load using F9, quick save using F5 on save consoles
   * Added cheats via chat console: bullettime, god, giveall, flypower, sneakypower, fastpower, healthpower
-  * XBox360 controller support with rebindable buttons (toggle controller use using F8)
-  
+  * XBox360 controller support with rebindable buttons
   * Updated abuse-tool so it can extract the images in Abuse SPEC files to modern image formats
 	as individual images, tilemaps or a texture atlas with information about image, tile and animation frame sizes and positions
 	
@@ -73,13 +72,11 @@ Following settings can be changed via the config file:
 - linear_filter - use linear texture filter (nearest is default)
 - hires - enable high resolution menu buttons and game screens
 - big_font - enable larger font
-
 - volume_sound - sound volume
 - volume_music - music volume
 - mono - use mono audio only
 - no_music - disable music
 - no_sound - disable sound effects
-
 - local_save - save config and other files locally
 - grab_mouse - grab the mouse to the window
 - editor - enable editor mode
@@ -89,8 +86,8 @@ Following settings can be changed via the config file:
 To change the keys used in the game, simply type the key after the option:
 - left - move left
 - right - move right
-- up - climb ladder
-- down - use lift, press switch
+- up - jump, climb ladder
+- down - use lift, press switch, use save console
 - special - use special ability
 - special2 - use bullet time cheat (not in the original version)
 - fire - fire weapon
@@ -151,11 +148,11 @@ There are several keys in the game that are hardcoded to some function originall
 - 1-7 - weapon selection
 - right control - previous weapon
 - insert - next weapon
-- numpad 2,4,5,6,8 - player movement 
+- numpad 2, 4, 5, 6, 8 - player movement 
 - escape, space, enter - reset level on death
-- F1 - show help/controls screen
 - c - cheat/chat console
 - p - pause game
+- F1 - show help/controls screen
 - F5 - quick save on save consoles (1 or "save0001.spe" is the dedicated quick save slot)
 - F6 - toggle window input grab
 - F7 - toggle mouse scale type
@@ -208,7 +205,6 @@ to Xenoveritas and others who kept it alive for 20 years.
 
 ## 8. FEEDBACK
 
-I am more or less done with this project. I might update the abuse-tool to extract the levels to a useable format.
 If you find bugs or have some problems with the game send me an email and I will see what I can do.
 
 ## 9. LINKS
