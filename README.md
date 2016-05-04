@@ -1,18 +1,18 @@
 Abuse README
 ============
 
-This is a fork of the Abuse SDL2 port from <http://github.com/Xenoveritas/abuse>,
-which itself is a fork of the original Abuse SDL port from <http://abuse.zoy.org>.
+This is a fork of the Abuse SDL2 port from (http://github.com/Xenoveritas/abuse>,
+which itself is a fork of the Abuse SDL port from (http://abuse.zoy.org>.
 
 ----
 
 1. Introduction
-2. Additional Features
-3. Building The Project
-4. Configuration
-5. Hardcoded keys
+2. Additional features
+3. Configuration
+4. Hardcoded keys
+5. Building the project
 6. Notes
-7. Special Thanks
+7. Special thanks
 8. Feedback
 9. Links
 
@@ -22,9 +22,8 @@ which itself is a fork of the original Abuse SDL port from <http://abuse.zoy.org
 
 When I released my Quake 2D demo back in 2012 many people compared it to Abuse. While I was waiting for my new PC to get fixed I was stuck with a PC bought in 2005.
 My gaming options were limited, and I found out Abuse was available for free, so I wanted to check it out:
-- It ran in DOSBox at 320x200 resolution, which is fine, but since it was a shooter it felt disorienting, like playing a FPS in a very low FOV.
-- The screen tearing was horrible and I couldn't enable vsync.
-- Aiming with the mouse was very difficult, because, even in fullscreen, the mouse was still behaving like it was 320x200 resolution and was too sensitive.
+- It ran in DOSBox at 320x200 resolution, and since it was a shooter it felt disorienting, like playing a FPS in a very low FOV.
+- Aiming with the mouse was very difficult, because even in fullscreen the mouse was still behaving like it was 320x200 resolution and was too sensitive.
 
 Reading the readme file I saw there was a high resolution option, but it seemed to be only available in the shareware version, or in editor mode,
 and the game would automatically turn off the in-game lights, because it would be too demanding for the PCs in 1996 on high resolutions.
@@ -32,10 +31,11 @@ Not to mention a bug would cause the entire screen to go black the second time a
 
 Then I found out the source code was released and was looking for modern ports:
 - The 2001 SDL port was for Linux only.
-- Then I found a 2001 Windows port, but the game would not run. I managed to get the sorce code to compile and fixed the crashing issue,
+- The 2001 Windows port would not run. I managed to get the sorce code to compile and fixed the crashing issue,
   but I only got around 10-15 frames per minute.
-- Then I found the 2011 version, and again it was Linux only.
-- Then finally the Xenoveritas port showed up in the search results, and was exactly what I needed; a working Windows port.
+- Then I found the updated SDL port from 2011, and again it was Linux only.
+- Then finally the Xenoveritas port showed up in the search results and was exactly what I needed; a working Windows port,
+  plus it had instructions how to build it.
 
 ## 2. ADDITIONAL FEATURES
 
@@ -44,32 +44,20 @@ These are the changes I made compared to Xenoveritas version:
   * Enabled custom resolutions and enabled lights on high resolutions
   * Re-enabled OpenGL rendering to enable vsync
   * Game screen scaling in window and fullscreen mode using F11 and F12
-  * Fixed level music not being played correctly
-  * Added or re-enabled various settings in the config file
-  * Physics update time can be changed via config file
+  * Enabled some high resolution images from the 1997 Mac OS release
+  * Fixed level music not being played correctly, added "victory" music in the end game screen
+  * Added or re-enabled various settings in the config file (physics update time, editor mode, high resolution mode...)
   * Local save game files and configuration files
   * Quick load using F9, quick save using F5 on save consoles
   * Added cheats via chat console: bullettime, god, giveall, flypower, sneakypower, fastpower, healthpower
-  * XBox360 controller support with rebindable buttons via the config file (toggle controller aiming using F9)
+  * XBox360 controller support with rebindable buttons (toggle controller use using F8)
   
   * Updated abuse-tool so it can extract the images in Abuse SPEC files to modern image formats
-	as individual images, tilemaps or a texture atlas with information about image, tile and animation frame sizes and positions.
+	as individual images, tilemaps or a texture atlas with information about image, tile and animation frame sizes and positions
 	
 	*** moga bi link stavit ovdje ***
 
-## 3. BUILDING THE PROJECT
-
-Abuse has the following requirements:
-
-  * SDL2 2.0.3 or above
-  * SDL_mixer 2.0.0 or above
-  * GLee for OpenGL rendering
-  * OpenCV 2.1 for abuse-tool
-
-Read the BUILDING.md file provided by Xenoveritas to see how to build the projects.
-Do note this version also uses OpenGL(GLee) and OpenCV, so you will need to link to those libraries too.
-
-## 4. CONFIGURATION
+## 3. CONFIGURATION
 
 Abuse configuration file has been updated in this version. The file is stored locally in the "user" folder as "config.txt",
 where also the save game files and other original configuration files, like gamma settings, can be found.
@@ -154,7 +142,7 @@ ctr_left_stick, ctr_right_stick
 
 See "5. Hardcoded keys" for the hardcoded controller bindings.
 
-## 5. Hardcoded keys
+## 4. Hardcoded keys
 
 There are several keys in the game that are hardcoded to some function originally or were added during porting:
 
@@ -180,6 +168,18 @@ Controller defaults:
 - home - show help/controls screen
 - back - behaves like the escape key
 - start - behaves like enter key
+
+## 5. BUILDING THE PROJECT
+
+Abuse has the following requirements:
+
+  * SDL2 2.0.3 or above
+  * SDL_mixer 2.0.0 or above
+  * GLee for OpenGL rendering
+  * OpenCV 2.1 for abuse-tool
+
+Read the BUILDING.md file provided by Xenoveritas to see how to build the projects.
+Do note this version also uses OpenGL(GLee) and OpenCV, so you will need to link to those libraries too.
 
 ## 6. NOTES
 
@@ -209,19 +209,25 @@ If you find bugs or have some problems with the game send me an email and I will
 
 ## 9. LINKS
 
-Original source code <https://archive.org/details/abuse_sourcecode>
-Jeremy Scott's Windows port [2001] <http://web.archive.org/web/20051023123223/http://www.webpages.uidaho.edu/~scot4875/>
-Abuse SDL [2002] <http://web.archive.org/web/20070205093016/http://www.labyrinth.net.au/~trandor/abuse/>
-Sam Hocevar Abuse Page [2011] <http://abuse.zoy.org/>
-Xenoveritas SDL2 port [2014] <http://github.com/Xenoveritas/abuse>
+###### Info about the game
+[Moby games page] (http://www.mobygames.com/game/abuse)
+[Abuse homepage] (http://web.archive.org/web/20010517011228/http://abuse2.com)
+[Free Abuse (Frabs)] homepage (http://web.archive.org/web/20010124070000/http://www.cs.uidaho.edu/~cass0664/fRaBs)
+[Abuse fan page] (http://web.archive.org/web/19970701080256/http://games.3dreview.com/abuse/index.html)
 
-Abuse home page <http://web.archive.org/web/20010517011228/http://abuse2.com/>
-Free Abuse (Frabs) home page <http://web.archive.org/web/20010124070000/http://www.cs.uidaho.edu/~cass0664/fRaBs/>
+###### Downloads
+[Frabs download] (http://www.dosgames.com/g_act.php)
+[Abuse Desura download] (http://www.desura.com/games/abuse/download)
 
-Frabs download <http://www.dosgames.com/g_act.php>
-Abuse Desura download <http://www.desura.com/games/abuse/download>
+###### Source code releases
+[Original source code] (https://archive.org/details/abuse_sourcecode)
+[Anthony Kruize's Abuse SDL port (2001)] (http://web.archive.org/web/20070205093016/http://www.labyrinth.net.au/~trandor/abuse)
+[Jeremy Scott's Windows port (2001)] (http://web.archive.org/web/20051023123223/http://www.webpages.uidaho.edu/~scot4875)
+[Sam Hocevar's Abuse Page (2011)] (http://abuse.zoy.org)
+[Xenoveritas SDL2 port (2014)] (http://github.com/Xenoveritas/abuse)
 
-HMI to MIDI converter <http://www.ttdpatch.net/midi/games.html>
+###### Bonus
+[HMI to MIDI converter] (http://www.ttdpatch.net/midi/games.html)
 
 ----
 

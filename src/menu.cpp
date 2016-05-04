@@ -365,9 +365,14 @@ void save_difficulty()
 void fade_out(int steps);
 void fade_in(image *im, int steps);
 
+image *credits_hires = NULL;
 
 void show_sell(int abortable)
 {
+	//AR credits screen, enabled hires image
+
+	if(settings.hires && !credits_hires) credits_hires = cache.img(cache.reg("art/fore/endgame.spe","credit_hires",SPEC_IMAGE,1));
+
   LSymbol *ss = LSymbol::FindOrCreate("sell_screens");
   if (!DEFINEDP(ss->GetValue()))
   {
@@ -389,8 +394,12 @@ void show_sell(int abortable)
     int quit=0;
     while (tmp && !quit)
     {
-      int im=cache.reg_object("art/help.spe",CAR(tmp),SPEC_IMAGE,1);
-      fade_in(cache.img(im),16);
+		if(settings.hires && credits_hires) fade_in(credits_hires,16);
+		else
+		{
+			int im = cache.reg_object("art/help.spe",CAR(tmp),SPEC_IMAGE,1);
+			fade_in(cache.img(im),16);
+		}
 
       Event ev;
       do
@@ -526,144 +535,194 @@ void *current_demo=NULL;
 
 static ico_button *load_icon(int num, int id, int x, int y, int &h, ifield *next, char const *key)
 {
-  char name[20];
-  char const *base = "newi";
-  int a,b,c;
-  sprintf(name,"%s%04d.pcx",base,num*3+1);
-  a=cache.reg("art/icons.spe",name,SPEC_IMAGE,1);
+	//AR enabled high resolution images
 
-  sprintf(name,"%s%04d.pcx",base,num*3+2);
-  b=cache.reg("art/icons.spe",name,SPEC_IMAGE,1);
+	char name[20];
+	char const *base = "newi";
+	int a, b, c;
 
-  sprintf(name,"%s%04d.pcx",base,num*3+3);
-  c=cache.reg("art/icons.spe",name,SPEC_IMAGE,1);
+	std::string img_name = "%s%04d.pcx";
+	if(settings.hires) img_name += "_hires";
 
-  h=cache.img(a)->Size().y;
+	sprintf(name,img_name.c_str(),base,num*3+1);
+	a = cache.reg("art/icons.spe",name,SPEC_IMAGE,1);
 
-  return new ico_button(x,y,id,b,b,a,c,next,-1,key);
+	sprintf(name,img_name.c_str(),base,num*3+2);
+	b = cache.reg("art/icons.spe",name,SPEC_IMAGE,1);
+
+	sprintf(name,img_name.c_str(),base,num*3+3);
+	c = cache.reg("art/icons.spe",name,SPEC_IMAGE,1);
+	
+	h = cache.img(a)->Size().y;
+
+	return new ico_button(x,y,id,b,b,a,c,next,-1,key);
 }
 
-ico_button *make_default_buttons(int x,int &y, ico_button *append_list)
+ico_button *make_default_buttons(int x, int &y, ico_button *append_list)
 {
-  int h;
-  int diff_on;
+	//AR main menu buttons, reenabled the credits button
+	
+	int h;
+	int diff_on;
 
-  if (DEFINEDP(symbol_value(l_difficulty)))
-  {
-    if (symbol_value(l_difficulty)==l_extreme)
-      diff_on=3;
-    else if (symbol_value(l_difficulty)==l_hard)
-      diff_on=2;
-    else if (symbol_value(l_difficulty)==l_easy)
-      diff_on=0;
-    else
-      diff_on=1;
-  } else  diff_on=3;
+	if(DEFINEDP(symbol_value(l_difficulty)))
+	{
+		if(symbol_value(l_difficulty)==l_extreme)	diff_on = 3;
+		else if(symbol_value(l_difficulty)==l_hard)	diff_on = 2;
+		else if(symbol_value(l_difficulty)==l_easy)	diff_on = 0;
+		else diff_on = 1;
+	}
+	else diff_on = 3;
 
+	ico_button *start = load_icon(0,ID_START_GAME,x,y,h,NULL,"ic_start");
+	y += h;
 
-  ico_button *start=load_icon(0,ID_START_GAME,x,y,h,NULL,"ic_start");                         y+=h;
+	//difficulty/hardness icon
+	ico_switch_button *set = NULL;
+	if(!main_net_cfg || (main_net_cfg->state!=net_configuration::SERVER && main_net_cfg->state!=net_configuration::CLIENT))
+	{
+		set = new ico_switch_button(
+			x,y,ID_NULL,diff_on,
+			load_icon(3,ID_EASY,x,y,h,
+			load_icon(8,ID_MEDIUM,x,y,h,
+			load_icon(9,ID_HARD,x,y,h,
+			load_icon(10,ID_EXTREME,x,y,h,
+			NULL,"ic_extreme"),"ic_hard"),"ic_medium"),"ic_easy"),NULL);
+		y += h;
+	}
 
-  ico_switch_button *set=NULL;
-  if (!main_net_cfg || (main_net_cfg->state!=net_configuration::SERVER && main_net_cfg->state!=net_configuration::CLIENT))
-  {
-    set=new ico_switch_button(x,y,ID_NULL,diff_on,
-                         load_icon(3,ID_EASY,x,y,h,
-                         load_icon(8,ID_MEDIUM,x,y,h,
-                             load_icon(9,ID_HARD,x,y,h,
-                                     load_icon(10,ID_EXTREME,x,y,h,NULL,"ic_extreme"),
-                                  "ic_hard"),"ic_medium"),"ic_easy"),NULL);         y+=h;
+	ico_button *color = load_icon(4,ID_LIGHT_OFF,x,y,h,NULL,"ic_gamma");
+	y += h;
 
-  }
+	ico_button *volume = load_icon(5,ID_VOLUME,x,y,h,NULL,"ic_volume");
+	y += h;
 
-  ico_button *color=load_icon(4,ID_LIGHT_OFF,x,y,h,NULL,"ic_gamma");                          y+=h;
-  ico_button *volume=load_icon(5,ID_VOLUME,x,y,h,NULL,"ic_volume");                            y+=h;
-  ico_button *sell=NULL;
+	//AR MP doesn't work, so I disabled the button, and with credits it doesn't fit at 320x200
+	/*ico_button *multiplayer = NULL;
+	if(prot)
+	{
+		multiplayer = load_icon(11,ID_NETWORKING,x,y,h,NULL,"ic_networking");
+		y += h;
+	}*/
 
-  if (prot)
-  {
-    sell=load_icon(11,ID_NETWORKING,x,y,h,NULL,"ic_networking");
-    y+=h;
-  } else
-  {
-    sell=load_icon(2,ID_SHOW_SELL,x,y,h,NULL,"ic_sell");
-    y+=h;
-  }
-  ico_button *quit=load_icon(6,ID_QUIT,x,y,h,NULL,"ic_quit");                                y+=h;
+	//credits in full version
+	ico_button *sell = load_icon(2,ID_SHOW_SELL,x,y,h,NULL,"ic_sell");
+	y += h;  
 
-  if (set)
-  {
-    start->next=set;
-    set->next=color;
-  }
-  else start->next=color;
+	ico_button *quit = load_icon(6,ID_QUIT,x,y,h,NULL,"ic_quit");
+	y += h;
 
+	//connect buttons/make list
 
-  color->next=volume;
-  if (sell)
-  {
-    volume->next=sell;
-    sell->next=quit;
-  } else volume->next=quit;
+	if(set)
+	{
+		start->next = set;
+		set->next = color;
+	}
+	else start->next = color;
 
-  ico_button *list=append_list;
+	color->next = volume;
 
-  if (append_list)
-  {
-    while (append_list->next)
-      append_list=(ico_button *)append_list->next;
-    append_list->next=start;
-  } else list=start;
+	/*if(prot)
+	{
+		volume->next = multiplayer;
+		multiplayer->next = sell;
+	}
+	else */volume->next = sell;
 
-  return list;
+	sell->next = quit;
+
+	ico_button *list = append_list;
+
+	if(append_list)
+	{
+		while(append_list->next)
+			append_list = (ico_button*)append_list->next;
+
+		append_list->next = start;
+	}
+	else list = start;
+
+	return list;
 }
 
-
-ico_button *make_conditional_buttons(int x,int &y)
+ico_button *make_conditional_buttons(int x, int &y)
 {
-  ico_button *start_list=NULL;
-  int h;
-  if (current_level)       // should we include a return icon?
-  {
-    start_list=load_icon(7,ID_RETURN,x,y,h,NULL,"ic_return");                       y+=h;
-  }
+	//AR "return to game" and "load game" buttons
 
+	ico_button *start_list = NULL;
 
-  ico_button *load;
-  if (show_load_icon())
-  { load= load_icon(1,ID_LOAD_PLAYER_GAME,x,y,h,NULL,"ic_load");                     y+=h; }
-  else load=NULL;
+	int h;
 
-  if (start_list) start_list->next=load;
-  else start_list=load;
+	//should we include a return icon ?
+	if(current_level)
+	{
+		start_list = load_icon(7,ID_RETURN,x,y,h,NULL,"ic_return");
+		y += h;
+	}
 
-  return start_list;
+	ico_button *load = NULL;
+	if(show_load_icon())
+	{
+		load = load_icon(1,ID_LOAD_PLAYER_GAME,x,y,h,NULL,"ic_load");
+		y += h;
+	}	
+
+	if(start_list) start_list->next = load;
+	else start_list = load;
+
+	return start_list;
 }
 
 void main_menu()
 {
+	//AR enabled button selection with a controller, enabled highres button images
+
 	//AR let me know we are stuck here
 	the_game->ar_stateold = the_game->ar_state;
 	the_game->ar_state = AR_MAINMENU;
 	//
 	
-    int y=yres/2-100;
-    ico_button *list=make_conditional_buttons(xres-33,y);
-    list=make_default_buttons(xres-33,y,list);
+	//default button size 32x25, hires size 50x39
+	int button_w = 32;
+	int button_h = 25;
+	int padding_x = 1;
+	int move_up = 6;//6 menu buttons buttons by default
 
-	//AR controller ui movement, icon size 32x25
-	static int lg_movex = 32;
-	static int lg_movey = 25;
+	if(current_level) move_up++;
+	if(show_load_icon()) move_up++;
+	//if(prot) move_up++;//multiplayer button
+
+	if(settings.hires)
+	{
+		button_w = 50;
+		button_h = 39;
+		padding_x = 2;
+		move_up *= 39;		
+	}
+	else move_up *= 25;
+
+	move_up /= 2;
+	
+    int y = yres/2 - move_up;
+	int x = xres - button_w - padding_x;
+
+    ico_button *list = make_conditional_buttons(x,y);
+    list = make_default_buttons(x,y,list);
+
+	//AR controller ui movement
 	int mx, my;//mouse position
-	int border_up = yres/2-100, border_down = y;
+	int border_up = yres/2 - move_up;
+	int border_down = y;
 
 	int old_mx = wm->GetMousePos().x;
 	int old_my = wm->GetMousePos().y;
 
-	//AR initial position of the mouse in the window for controller use
+	//AR initial position of the mouse in the menu for controller use
 	if(settings.ctr_aim)
 	{
-		mx = xres-33 + lg_movex/2;
-		my = yres/2-100 + lg_movey/2;
+		mx = x + button_w/2;
+		my = border_up + button_h/2;
 		wm->SetMousePos(ivec2(mx,my));
 	}
 	//
@@ -750,12 +809,12 @@ void main_menu()
 		{
 			if((ev.key==get_key_binding("up",0) || ev.key==get_key_binding("up2",0)))
 			{
-				if(my-lg_movey>border_up) my -= lg_movey;
+				if(my-button_h>border_up) my -= button_h;
 				wm->SetMousePos(ivec2(mx,my));
 			}
 			if((ev.key==get_key_binding("down",0) || ev.key==get_key_binding("down2",0)))
 			{
-				if(my+lg_movey<border_down) my += lg_movey;
+				if(my+button_h<border_down) my += button_h;
 				wm->SetMousePos(ivec2(mx,my));
 			}
 		}

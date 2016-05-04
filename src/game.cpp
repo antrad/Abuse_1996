@@ -157,6 +157,37 @@ void handle_no_space()
     exit(1);
 }
 
+//AR gave up because of switching palette problems
+//AR get image and palette
+/*int title_screen_hr = -1;
+image* title_screen_hr_img = NULL;
+palette *title_screen_hr_p = NULL;
+
+void AR_HiresTitleScreen()
+{
+	title_screen_hr = cache.reg("art/title.spe","title_screen_hires",SPEC_IMAGE,1);
+	title_screen_hr_img = cache.img(cache.reg("art/title.spe","title_screen_hires",SPEC_IMAGE,1));
+
+	bFILE *fp = open_file("art/title.spe", "rb");
+	if(!fp->open_failure())
+	{
+		spec_directory sd(fp);	
+
+		for(unsigned int i=0;i<sd.total;i++)
+		{
+			std::string name = sd.entries[i]->name;
+			if(name=="palette_hires")
+			{
+				title_screen_hr_p = new palette(sd.entries[i],fp);
+				break;
+			}
+		}
+	}
+
+	delete fp;
+}*/
+//
+
 void Game::play_sound(int id, int vol, int32_t x, int32_t y)
 {
     if(!(sound_avail & SFX_INITIALIZED))
@@ -1165,8 +1196,9 @@ int text_draw(int y, int x1, int y1, int x2, int y2, char const *buf, JCFont *fo
 
 void do_title()
 {
-    if(cdc_logo == -1)
-        return;
+	//AR intro screens
+
+	if(cdc_logo == -1) return;
 
     if(sound_avail & MUSIC_INITIALIZED)
     {
@@ -1179,12 +1211,12 @@ void do_title()
         current_song->play(music_volume);
     }
 
-    void *logo_snd = LSymbol::FindOrCreate("LOGO_SND")->GetValue();
+	void *logo_snd = LSymbol::FindOrCreate("LOGO_SND")->GetValue();
 
     if(DEFINEDP(logo_snd) && (sound_avail & SFX_INITIALIZED))
         cache.sfx(lnumber_value(logo_snd))->play(sfx_volume);
 
-    // This must be a dynamic allocated image because if it
+	// This must be a dynamic allocated image because if it
     // is not and the window gets closed during do_title, then
     // exit() will try to delete (through the desctructor of
     // image_list in image.cpp) the image on the stack -> boom.
@@ -1192,37 +1224,57 @@ void do_title()
     blank->clear();
     wm->SetMouseShape(blank->copy(), ivec2(0, 0)); // hide mouse
     delete blank;
-    fade_in(cache.img(cdc_logo), 32);
-    Timer tmp; tmp.WaitMs(400);
+	
+	//AR diplay logo
+	if(settings.hires==2) fade_in(cache.img(cache.reg("art/title.spe","cdc_logo_hires",SPEC_IMAGE,1)),32);	
+	else fade_in(cache.img(cdc_logo),32);
+    Timer tmp;
+	tmp.WaitMs(400);
     fade_out(32);
 
-    void *space_snd = LSymbol::FindOrCreate("SPACE_SND")->GetValue();
+	void *space_snd = LSymbol::FindOrCreate("SPACE_SND")->GetValue();
     char *str = lstring_value(LSymbol::FindOrCreate("plot_start")->Eval());
 
+	//AR plot screen
     bFILE *fp = open_file("art/smoke.spe", "rb");
     if(!fp->open_failure())
     {
-        spec_directory sd(fp);
+		spec_directory sd(fp);
         palette *old_pal = pal;
         pal = new palette(sd.find(SPEC_PALETTE), fp);
         pal->shift(1);
+		
+		//AR enabled highres images
+		std::string img_name = "gray_pict";
+		if(settings.hires) img_name += "_hires";
 
-        image *gray = new image(fp, sd.find("gray_pict"));
+		image *gray = new image(fp, sd.find(img_name.c_str()));
         image *smoke[5];
 
         char nm[20];
         for (int i = 0; i < 5; i++)
         {
-            sprintf(nm, "smoke%04d.pcx", i + 1);
+			img_name = "smoke%04d.pcx";
+			if(settings.hires) img_name += "_hires";
+
+			sprintf(nm, img_name.c_str(), i + 1);
             smoke[i] = new image(fp, sd.find(nm));
         }
+
+		//AR highres smoke is double the size, but highres background is not the same aspect as original
+		float smoke_x = 24, smoke_y = 5;
+		if(settings.hires)
+		{
+			smoke_x = 60;
+			smoke_y = 75;
+		}
 
         main_screen->clear();
         pal->load();
 
         int dx = (xres + 1) / 2 - gray->Size().x / 2, dy = (yres + 1) / 2 - gray->Size().y / 2;
         main_screen->PutImage(gray, ivec2(dx, dy));
-        main_screen->PutImage(smoke[0], ivec2(dx + 24, dy + 5));
+        main_screen->PutImage(smoke[0], ivec2(dx + smoke_x, dy + smoke_y));
 
         fade_in(NULL, 16);
         uint8_t cmap[32];
@@ -1244,9 +1296,13 @@ void do_title()
             if (i >= 400)
                 break;
 
+			//AR in higres text will be top-right, I think it looks better that way with small font
+			int text_y = 0;
+			if(settings.hires) text_y = 35;
+
             main_screen->PutImage(gray, ivec2(dx, dy));
-            main_screen->PutImage(smoke[i % 5], ivec2(dx + 24, dy + 5));
-            text_draw(205 - i, dx + 15, dy, dx + 320 - 15, dy + 199, str, wm->font(), cmap, wm->bright_color());
+            main_screen->PutImage(smoke[i % 5], ivec2(dx + smoke_x, dy + smoke_y));
+            text_draw(205 - i, dx + 15, dy + text_y, dx + 320 - 15, dy + 199 + text_y, str, wm->font(), cmap, wm->bright_color());
             wm->flush_screen();
             time_marker now;
 
@@ -1912,9 +1968,10 @@ void net_receive()
 
 void Game::step()
 {
-	//AR virtual crosshair inside a circle, solves atan2(axisy,axisx) aiming dead zone problems
+	//AR virtual crosshair inside a circle, solves atan2(axisy,axisx) aiming dead zone problems	
 	static float aimx = 0, aimy = 0;
 
+	settings.player_touching_console = false;
 	settings.in_game = false;
 
 	LSpace::Tmp.Clear();
@@ -1926,9 +1983,13 @@ void Game::step()
 		{
 			if(f->m_focus)
 			{
+				f->update_scroll();	
+				
+				//AR
 				settings.in_game = true;
 
-				f->update_scroll();				
+				if(settings.cheat_god) f->god = 1;
+				else f->god = 0;							
 				
 				//AR aim with the controller each update, don't wait for input event (-13 moves center to chest area)
 				if(settings.ctr_aim==1)
@@ -1952,14 +2013,15 @@ void Game::step()
 					
 					//set position of real crosshair
 					wm->SetMousePos(ivec2(
-						f->m_focus->x - f->xoff() + cos(angle)*settings.ctr_cd,
+						f->m_focus->x - f->xoff() + cos(angle)*settings.ctr_cd + settings.ctr_aim_correctx,
 						f->m_focus->y - f->yoff() + sin(angle)*settings.ctr_cd - 13));
 
 					//if outside circle reposition to the edge of circle for the next update
 					//10 is just random, sesitivity is controlled using settings.ctr_rst_s
 					aimx = cos(angle)*10;
-					aimy = sin(angle)*10;
+					aimy = sin(angle)*10;					
 				}
+				//
 				
 				int w, h;
 

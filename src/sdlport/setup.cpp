@@ -104,7 +104,7 @@ Settings::Settings()
 	this->yres				= 200;		// Default window height
 	this->scale				= 2;		// default window scale
 	this->linear_filter		= false;    // Don't "anti-alias"	
-	this->hires				= false;
+	this->hires				= 0;
 
 	//sound
 	this->mono				= false;	// disable stereo sound
@@ -374,7 +374,7 @@ bool Settings::ReadConfigFile(std::string folder)
 		else if(attr=="screen_height")	this->yres = AR_ToInt(value);
 		else if(attr=="scale")			this->scale = AR_ToInt(value);
 		else if(attr=="linear_filter")	this->linear_filter = AR_ToBool(value);
-		else if(attr=="hires")			this->hires = AR_ToBool(value);
+		else if(attr=="hires")			this->hires = AR_ToInt(value);
 
 		//sound
 		else if(attr=="mono")			this->mono = AR_ToBool(value);

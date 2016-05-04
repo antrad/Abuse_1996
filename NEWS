@@ -24,6 +24,7 @@ ABUSE:
 - quick load using F9, quick save using F5 on save consoles
 - fixed gamma setting not being saved
 - added cheats via chat console: bullettime, god, giveall, flypower, sneakypower, fastpower, healthpower
+- enabled some high resolution images from the 1997 Mac OS release
 
 ABUSE-TOOL:
 - extracting PCX images in SPEC files to modern image formats using OpenCV

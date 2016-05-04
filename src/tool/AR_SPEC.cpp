@@ -178,6 +178,21 @@ bool AR_SPEC::AR_ConvertSPEC(std::string file_path)
 	dir.FullyLoad(&fp);
 
 	bool in_tiles = false, in_images = false;
+	
+	//check if titles are mixed with other images -> pong_the_bong
+	//art/fore/endgame.spe, addon/pong/pong.spe, addon/bong/bong.spe
+	/*
+	bool has_tiles = false, has_images = false;
+	for(int i=0;i<dir.total;i++)
+	{
+		spec_entry *se = dir.entries[i];
+		
+		if(se->type==SPEC_FORETILE || se->type==SPEC_BACKTILE) has_tiles = true;
+		if(se->type==SPEC_IMAGE || se->type==SPEC_CHARACTER || se->type==SPEC_CHARACTER2) has_images = true;
+	}
+	if(has_tiles && has_images) log->Write("---both---");	
+	return true;
+	*/
 
 	//find palletes
 	for(int i=0;i<dir.total;i++)

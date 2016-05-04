@@ -444,46 +444,54 @@ void fade_out(int steps);
 
 void show_stats()
 {
-  if (current_level)
-  {
-    fade_out(8);
-    wm->SetMousePos(ivec2(0, 0));
-    main_screen->clear();
-    image *im=cache.img(cache.reg("art/frame.spe","end_level_screen",SPEC_IMAGE,1));
-    main_screen->PutImage(im, ivec2(0, 0));
+	//AR end level screen, why is it here ? C'mon !
 
+	if(current_level)
+	{
+		fade_out(8);
 
-    int x1=im->Size().x+1,y1=0,x2=xres,y2=main_screen->Size().y;
-    fade_in(NULL,16);
+		wm->SetMousePos(ivec2(0,0));
+		main_screen->clear();
 
-    char name[50];
-    strcpy(name,current_level->original_name());
-    char dig1=name[strlen(name)-strlen(".spe")-2];
-    char dig2=name[strlen(name)-strlen(".spe")-1];
+		//AR highres screen just shows WTC buildings in red background, so I didn't enable it
+		//art/loading.spe and art/status.spe have different palettes, and I haven't figure out how switching palettes works
+		image *im = NULL;
+		if(rand()%2) im = cache.img(cache.reg("art/frame.spe","end_level_screen",SPEC_IMAGE,1));
+		else im = cache.img(cache.reg("art/fore/endgame.spe","tbc",SPEC_IMAGE,1));
 
+		main_screen->PutImage(im,ivec2(xres/2-im->Size().x/2,yres/2-im->Size().y/2));
 
-    char msg[50];
+		fade_in(NULL,16);
 
-    if (isdigit(dig1) && isdigit(dig2))
-    {
-      if (dig1!='0')
-        sprintf(msg,"%s : %c%c",symbol_str("lev_complete"),dig1,dig2);
-      else
-        sprintf(msg,"%s : %c",symbol_str("lev_complete"),dig2);
-    } else sprintf(msg,"%s : %s",symbol_str("lev_complete"),current_level->original_name());
+		char name[50];
+		strcpy(name,current_level->original_name());
+		char dig1 = name[strlen(name)-strlen(".spe")-2];
+		char dig2 = name[strlen(name)-strlen(".spe")-1];
 
-    int w = wm->font()->Size().x * strlen(msg),
-        h = wm->font()->Size().y;
-    int x=(x1+x2)/2-w/2,y=(y1+y2)/2-h/2;
-    main_screen->Bar(ivec2(x - 10, y - 10), ivec2(x + w + 10, y + h + 10),
-                     wm->bright_color());
-    main_screen->Bar(ivec2(x - 9, y - 9), ivec2(x + w + 9, y + h + 9),
-                     wm->medium_color());
+		char msg[50];
 
-    wm->font()->PutString(main_screen, ivec2(x + 1, y + 1), msg, wm->dark_color());
-    wm->font()->PutString(main_screen, ivec2(x, y), msg, wm->bright_color());
-    wm->flush_screen();
-    Timer now; now.WaitMs(500);
-  }
+		if(isdigit(dig1) && isdigit(dig2))
+		{
+			if(dig1!='0') sprintf(msg,"%s : %c%c",symbol_str("lev_complete"),dig1,dig2);
+			else sprintf(msg,"%s : %c",symbol_str("lev_complete"),dig2);
+		}
+		else sprintf(msg,"%s : %s",symbol_str("lev_complete"),current_level->original_name());
+
+		int w = wm->font()->Size().x*strlen(msg);
+		int h = wm->font()->Size().y;
+
+		int x = xres/2 - w/2;
+		int y = 0.9*yres - h/2;
+
+		main_screen->Bar(ivec2(x - 10, y - 10), ivec2(x + w + 10, y + h + 10), wm->bright_color());
+		main_screen->Bar(ivec2(x - 9, y - 9), ivec2(x + w + 9, y + h + 9), wm->medium_color());
+
+		wm->font()->PutString(main_screen, ivec2(x + 1, y + 1), msg, wm->dark_color());
+		wm->font()->PutString(main_screen, ivec2(x, y), msg, wm->bright_color());
+		wm->flush_screen();
+
+		//pause a bit
+		Timer now;
+		now.WaitMs(1000);
+	}
 }
-

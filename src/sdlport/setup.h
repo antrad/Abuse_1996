@@ -24,7 +24,7 @@ public:
 	short	yres;	
 	short	scale;			//windows scale
 	bool	linear_filter;	//"antialias"
-	bool	hires;			//enable hires screens and icons
+	int		hires;			//enable hires screens and icons
 
 	//sound
 	bool	mono;

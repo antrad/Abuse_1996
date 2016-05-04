@@ -34,6 +34,11 @@
 
 extern palette *old_pal;
 
+//AR
+#include "sdlport/setup.h"
+extern Settings settings;
+//
+
 struct mask_line
 {
   int x,size;
@@ -148,6 +153,9 @@ void scale_put_trans(image *im, image *screen, int x, int y, short new_width, sh
 
 void show_end2()
 {
+	//AR this crashes the game, probably because there are no images with those names in art/fore/endgame.spe
+	//looking at the names my guess would be it was meant for the original plot with aliens/ants
+
   int i;
   int planet=cache.reg("art/fore/endgame.spe","planet",SPEC_IMAGE,1);
   int planet2=cache.reg("art/fore/endgame.spe","dead_planet",SPEC_IMAGE,1);
@@ -421,6 +429,8 @@ void show_sell(int abortable);
 
 void share_end()
 {
+	 //AR shows brown alien head and "to be continued", probably ending of the shareware version
+
   fade_out(16);
   image blank(ivec2(2, 2)); blank.clear();
   wm->SetMouseShape(blank.copy(), ivec2(0, 0)); // don't show mouse
@@ -477,12 +487,37 @@ void share_end()
 
 void show_end()
 {
+	//AR real end screen
+	//since there is a victory.hmi in the music folder my guess would be that it was supposed to be played during the end screen
+	//you can even hear him howling in the track, it matches the on screen text
+	bFILE *fp = open_file("music/victory.hmi","rb");
+	if(fp->open_failure()) delete fp;
+	else
+	{
+		//music file found
+		if(current_song)
+		{
+			current_song->stop();
+			delete current_song;
+		}
+		
+		current_song = new song("music/victory.hmi");
+		current_song->play(music_volume);
+
+		delete fp;
+	}
+	//
+
   fade_out(16);
   image blank(ivec2(2, 2)); blank.clear();
   wm->SetMouseShape(blank.copy(), ivec2(0, 0));      // don't show mouse
   main_screen->clear();
 
-  image *im=cache.img(cache.reg("art/fore/endgame.spe","end.pcx",SPEC_IMAGE,1));
+  //AR enabled hires end image
+  image *im = NULL;
+
+  if(!settings.hires) im = cache.img(cache.reg("art/fore/endgame.spe","end.pcx",SPEC_IMAGE,1));
+  else im = cache.img(cache.reg("art/fore/endgame.spe","end.pcx_hires",SPEC_IMAGE,1));
 
   int dx=(xres+1)/2-320/2,dy=(yres+1)/2-200/2;
 
@@ -501,7 +536,7 @@ void show_end()
   time_marker start;
   for (i=0; i<320 && ev.type!=EV_KEY; i++)
   {
-    main_screen->PutImage(im, ivec2(dx, dy));
+	  main_screen->PutImage(im, ivec2(xres/2-im->Size().x/2, yres/2-im->Size().y/2));
 
     text_draw(205-i,dx+10,dy,dx+319-10,dy+199,lstring_value(end_plot),wm->font(),cmap,wm->bright_color());
     wm->flush_screen();

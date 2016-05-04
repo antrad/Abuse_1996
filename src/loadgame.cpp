@@ -176,7 +176,7 @@ int load_game(int show_all, char const *title)   // return 0 if the player escap
 {
 	//AR this creates the small load/save game window
 	//and takes complete control of the program until it leaves the loop
-	//(it is called somewhere via clisp.cpp)	
+	//it is called via clisp.cpp (case 263)
 
     int total_saved=0;
     image *thumbnails[MAX_SAVE_GAMES];
@@ -245,8 +245,8 @@ int load_game(int show_all, char const *title)   // return 0 if the player escap
 */
 
     // Create thumbnail window 5 pixels to the right of the list window
-    Jwindow *l_win=create_num_window(0,total_saved,MAX_SAVE_LINES,thumbnails);
-    Jwindow *preview=wm->CreateWindow(l_win->m_pos + ivec2(l_win->m_size.x + 5, 0), ivec2(max_w, max_h), NULL, title);
+    Jwindow *l_win = create_num_window(0,total_saved,MAX_SAVE_LINES,thumbnails);
+    Jwindow *preview = wm->CreateWindow(l_win->m_pos + ivec2(l_win->m_size.x + 5, 0), ivec2(max_w, max_h), NULL, title);
 
     preview->m_surf->PutImage(first, ivec2(preview->x1(), preview->y1()));
 
@@ -255,8 +255,8 @@ int load_game(int show_all, char const *title)   // return 0 if the player escap
 	the_game->ar_state = AR_LOADSAVE;
 
 	//AR controller ui movement, number icon size 30x25
-	static int lg_movex = 30;
-	static int lg_movey = 25;
+	static int button_w = 30;
+	static int button_h = 25;
 	int mx, my;//mouse position
 
 	int old_mx = wm->GetMousePos().x;
@@ -265,8 +265,8 @@ int load_game(int show_all, char const *title)   // return 0 if the player escap
 	//AR initial position of the mouse in the window for controller use
 	if(settings.ctr_aim)
 	{
-		mx = l_win->m_pos.x + lg_movex/2;
-		my = l_win->m_pos.y + lg_movey/2;
+		mx = l_win->m_pos.x + button_w/2;
+		my = l_win->m_pos.y + button_h/2;
 		wm->SetMousePos(ivec2(mx,my));
 	}
 	//
@@ -295,22 +295,22 @@ int load_game(int show_all, char const *title)   // return 0 if the player escap
 		{
 			if((ev.key==get_key_binding("left",0) || ev.key==get_key_binding("left2",0)))
 			{
-				if(mx-lg_movex>l_win->m_pos.x) mx -= lg_movex;
+				if(mx-button_w>l_win->m_pos.x) mx -= button_w;
 				wm->SetMousePos(ivec2(mx,my));
 			}
 			if((ev.key==get_key_binding("right",0) || ev.key==get_key_binding("right2",0)))
 			{
-				if(mx+lg_movex<l_win->m_pos.x+l_win->m_size.x) mx += lg_movex;
+				if(mx+button_w<l_win->m_pos.x+l_win->m_size.x) mx += button_w;
 				wm->SetMousePos(ivec2(mx,my));
 			}
 			if((ev.key==get_key_binding("up",0) || ev.key==get_key_binding("up2",0)))
 			{
-				if(my-lg_movey>l_win->m_pos.y) my -= lg_movey;
+				if(my-button_h>l_win->m_pos.y) my -= button_h;
 				wm->SetMousePos(ivec2(mx,my));
 			}
 			if((ev.key==get_key_binding("down",0) || ev.key==get_key_binding("down2",0)))
 			{
-				if(my+lg_movey<l_win->m_pos.y+l_win->m_size.y) my += lg_movey;
+				if(my+button_h<l_win->m_pos.y+l_win->m_size.y) my += button_h;
 				wm->SetMousePos(ivec2(mx,my));
 			}
 		}

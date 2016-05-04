@@ -172,8 +172,8 @@ int confirm_quit()
 	the_game->ar_state = AR_QUIT;
 
 	//AR controller ui movement, icon size 32x25
-	static int lg_movex = 32;
-	static int lg_movey = 25;
+	static int button_w = 32;
+	static int button_h = 25;
 	int mx, my;//mouse position
 	int border_left, border_right;
 
@@ -183,12 +183,11 @@ int confirm_quit()
     Jwindow *quitw;
     image *ok_image, *cancel_image;
 
-    ok_image = cache.img(cache.reg("art/frame.spe", "dev_ok",
-                                 SPEC_IMAGE, 1))->copy();
-    cancel_image = cache.img(cache.reg("art/frame.spe", "cancel",
-                                     SPEC_IMAGE, 1))->copy();
+	//AR no highres images for these buttons, windows size is 86x46
+    ok_image = cache.img(cache.reg("art/frame.spe", "dev_ok", SPEC_IMAGE, 1))->copy();
+    cancel_image = cache.img(cache.reg("art/frame.spe", "cancel", SPEC_IMAGE, 1))->copy();
 
-    quitw = wm->CreateWindow(ivec2(xres / 2 + 40, yres / 2), ivec2(80, -1),
+    quitw = wm->CreateWindow(ivec2(xres / 2 - 86/2, yres / 2 - 46/2), ivec2(80, -1),
               new button(10, wm->font()->Size().y + 4, ID_QUIT_OK, ok_image,
               new button(38, wm->font()->Size().y + 4, ID_CANCEL, cancel_image,
               new info_field(2, 2, ID_NULL, symbol_str("sure?"), NULL))),
@@ -199,11 +198,11 @@ int confirm_quit()
 	//AR initial position of the mouse in the window for controller use
 	if(settings.ctr_aim)
 	{
-		mx = quitw->m_pos.x + 10 + lg_movex/2;
-		my = quitw->m_pos.y + wm->font()->Size().y*2 + lg_movey/2;
+		mx = quitw->m_pos.x + 10 + button_w/2;
+		my = quitw->m_pos.y + wm->font()->Size().y*2 + button_h/2;
 		wm->SetMousePos(ivec2(mx,my));
 		border_left = mx;
-		border_right = mx + lg_movex;
+		border_right = mx + button_w;
 	}
 
     int fin = 0, quit = 0;
@@ -233,12 +232,12 @@ int confirm_quit()
 		{
 			if((ev.key==get_key_binding("left",0) || ev.key==get_key_binding("left2",0)))
 			{
-				if(mx-lg_movex>=border_left) mx -= lg_movex;
+				if(mx-button_w>=border_left) mx -= button_w;
 				wm->SetMousePos(ivec2(mx,my));
 			}
 			if((ev.key==get_key_binding("right",0) || ev.key==get_key_binding("right2",0)))
 			{
-				if(mx+lg_movex<=border_right) mx += lg_movex;
+				if(mx+button_w<=border_right) mx += button_w;
 				wm->SetMousePos(ivec2(mx,my));
 			}
 		}
@@ -2386,7 +2385,14 @@ void dev_controll::handle_event(Event &ev)
     case ID_GOD_MODE :
     {
       for (view *v=player_list; v; v=v->next)
-        v->god=!v->god;
+	  {
+		  v->god=!v->god;
+		  if(v->god)
+		  {
+			  for(int i=0;i<total_weapons-1;i++) v->weapons[i] = 999;
+			  sbar.redraw(main_screen);
+		  }
+	  }
     } break;
     case ID_MOUSE_SCROLL :
     {
@@ -2924,7 +2930,11 @@ void dev_controll::handle_event(Event &ev)
         if (v)
         {
           v->god=!v->god;
-          sbar.redraw(main_screen);
+          if(v->god)
+		  {
+			  for(int i=0;i<total_weapons-1;i++) v->weapons[i] = 999;
+			  sbar.redraw(main_screen);
+		  }
         }
       } break;
       case ' ' :
