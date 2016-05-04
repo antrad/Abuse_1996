@@ -1,8 +1,8 @@
 Abuse README
 ============
 
-This is a fork of the Abuse SDL2 port from (http://github.com/Xenoveritas/abuse>,
-which itself is a fork of the Abuse SDL port from (http://abuse.zoy.org>.
+This is a fork of the Abuse SDL2 port from http://github.com/Xenoveritas/abuse,
+which itself is a fork of the Abuse SDL port from http://abuse.zoy.org.
 
 ----
 
@@ -65,35 +65,37 @@ where also the save game files and other original configuration files, like gamm
 Lines starting with a ';' are comments. Setting an option to '1' turns it on, and '0' turns it off.
 Following settings can be changed via the config file:
 
-fullscreen - fullscreen or window mode
-vsync - vertical sync
-screen_width - game screen width
-screen_height - game screen height
-scale - window scale
-linear_filter - use linear texture filter (nearest is default)
+- fullscreen - fullscreen or window mode
+- vsync - vertical sync
+- screen_width - game screen width
+- screen_height - game screen height
+- scale - window scale
+- linear_filter - use linear texture filter (nearest is default)
+- hires - enable high resolution menu buttons and game screens
+- big_font - enable larger font
 
-volume_sound - sound volume
-volume_music - music volume
-mono - use mono audio only
-no_music - disable music
-no_sound - disable sound effects
+- volume_sound - sound volume
+- volume_music - music volume
+- mono - use mono audio only
+- no_music - disable music
+- no_sound - disable sound effects
 
-local_save - save config and other files locally
-grab_mouse - grab the mouse to the window
-editor - enable editor mode
-physics_update - physics update time in ms
-mouse_scale - mouse to game scaling based on desktop or game screen size
+- local_save - save config and other files locally
+- grab_mouse - grab the mouse to the window
+- editor - enable editor mode
+- physics_update - physics update time in ms
+- mouse_scale - mouse to game scaling based on desktop or game screen size
 
 To change the keys used in the game, simply type the key after the option:
-left - move left
-right - move right
-up - climb ladder
-down - use lift, press switch
-special - use special ability
-special2 - use bullet time (not in the original version)
-fire - fire weapon
-weapon_prev - select previous available weapon
-weapon_next - select next available weapon
+- left - move left
+- right - move right
+- up - climb ladder
+- down - use lift, press switch
+- special - use special ability
+- special2 - use bullet time cheat (not in the original version)
+- fire - fire weapon
+- weapon_prev - select previous available weapon
+- weapon_next - select next available weapon
 
 The following special keys can also be used:
 
@@ -127,18 +129,18 @@ The mouse controls your aim, with Left button for fire and Right button for spec
 The mouse wheel can be used for changing weapons.
 
 The game has almost full controller support now, there are several settings you can change in the config file:
-ctr_aim - enable aiming with the right stick
-ctr_cd - crosshair distance from player
-ctr_rst_s - right stick/aiming sensitivity
-ctr_rst_dz - right stick/aiming dead zone
-ctr_lst_dzx - left stick left/right movement dead zones
-ctr_lst_dzy - left stick up/down movement dead zones
+- ctr_aim - enable aiming with the right stick
+- ctr_cd - crosshair distance from player
+- ctr_rst_s - right stick/aiming sensitivity
+- ctr_rst_dz - right stick/aiming dead zone
+- ctr_lst_dzx - left stick left/right movement dead zones
+- ctr_lst_dzy - left stick up/down movement dead zones
 
 To bind controller buttons to in game action use the following names for the buttons;
-ctr_a, ctr_b, ctr_x, ctr_y
-ctr_left_shoulder, ctr_right_shoulder
-ctr_left_trigger, ctr_right_trigger
-ctr_left_stick, ctr_right_stick
+- ctr_a, ctr_b, ctr_x, ctr_y
+- ctr_left_shoulder, ctr_right_shoulder
+- ctr_left_trigger, ctr_right_trigger
+- ctr_left_stick, ctr_right_stick
 
 See "5. Hardcoded keys" for the hardcoded controller bindings.
 
@@ -147,20 +149,21 @@ See "5. Hardcoded keys" for the hardcoded controller bindings.
 There are several keys in the game that are hardcoded to some function originally or were added during porting:
 
 - 1-7 - weapon selection
-- Right control - previous weapon
-- Insert - next weapon
-- Numpad 2,4,5,6,8 - player movement 
+- right control - previous weapon
+- insert - next weapon
+- numpad 2,4,5,6,8 - player movement 
 - escape, space, enter - reset level on death
-- h, F1 - show help/controls screen
-- c - chat console
+- F1 - show help/controls screen
+- c - cheat/chat console
 - p - pause game
+- F5 - quick save on save consoles (1 or "save0001.spe" is the dedicated quick save slot)
 - F7 - toggle mouse scale
-- F8 - toggle controller aiming
+- F8 - toggle controller use
 - F9 - quick load
 - F10 - toggle window/fullscreen mode
 - F11 - scale window/screen up
 - F12 - scale window/screen down
-- Print screen - take a screenshot
+- print screen - take a screenshot
 
 Controller defaults:
 
@@ -210,24 +213,24 @@ If you find bugs or have some problems with the game send me an email and I will
 ## 9. LINKS
 
 ###### Info about the game
-[Moby games page] (http://www.mobygames.com/game/abuse)
-[Abuse homepage] (http://web.archive.org/web/20010517011228/http://abuse2.com)
-[Free Abuse (Frabs)] homepage (http://web.archive.org/web/20010124070000/http://www.cs.uidaho.edu/~cass0664/fRaBs)
-[Abuse fan page] (http://web.archive.org/web/19970701080256/http://games.3dreview.com/abuse/index.html)
+[Moby games page] (http://www.mobygames.com/game/abuse)  
+[Abuse homepage] (http://web.archive.org/web/20010517011228/http://abuse2.com)  
+[Free Abuse (Frabs) homepage] (http://web.archive.org/web/20010124070000/http://www.cs.uidaho.edu/~cass0664/fRaBs)  
+[Abuse fan page] (http://web.archive.org/web/19970701080256/http://games.3dreview.com/abuse/index.html)  
 
 ###### Downloads
-[Frabs download] (http://www.dosgames.com/g_act.php)
-[Abuse Desura download] (http://www.desura.com/games/abuse/download)
+[Frabs download] (http://www.dosgames.com/g_act.php)  
+[Abuse Desura download] (http://www.desura.com/games/abuse/download)  
 
 ###### Source code releases
-[Original source code] (https://archive.org/details/abuse_sourcecode)
-[Anthony Kruize's Abuse SDL port (2001)] (http://web.archive.org/web/20070205093016/http://www.labyrinth.net.au/~trandor/abuse)
-[Jeremy Scott's Windows port (2001)] (http://web.archive.org/web/20051023123223/http://www.webpages.uidaho.edu/~scot4875)
-[Sam Hocevar's Abuse Page (2011)] (http://abuse.zoy.org)
-[Xenoveritas SDL2 port (2014)] (http://github.com/Xenoveritas/abuse)
+[Original source code] (https://archive.org/details/abuse_sourcecode)  
+[Anthony Kruize Abuse SDL port (2001)] (http://web.archive.org/web/20070205093016/http://www.labyrinth.net.au/~trandor/abuse)  
+[Jeremy Scott Windows port (2001)] (http://web.archive.org/web/20051023123223/http://www.webpages.uidaho.edu/~scot4875)  
+[Sam Hocevar Abuse SDl port (2011)] (http://abuse.zoy.org)  
+[Xenoveritas SDL2 port (2014)] (http://github.com/Xenoveritas/abuse)  
 
 ###### Bonus
-[HMI to MIDI converter] (http://www.ttdpatch.net/midi/games.html)
+[HMI to MIDI converter] (http://www.ttdpatch.net/midi/games.html)  
 
 ----
 
