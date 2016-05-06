@@ -257,6 +257,8 @@ void EventHandler::SysEvent(Event &ev)
         break;
     case SDL_KEYDOWN:
     case SDL_KEYUP:
+		//AR EV_SPURIOUS has the same value as JK_SPACE, so this is probably all wrong
+
         // Default to EV_SPURIOUS
         ev.key = EV_SPURIOUS;
 
@@ -311,7 +313,7 @@ void EventHandler::SysEvent(Event &ev)
 					settings.quick_load += "save0001.spe";
 				}
 			}
-			ev.key = EV_SPURIOUS;
+			ev.key = JK_F5;
 			break;
 
 		case SDLK_F6://AR toggle window input grab
@@ -320,7 +322,7 @@ void EventHandler::SysEvent(Event &ev)
 				if(SDL_GetWindowGrab(window)) SDL_SetWindowGrab(window,SDL_FALSE);
 				else SDL_SetWindowGrab(window,SDL_TRUE);
 			}
-			ev.key = EV_SPURIOUS;
+			ev.key = JK_F6;
 			break;
 
 		case SDLK_F7://AR toggle mouse scale
@@ -330,32 +332,32 @@ void EventHandler::SysEvent(Event &ev)
 				else settings.mouse_scale = 0;
 				calculate_mouse_scaling();
 			}
-			ev.key = EV_SPURIOUS;
+			ev.key = JK_F7;
 			break;
 
 		case SDLK_F8://AR toggle controller aim
 			if(ev.type==EV_KEYRELEASE) settings.ctr_aim = !settings.ctr_aim;
-			ev.key = EV_SPURIOUS;
+			ev.key = JK_F8;
 			break;
 
 		case SDLK_F9://AR quick load
 			if(ev.type==EV_KEYRELEASE && !settings.quick_load.empty()) the_game->request_level_load(settings.quick_load);
-			ev.key = EV_SPURIOUS;			
+			ev.key = JK_F9;		
 			break;
 
 		case SDLK_F10://toggle fullscreen, 			
 			if(ev.type==EV_KEYRELEASE) video_change_settings(0,true);
-			ev.key = EV_SPURIOUS;
+			ev.key = JK_F10;
 			break;
 
 		case SDLK_F11://AR scale window up
 			if(ev.type==EV_KEYRELEASE) video_change_settings(1,false);
-			ev.key = EV_SPURIOUS;
+			ev.key = JK_F10;//AR JK_F11 is undefined, JK_F10 isn't used anywhere else, so it doesn't matter
 			break;
 
 		case SDLK_F12://AR scale window down
 			if(ev.type==EV_KEYRELEASE) video_change_settings(-1,false);
-			ev.key = EV_SPURIOUS;
+			ev.key = JK_F10;//AR JK_F12 is undefined, JK_F10 isn't used anywhere else, so it doesn't matter
 			break;
 
 		case SDLK_PRINTSCREEN://grab a screenshot

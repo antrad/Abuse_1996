@@ -171,7 +171,7 @@ int confirm_quit()
 	the_game->ar_stateold = the_game->ar_state;
 	the_game->ar_state = AR_QUIT;
 
-	//AR controller ui movement, icon size 32x25
+	//AR controller ui movement, button size 32x25
 	static int button_w = 32;
 	static int button_h = 25;
 	int mx, my;//mouse position
@@ -183,13 +183,16 @@ int confirm_quit()
     Jwindow *quitw;
     image *ok_image, *cancel_image;
 
-	//AR no highres images for these buttons, windows size is 86x46
+	//AR no highres images for these buttons
+	float hr = 1;
+	if(settings.big_font) hr = (float)the_game->ar_big_font->Size().x/the_game->ar_small_font->Size().x;
+
     ok_image = cache.img(cache.reg("art/frame.spe", "dev_ok", SPEC_IMAGE, 1))->copy();
     cancel_image = cache.img(cache.reg("art/frame.spe", "cancel", SPEC_IMAGE, 1))->copy();
 
-    quitw = wm->CreateWindow(ivec2(xres / 2 - 86/2, yres / 2 - 46/2), ivec2(80, -1),
-              new button(10, wm->font()->Size().y + 4, ID_QUIT_OK, ok_image,
-              new button(38, wm->font()->Size().y + 4, ID_CANCEL, cancel_image,
+    quitw = wm->CreateWindow(ivec2(xres/2 - hr*68/2, yres/2 - hr*40/2), ivec2(hr*68, -1),
+              new button(hr*68/2 - 32, wm->font()->Size().y + 4, ID_QUIT_OK, ok_image,
+              new button(hr*68/2 + 4, wm->font()->Size().y + 4, ID_CANCEL, cancel_image,
               new info_field(2, 2, ID_NULL, symbol_str("sure?"), NULL))),
               symbol_str("quit_title"));
 
@@ -198,7 +201,7 @@ int confirm_quit()
 	//AR initial position of the mouse in the window for controller use
 	if(settings.ctr_aim)
 	{
-		mx = quitw->m_pos.x + 10 + button_w/2;
+		mx = quitw->m_pos.x + (hr*68/2-32) + button_w/2;
 		my = quitw->m_pos.y + wm->font()->Size().y*2 + button_h/2;
 		wm->SetMousePos(ivec2(mx,my));
 		border_left = mx;

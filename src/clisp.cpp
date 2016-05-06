@@ -1610,6 +1610,7 @@ long c_caller(long number, void *args)
     } break;
     case 174 :
     {
+		//AR get use/down key state
       view *v=current_object->controller();
       if (!v) { ((LObject *)args)->Print(); printf("get_player_inputs : object has no view!\n"); }
       else return v->y_suggestion;

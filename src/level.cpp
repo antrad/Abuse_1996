@@ -1658,18 +1658,18 @@ void scale_put(image *im, image *screen, int x, int y, short new_width, short ne
 
 void level::write_thumb_nail(bFILE *fp, image *im)
 {
-  image *i = new image(ivec2(160, 100 + wm->font()->Size().y * 2));
+  image *i = new image(ivec2(160, 100 + the_game->save_game_font->Size().y * 2));
   i->clear();
   scale_put(im,i,0,0,160,100);
   if (first_name)
-    wm->font()->PutString(i, ivec2(80 - strlen(first_name) * wm->font()->Size().x / 2, 100), first_name);
+    the_game->save_game_font->PutString(i, ivec2(80 - strlen(first_name) * the_game->save_game_font->Size().x / 2, 100), first_name);
 
   time_t t;
   t=time(NULL);
   char buf[80];
 
   strftime(buf,80,"%H:%M:%S %A %B %d",localtime(&t));
-  wm->font()->PutString(i, ivec2(80, 100) + ivec2(-strlen(buf), 2) * wm->font()->Size() / ivec2(2),buf);
+  the_game->save_game_font->PutString(i, ivec2(80, 100) + ivec2(-strlen(buf), 2) * the_game->save_game_font->Size() / ivec2(2),buf);
 
   fp->write_uint16(i->Size().x);
   fp->write_uint16(i->Size().y);

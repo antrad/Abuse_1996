@@ -28,6 +28,10 @@ ABUSE:
 - added cheats via chat console: bullettime, god, giveall, flypower, sneakypower, fastpower, healthpower
 - enabled some high resolution images from the 1997 Mac OS release
 - toggle window input grab using F6
+- turned off that image that would randomly flicker in the bottom-left corner
+- fixed health power object image
+- turned on, what seems to be, the original big font and aligned GUI objects for it
+- set the small font to always be used for save game thumbnails
 
 ABUSE-TOOL:
 - extracting PCX images in SPEC files to modern image formats using OpenCV

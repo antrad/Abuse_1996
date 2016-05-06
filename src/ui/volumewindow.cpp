@@ -18,9 +18,15 @@
 #include "property.h"     // class property_manager
 #include "gui.h"          // ico_button
 
+//AR
+#include "sdlport/setup.h"
+extern Settings settings;
+//
+
 VolumeWindow::VolumeWindow() : Jwindow("Volume")
 {
     char const *ff = "art/frame.spe";
+
     u_u = cache.reg(ff, "u_u", SPEC_IMAGE, 1),
     u_d = cache.reg(ff, "u_u", SPEC_IMAGE, 1),
     u_ua = cache.reg(ff, "u_ua", SPEC_IMAGE, 1),
@@ -30,19 +36,25 @@ VolumeWindow::VolumeWindow() : Jwindow("Volume")
     d_ua = cache.reg(ff, "d_ua", SPEC_IMAGE, 1),
     d_da = cache.reg(ff, "d_da", SPEC_IMAGE, 1),
     slider = cache.reg(ff, "volume_slide", SPEC_IMAGE, 1);
+
     m_pos.x = prop->getd("volume_x", xres / 2 - 20);
     m_pos.y = prop->getd("volume_y", yres / 2 - 50);
+
+	//AR center text
+	int text_x = 8;
+	if(settings.big_font) text_x = 1;
+
     inm->add(new ico_button(10, 27, ID_SFX_DOWN, d_u, d_d, d_ua, d_da,
                   new ico_button(21, 27, ID_SFX_UP, u_u, u_d, u_ua, u_da,
-                      new info_field(15, 42, 0, symbol_str("SFXv"),
+                      new info_field(text_x, 38, 0, symbol_str("SFXv"),
                           new ico_button(10, 72, ID_MUSIC_DOWN, d_u, d_d, d_ua, d_da,
                               new ico_button(21, 72, ID_MUSIC_UP, u_u, u_d, u_ua, u_da,
-                                  new info_field(10, 86, 0, symbol_str("MUSICv"), NULL)))))));
+                                  new info_field(text_x, 82, 0, symbol_str("MUSICv"), NULL)))))));
 
     //reconfigure();
     bg = cache.reg(ff, "vcontrol", SPEC_IMAGE, 1);
     m_size = cache.img(bg)->Size();
-    m_surf = new image(m_size, NULL, 2);
+	m_surf = new image(m_size, NULL, 2);
     redraw();
 }
 

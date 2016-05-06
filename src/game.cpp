@@ -1053,10 +1053,10 @@ void Game::draw_map(view *v, int interpolate)
       }
     }
 
-    if(dev_cont)
-    dev_cont->dev_draw(v);
-    if(cache.in_use())
-    main_screen->PutImage(cache.img(vmm_image), ivec2(v->m_aa.x, v->m_bb.y - cache.img(vmm_image)->Size().y+1));
+    if(dev_cont) dev_cont->dev_draw(v);
+
+	//AR this is showing that annoying flashing icon in bottom-left corner, so I disabled it
+    //if(cache.in_use()) main_screen->PutImage(cache.img(vmm_image), ivec2(v->m_aa.x, v->m_bb.y - cache.img(vmm_image)->Size().y+1));
 
     if(dev & DRAW_LIGHTS)
     {
@@ -1283,30 +1283,31 @@ void do_title()
 
         Event ev;
         ev.type = EV_SPURIOUS;
-        Timer total;
+		Timer total;
+
         // HACK: Disable wheel for now since it'll trigger skipping the intro
         wm->SetIgnoreWheelEvents(true);
 
-        while (ev.type != EV_KEY && ev.type != EV_MOUSE_BUTTON)
+        while(ev.type!=EV_KEY && ev.type!=EV_MOUSE_BUTTON)
         {
             Timer frame;
 
+			int hr = 1;
+			if(settings.hires || settings.big_font) hr = 2;
+
             // 120 ms per step
-            int i = (int)(total.PollMs() / 120.f);
-            if (i >= 400)
-                break;
+            int i = (int)(total.PollMs()/120.f);
 
-			//AR in higres text will be top-right, I think it looks better that way with small font
-			int text_y = 0;
-			if(settings.hires) text_y = 35;
-
-            main_screen->PutImage(gray, ivec2(dx, dy));
+			if(i>=400) break;
+			
+			main_screen->PutImage(gray, ivec2(dx, dy));
             main_screen->PutImage(smoke[i % 5], ivec2(dx + smoke_x, dy + smoke_y));
-            text_draw(205 - i, dx + 15, dy + text_y, dx + 320 - 15, dy + 199 + text_y, str, wm->font(), cmap, wm->bright_color());
-            wm->flush_screen();
-            time_marker now;
 
-            while(wm->IsPending() && ev.type != EV_KEY)
+            text_draw(205*hr - i, dx + 15*hr, dy, dx + 320*hr - 15*hr, dy + 199*hr, str, wm->font(), cmap, wm->bright_color());
+
+            wm->flush_screen(); 
+			
+			while(wm->IsPending() && ev.type!=EV_KEY)
                 wm->get_event(ev);
 
             if((i % 5) == 0 && DEFINEDP(space_snd) && (sound_avail & SFX_INITIALIZED))
@@ -1315,6 +1316,7 @@ void do_title()
             frame.WaitMs(25.f);
             frame.GetMs();
         }
+
         // HACK: And reenable them
         wm->SetIgnoreWheelEvents(false);
 
@@ -1322,10 +1324,10 @@ void do_title()
 
         fade_out(16);
 
-        for (int i = 0; i < 5; i++)
-            delete smoke[i];
+        for(int i=0;i<5;i++) delete smoke[i];
         delete gray;
         delete pal;
+
         pal = old_pal;
     }
     delete fp;
@@ -1438,10 +1440,12 @@ Game::Game(int argc, char **argv)
 	  if(small_font_pict != -1)
 	  {
 		  //AR big font doesn't render properly
-		  if(settings.big_font && (xres/(start_doubled ? 2 : 1)>400)) font_pict = big_font_pict;		  
+		  if(settings.big_font) font_pict = big_font_pict;		  
 		  else font_pict = small_font_pict;
 	  }
 	  else font_pict = big_font_pict;
+
+	  ar_big_font = new JCFont(cache.img(big_font_pict));
   }
   else font_pict = small_font_pict;
 
@@ -1450,6 +1454,10 @@ Game::Game(int argc, char **argv)
 
   console_font = new JCFont(cache.img(console_font_pict));
 
+  //AR, use small font, so it fits in the small save/load thumbnail window
+  save_game_font = new JCFont(cache.img(small_font_pict));
+  ar_small_font = new JCFont(cache.img(small_font_pict));  
+
   wm = new WindowManager(main_screen, pal, bright_color,
                          med_color, dark_color, game_font);
 
@@ -1457,7 +1465,6 @@ Game::Game(int argc, char **argv)
   gui_status_manager *gstat = new gui_status_manager();
   gstat->set_window_title("status");
   stat_man = gstat;
-
 
   chat = new chat_console( console_font, 50, 6);
 
@@ -1765,7 +1772,7 @@ void Game::get_input()
                 } break;
                 case PAUSE_STATE:
                 {
-                    if(ev.type == EV_KEY && (ev.key == JK_SPACE || ev.key == JK_ENTER || ev.key == JK_ESC))
+                    if(ev.type == EV_KEY && (ev.key == 'p' || ev.key == JK_SPACE || ev.key == JK_ENTER || ev.key == JK_ESC))
                     {
                         set_state(RUN_STATE);
                     }

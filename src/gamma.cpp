@@ -29,6 +29,11 @@
 extern int dev_ok;
 palette *old_pal = NULL;
 
+//AR
+#include "sdlport/setup.h"
+extern Settings settings;
+//
+
 class gray_picker : public spicker
 {
 public:
@@ -69,8 +74,10 @@ static char const *lang_string(char const *symbol)
 
 void gamma_correct(palette *&pal, int force_menu)
 {
-    long dg=0,old_dg=0;
-    int abort=0;
+	//AR set gamma window
+
+	long dg = 0, old_dg = 0;
+    int abort = 0;
 
     // see if user has already done this routine
     LSymbol *gs = LSymbol::Find("darkest_gray");
@@ -92,17 +99,16 @@ void gamma_correct(palette *&pal, int force_menu)
         {
             dg = old_dg = lnumber_value(gs->GetValue());
         }
+
         // load in a fine gray palette they can chose from
         palette *gray_pal = pal->copy();
+
         int i = 0;
         int tc = 32;
 
-        for(; i < tc; i++)
-        {
-            gray_pal->set(i, i * 4, i * 4, i * 4);
-        }
-
-        gray_pal->load();
+        for(;i<tc;i++) gray_pal->set(i, i * 4, i * 4, i * 4);
+		
+		gray_pal->load();
 
         int wm_bc = wm->bright_color(), wm_mc = wm->medium_color(), wm_dc = wm->dark_color();
 
@@ -136,34 +142,56 @@ void gamma_correct(palette *&pal, int force_menu)
         if(dr_b < 0)
             dr_b = 0;
 
-        wm->set_colors(gray_pal->find_closest(br_r, br_g, br_b),
+        wm->set_colors(
+			gray_pal->find_closest(br_r, br_g, br_b),
             gray_pal->find_closest(md_r, md_g, md_b),
-            gray_pal->find_closest(dr_r, dr_g, dr_b));
+            gray_pal->find_closest(dr_r, dr_g, dr_b)
+			);
 
-        int sh = wm->font()->Size().y + 35;
-        button *but = new button(5, 5 + sh * 3, ID_GAMMA_OK, cache.img(ok_button),
-            new info_field(35, 10 + sh * 3, ID_NULL, lang_string("gamma_msg"), 0));
+		//AR create window, button size 32x25
+		//window isze -> 253x103, big_font 329x113
 
-        gray_picker *gp = new gray_picker(2, 5 + sh, ID_GREEN_PICKER, 0, dg / 4, but);
-        gp->set_pos(dg / 4);
+		int w_w = 254;
+		int w_h = 100;
+		if(settings.big_font)
+		{
+			w_w = 330;
+			w_h = 110;
+		}
 
-        Jwindow *gw = wm->CreateWindow(ivec2(xres / 2 - 190,
-                                             yres / 2 - 90), ivec2(-1), gp);
+		int px_gp = w_w/2 - 244/2;
+		int px_ok = w_w/2 - 32/2;			
 
-        Event ev;
+        int sh = wm->font()->Size().y;
+
+        button *but = new button(px_ok,sh*10,ID_GAMMA_OK,cache.img(ok_button),
+            new info_field(2,sh,ID_NULL,lang_string("gamma_msg"),0));
+
+		//244x37(+1?)
+		gray_picker *gp = new gray_picker(px_gp,sh*4,ID_GREEN_PICKER,0,dg/4,but);
+		gp->set_pos(dg/4);
+		
+		Jwindow *gw = wm->CreateWindow(ivec2(xres/2-w_w/2,yres/2-w_h/2),ivec2(w_w,w_h),gp);
+
+		printf("y %d", gw->m_size.y);
+
+		Event ev;
         wm->flush_screen();
+
+		//AR event loop
         do
         {
             do
             {
                 wm->get_event(ev);
-            } while(ev.type == EV_MOUSE_MOVE && wm->IsPending());
-            wm->flush_screen();
-            if(ev.type == EV_CLOSE_WINDOW)
-                abort = 1;
-            if(ev.type == EV_KEY && ev.key == JK_ESC)
-                abort = 1;
-        } while(!abort && (ev.type != EV_MESSAGE || ev.message.id != ID_GAMMA_OK));
+            }
+			while(ev.type == EV_MOUSE_MOVE && wm->IsPending());
+           
+			wm->flush_screen();
+            
+			if(ev.type==EV_CLOSE_WINDOW || (ev.type==EV_KEY && ev.key==JK_ESC)) abort = 1;
+        }
+		while(!abort && (ev.type != EV_MESSAGE || ev.message.id != ID_GAMMA_OK));
 
         dg = ((spicker *)gw->inm->get(ID_GREEN_PICKER))->first_selected() * 4;
 
@@ -193,21 +221,16 @@ void gamma_correct(palette *&pal, int force_menu)
 
                 LSpace::Current = sp;
             }
-            else
-            {
-                dprintf("Unable to write to file gamma.lsp\n");
-            }
-            free(gammapath);
+            else dprintf("Unable to write to file gamma.lsp\n");
+			
+			free(gammapath);
         }
     }
 
-    if(abort)
-        dg = old_dg;
+    if(abort) dg = old_dg;
 
-    if(dg < 1)
-        dg = 1;
-    else if(dg > 128)
-        dg = 128;
+    if(dg<1) dg = 1;
+    else if(dg>128) dg = 128;
 
     double gamma = log(dg / 255.0) / log(16.0 / 255.0);
 
