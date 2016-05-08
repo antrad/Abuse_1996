@@ -261,7 +261,7 @@ to Xenoveritas and others who kept it alive for 20 years.
 
 If you find bugs or have some problems with the game send me an email and I will see what I can do:  
 email: antonior.software@gmail.com  
-http://antonior-software.blogspot.hr
+blog: http://antonior-software.blogspot.hr
 
 ## 10. LINKS
 
