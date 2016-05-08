@@ -4,20 +4,6 @@ Abuse README
 This is a fork of the Abuse SDL2 port from http://github.com/Xenoveritas/abuse,
 which itself is a fork of the Abuse SDL port from http://abuse.zoy.org.
 
-When I released my Quake 2D demo back in 2012 many people compared it to Abuse. While I was waiting for my new PC to get fixed
-I was stuck with a PC bought in 2005. My gaming options were limited, and I found out Abuse was available for free, so I wanted to check it out:
-- It ran in DOSBox at 320x200 resolution, and since it was a shooter it felt disorienting, like playing a FPS with very low FOV.
-- Aiming with the mouse was very difficult, because even in fullscreen the mouse was still behaving like it was 320x200 resolution and was too sensitive.
-
-Reading the readme file I saw there was a high resolution option, but it seemed to be only available in the shareware version or in editor mode, and the game would automatically turn off the in-game lights, because it would be too demanding for the PCs in 1996 on high resolutions. Not to mention a bug would cause the entire screen to go black the second time a level was loaded. Then I found out the source code was released and was looking for modern ports:
-- The 2001 SDL port was for Linux only.
-- The 2001 Windows port would not run. I managed to get the sorce code to compile and fixed the crashing issue,
-  but I only got around 10-15 frames per minute.
-- Then I found the updated SDL port from 2011, and again it was Linux only.
-- Then finally the Xenoveritas port showed up in the search results and was exactly what I needed; a working Windows port,
-  plus it had instructions how to build it.
-
-
 --------
 
 1. Introduction
@@ -166,7 +152,7 @@ See "5. Hardcoded keys" for the hardcoded controller bindings.
 
 There are several keys in the game that are hardcoded to some function originally or were added during porting:
 
-- 1 - 7 - weapon selection
+- 1-7 - weapon selection
 - right control - previous weapon
 - insert - next weapon
 - numpad 2, 4, 5, 6, 8 - player movement 
@@ -303,3 +289,7 @@ http://antonior-software.blogspot.hr
 --------
 
 Thank you for playing Abuse!
+
+--------
+
+Abuse, Copyright 1995 Crack dot Com
