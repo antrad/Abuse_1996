@@ -1,6 +1,12 @@
 Authors
 -------
 
+Antonio Radojkovic <antonior.software@gmail.com>
+  SDL2 port 0.9a
+
+Daniel "Xenoveritas" Potter
+  SDL2 port 0.9
+
 Sam Hocevar <sam@hocevar.net>
   Major bugfixing
   Current code maintainer
