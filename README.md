@@ -4,32 +4,16 @@ Abuse README
 This is a fork of the Abuse SDL2 port from http://github.com/Xenoveritas/abuse,
 which itself is a fork of the Abuse SDL port from http://abuse.zoy.org.
 
-----
-
-1. Introduction
-2. Additional features
-3. Configuration
-4. Hardcoded keys
-5. Building the project
-6. Notes
-7. Special thanks
-8. Feedback
-9. Links
-
-----
-
-## 1. INTRODUCTION
-
-When I released my Quake 2D demo back in 2012 many people compared it to Abuse. While I was waiting for my new PC to get fixed I was stuck with a PC bought in 2005.
-My gaming options were limited, and I found out Abuse was available for free, so I wanted to check it out:
+When I released my Quake 2D demo back in 2012 many people compared it to Abuse. While I was waiting for my new PC to get fixed
+I was stuck with a PC bought in 2005. My gaming options were limited, and I found out Abuse was available for free, so I wanted to check it out:
 - It ran in DOSBox at 320x200 resolution, and since it was a shooter it felt disorienting, like playing a FPS in a very low FOV.
 - Aiming with the mouse was very difficult, because even in fullscreen the mouse was still behaving like it was 320x200 resolution and was too sensitive.
 
-Reading the readme file I saw there was a high resolution option, but it seemed to be only available in the shareware version, or in editor mode,
+Reading the readme file I saw there was a high resolution option, but it seemed to be only available in the shareware version or in editor mode,
 and the game would automatically turn off the in-game lights, because it would be too demanding for the PCs in 1996 on high resolutions.
 Not to mention a bug would cause the entire screen to go black the second time a level was loaded.
 
-Then I found out the source code was released and was looking for modern ports:
+Then I found out the source code was released and was looking for modern ports
 - The 2001 SDL port was for Linux only.
 - The 2001 Windows port would not run. I managed to get the sorce code to compile and fixed the crashing issue,
   but I only got around 10-15 frames per minute.
@@ -37,15 +21,58 @@ Then I found out the source code was released and was looking for modern ports:
 - Then finally the Xenoveritas port showed up in the search results and was exactly what I needed; a working Windows port,
   plus it had instructions how to build it.
 
+--------
+
+1. Introduction
+2. Additional features
+3. Configuration
+4. Hardcoded keys
+5. Building the project
+6. Notes
+7. Abuse tool
+8. Special thanks
+9. Feedback
+10. Links
+
+--------
+
+## 1. INTRODUCTION
+
+- The story
+
+"You are Nick Vrenna. It is the year 2009. You have been falsely incarcerated
+inside a high security underground prison where illegal genetic experiments
+are taking place.
+
+Alan Blake, the head research scientist, has isolated the specific gene which
+causes violence and aggression in humans. This genetic sequence, called
+"Abuse", is highly infectious, causing horrific transformations and grotesque
+side-effects. You are the only person to show immunity to it.
+
+A prison riot erupts, and in the confusion all the cell doors are opened. Soon
+everyone, guards and convicts alike, become infected and transform into a
+horde of mutants which take over the building.
+
+Your only chance for escape is to don battle armor and reach the Control Room
+situated in the structure's deepest level. You must first stop the prison's
+Abuse-infected water supply from contaminating the outside world. Freedom and
+the fate of the world now depend on you."
+
+- Abuse name
+
+"We chose Abuse for our first game name because the game involved knowing full well that pressing the
+buttons in all those rooms was going to bring down hoards of howlers, but you would do it anyway, abusing yourself."
+
 ## 2. ADDITIONAL FEATURES
 
-These are the changes I made compared to Xenoveritas version:
+These are the changes I made compared to Xenoveritas SDL2 version from 2014:
 
   * Enabled custom resolutions and enabled lights on high resolutions
   * Re-enabled OpenGL rendering to enable vsync
   * Game screen scaling in window and fullscreen mode using F11 and F12
   * Enabled some high resolution images from the 1997 Mac OS release
   * Fixed level music not being played correctly, added "victory" music in the end game screen
+  * Fixed health power image, fixed mouse image when choosing initial gamma
   * Added or re-enabled various settings in the config file (borderless window, grab input, editor mode, high resolution images...)
   * Local save game files and configuration files
   * Quick load using F9, quick save using F5 on save consoles
@@ -53,8 +80,6 @@ These are the changes I made compared to Xenoveritas version:
   * XBox360 controller support with rebindable buttons
   * Updated abuse-tool so it can extract the images in Abuse SPEC files to modern image formats
 	as individual images, tilemaps or a texture atlas with information about image, tile and animation frame sizes and positions
-	
-	*** moga bi link stavit ovdje ***
 
 ## 3. CONFIGURATION
 
@@ -64,14 +89,14 @@ where also the save game files and other original configuration files, like gamm
 Lines starting with a ';' are comments. Setting an option to '1' turns it on, and '0' turns it off.
 Following settings can be changed via the config file:
 
-- fullscreen - fullscreen or window mode
+- fullscreen - fullscreen or window mode (2 - "real" fullscreen)
 - vsync - vertical sync
 - screen_width - game screen width
 - screen_height - game screen height
 - scale - window scale
 - linear_filter - use linear texture filter (nearest is default)
-- hires - enable high resolution menu buttons and game screens
-- big_font - enable larger font
+- hires - enable high resolution menu buttons and game screens (2 - enable Bungie logo)
+- big_font - enable big font
 - volume_sound - sound volume
 - volume_music - music volume
 - mono - use mono audio only
@@ -184,33 +209,82 @@ Do note this version also uses OpenGL(GLee) and OpenCV, so you will need to link
 
 ## 6. NOTES
 
+### Increased difficulty:
+	The game is designed to be played in 320x200 resolution. Playing in higher resolution reveals some secreat areas. Enemies get triggered sooner,
+	so you may end up fighting more aliens then it was intended. Since in higher resolution you can see a larger area and it makes the game easier,
+	you can think of it as a "difficulty readjustment" feature and not a bug.
+	
+### Recommended game screen resolutions:
+	 To scale the game properly on 1920x1080 screens you can use these values:
+		- 320x180 with scale set to 6
+		- 384x216 with scale set to 5
+		- 480x270 with scale set to 4
+		- 640x360 with scale set to 3
+		- 960x540 with scale set to 2
+
+### Using cheat/chat console:
+	The mouse cursor must be inside the console window to be able to get input, because windows in the engine are only active then.
+	Press enter/return when the console is clear, or type "quit" or "exit" to close the console window.
+
+### Quick save/load:
+	Save slot 1 or "save0001.spe" is the dedicated quick save slot. Quick load always loads the last save game, so if you start a new level or
+	manually save the game after you used the quick save, it will load that and not the quick save.
+	Some in game save consoles act as a switch to open doors, so if you just quick save the door will not open, you need to press the down/use key.
+
+### Sound and music
+	Music volume lowers the sound effects volume too, it is probably an issue with the sound library. Also, sometimes when you disable the music
+	in the config file, the sound will not play too. You re-enable the music, start the game, then quit and disable it again and launch the game.
+	I have no idea why this happens and I checked everything, must be the library.
+
 ### Low rendering speed:
 	If I understand the rendering process correctly, everything is first rendered to a in game image format by copying bytes of data from the image buffers.
 	Then those are again copied to SDL_Surface, then SDL_BlitSurface is called to convert the pixel values to OpenGL format. The resulting SDL_Surface pixel buffer
 	is then used to set the pixels of the OpenGL texture using glTexImage2D. Just then we finally render to the backbuffer and update the screen.
-	There must be a way to skip some of these steps, you can check out "sdlport/video.cpp" if you have an idea how.
+	There must be a way to skip some of these steps, you can check out "sdlport/video.cpp" in my Github repository if you have an idea how.
 
 ### 15 FPS:
 	The game is designed to run at 15 FPS, higher or lower framerate speeds up or slows down the game. I haven't figured out how physics, animations and
 	other time based stuff work, to make the game world update normally at higer framerate. While the game is rendered at higher framerate,
 	I have set up a timer that limits the game physics update speed with a default value of 65 ms(15 FPS).
-	
-### Music volume lowers the sound effects volume too:
-	May have something to do with it being MIDI music, I don't know.
 
-## 7. SPECIAL THANKS
+## 7. ABUSE TOOL
+
+Abuse-tool is a low-level tool to edit Abuse SPEC (.spe) files and to extract PSX image files contained in them to modern image formats
+as individual images, tilemaps or a texture atlas.
+
+Usage 1: abuse-tool <spec_file> <command> [args...]
+
+Commands:
+- list                        list the contents of a SPEC file
+- get     <id>                dump entry <id> to stdout
+- getpcx  <id>                dump PCX image <id> to "abuse-tool" folder
+- put     <id> <type> <name>  insert file <name> of type <type> at position <id>
+- putpcx  <id> <type> <name>  insert PCX image <name> of type <type> at position <id>
+- rename  <id> <name>         rename entry <id> to <name>
+- type    <id> <type>         set entry <id> type to <type>
+- move    <id1> <id2>         move entry <id1> to position <id2>
+- del     <id>                delete entry <id>
+
+Usage 2: abuse-tool
+
+To extract the images to modern image formats the program reads the settings and list of files from "abuse-tool/extract.txt"
+when being launched. More info can be found there. Extracted images will be stored at the location of the original files.
+
+## 8. SPECIAL THANKS
 
 To everybody who worked on Abuse and its ports; from the people at Crack Dot Com who made the original game,
 to Xenoveritas and others who kept it alive for 20 years.
 
-## 8. FEEDBACK
+## 9. FEEDBACK
 
-If you find bugs or have some problems with the game send me an email and I will see what I can do.
+If you find bugs or have some problems with the game send me an email and I will see what I can do:
+email: antonior.software@gmail.com
+http://antonior-software.blogspot.hr
 
-## 9. LINKS
+## 10. LINKS
 
 ###### Info about the game
-[Moby games page] (http://www.mobygames.com/game/abuse)  
+[Moby Games page] (http://www.mobygames.com/game/abuse)  
 [Abuse homepage] (http://web.archive.org/web/20010517011228/http://abuse2.com)  
 [Free Abuse(Frabs) homepage] (http://web.archive.org/web/20010124070000/http://www.cs.uidaho.edu/~cass0664/fRaBs)  
 [Abuse fan page] (http://web.archive.org/web/19970701080256/http://games.3dreview.com/abuse/index.html)  
@@ -227,8 +301,9 @@ If you find bugs or have some problems with the game send me an email and I will
 [Xenoveritas SDL2 port (2014)] (http://github.com/Xenoveritas/abuse)  
 
 ###### Bonus
+[Gameplay video] (http://www.youtube.com/watch?v=0Q0SbdDfnFI)  
 [HMI to MIDI converter] (http://www.ttdpatch.net/midi/games.html)  
 
-----
+--------
 
 Thank you for playing Abuse!

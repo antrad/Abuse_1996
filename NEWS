@@ -1,6 +1,6 @@
 # News for Abuse 0.9a (2016)
 
-- AntonioR's fork of the Xenoveritas version
+- AntonioR's fork of the Xenoveritas SDL2 version
 
 ABUSE:
 - enabled custom screen size and resolution
@@ -32,6 +32,7 @@ ABUSE:
 - fixed health power object image
 - turned on, what seems to be, the original big font and aligned GUI objects for it
 - set the small font to always be used for save game thumbnails
+- fixed mouse image when choosing initial gamma
 
 ABUSE-TOOL:
 - extracting PCX images in SPEC files to modern image formats using OpenCV

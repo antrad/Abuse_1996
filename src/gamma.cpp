@@ -2,6 +2,7 @@
  *  Abuse - dark 2D side-scrolling platform game
  *  Copyright (c) 1995 Crack dot Com
  *  Copyright (c) 2005-2011 Sam Hocevar <sam@hocevar.net>
+ *  Copyright (c) 2016 Antonio Radojkovic <antonior.software@gmail.com>
  *
  *  This software was released into the Public Domain. As with most public
  *  domain software, no warranty is made or implied by Crack dot Com, by
@@ -172,8 +173,6 @@ void gamma_correct(palette *&pal, int force_menu)
 		gp->set_pos(dg/4);
 		
 		Jwindow *gw = wm->CreateWindow(ivec2(xres/2-w_w/2,yres/2-w_h/2),ivec2(w_w,w_h),gp);
-
-		printf("y %d", gw->m_size.y);
 
 		Event ev;
         wm->flush_screen();

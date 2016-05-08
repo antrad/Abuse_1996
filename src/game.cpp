@@ -786,7 +786,6 @@ void Game::draw_map(view *v, int interpolate)
 
   int xinc, yinc, draw_x, draw_y;
 
-
   if(!(dev & MAP_MODE) && (dev & DRAW_BG_LAYER))
   {
     xinc = btile_width();
@@ -1475,6 +1474,8 @@ Game::Game(int argc, char **argv)
     printf("No mouse driver detected, please rectify.\n");
     exit(0);
   }
+
+  wm->SetMouseShape(cache.img(c_normal)->copy(), ivec2(1));
 
   gamma_correct(pal);
 

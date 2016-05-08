@@ -677,7 +677,6 @@ void *cop_mover(int xm, int ym, int but)
 		//AR "Press SPACEBAR to continue", reset after death
 		if(!o->controller() || o->controller()->key_down(JK_SPACE) || o->controller()->key_down(JK_ENTER))
 		{
-			printf("bla 0\n");
 			// call the user function to reset the player
 			((LSymbol *)l_restart_player)->EvalFunction(NULL);
 			o->controller()->reset_player();

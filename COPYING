@@ -13,6 +13,7 @@ src/tools/AR_SPEC.cpp:
 src/sdlport/*:
    Copyright (c) 2001 Anthony Kruize <trandor@labyrinth.net.au>
    Copyright (c) 2005-2011 Sam Hocevar <sam@hocevar.net>
+   Copyright (c) 2016 Antonio Radojkovic <antonior.software@gmail.com>
    Licensed under the GNU GPL 2+. Please read COPYING.GPL for details.
 src/sdlport/hmi.h:
 src/sdlport/hmi.cpp:
@@ -21,12 +22,6 @@ src/sdlport/hmi.cpp:
 src/sdlport/errorui.h:
 src/sdlport/errorui.cpp:
    Copyright (c) 2014 Copyright (c) 2014 Daniel Potter
-   Licensed under the GNU GPL 2+. Please read COPYING.GPL for details.
-src/sdlport/setup.h:
-src/sdlport/setup.cpp:
-src/sdlport/event.cpp:
-src/sdlport/video.cpp:   
-   Copyright (c) 2016 Antonio Radojkovic <antonior.software@gmail.com>
    Licensed under the GNU GPL 2+. Please read COPYING.GPL for details.
 
 src/*:

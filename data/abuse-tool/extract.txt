@@ -1,0 +1,357 @@
+;OpenCV supported image file formats (! - see more info online):
+;Windows bitmaps			- bmp, dib
+;JPEG files					- jpeg, jpg, jpe	(!)
+;JPEG 2000 files			- jp2				(!)
+;Portable Network Graphics	- png				(!)
+;Portable image format		- pbm, pgm, ppm
+;Sun rasters				- sr, ras
+;TIFF files					- tiff, tif			(!)
+image_format=png
+
+;higher value means a smaller size and longer compression time [0-9]
+png_compression=9
+
+;higher is better [0-100]
+jpeg_quality=100
+
+;alpha values:
+;0 - keep original values [0,0,0]
+;1 - store in alpha channel (png only)
+;2 - replace color with new values from alpha_r, alpha_g, alpha_b [0-255]
+alpha=1
+alpha_r=0
+alpha_g=0
+alpha_b=0
+
+;output_tilemap values:
+;3 - each tile will be stored in a separate file
+;5 - all tiles in a .spe(SPEC) file will be stored in one tilemap
+output_tilemap=5
+
+tilemap_columns=5
+tilemap_rows=50
+
+;fill tilemap by row or column [r,c]
+tilemap_fill=r
+
+;padding between individual tiles or frames of animation
+tilemap_padding=1
+
+;external tile ordering found in edit.lsp file
+tilemap_palette=0
+
+;output_animation values:
+;3 - each image will be stored in a separate file
+;4 - each animation/group will be stored in a separate file
+;5 - all images in a .spe(SPEC) file will be stored in one texture atlas
+output_animation=5
+
+;color of the line showing individual groups/animations in a texture atlas with group-line padding of 1
+outline_r=128
+outline_g=128
+outline_b=128
+
+;form a new group each x images when output_animation=5, doesn't work for tiles
+group_max=0
+
+;pong and bong SPEC files contain tiles and animations and mess everything up
+;every tile will be exported as a separate group, output_animation should be set to 5
+pong_the_bong=0
+
+;external pallete for player and enemy tints (art/tints->cop,ant,gun)
+;disable with 0 (zero)
+palette_shift=0
+
+;above settings can be changed on the fly for individual files before calling "in" to start the extraction process of a SPEC file
+;the changed values will be used for all the files after
+
+;use "exit" command (without the "") to stop reading the file
+;this can be useful if you want to convert just one file without erasing the rest of the list here
+
+exit
+
+;ABUSE ART
+
+;art
+
+in=art/ant.spe
+
+;art/tints/ant
+color_palette=art/tints/ant/blue.spe
+in=art/ant.spe
+color_palette=art/tints/ant/brown.spe
+in=art/ant.spe
+color_palette=art/tints/ant/darkblue.spe
+in=art/ant.spe
+color_palette=art/tints/ant/egg.spe
+in=art/ant.spe
+;this is the player texture atlas, and this tint is not listed in ant.lsp ???
+;color_palette=art/tints/ant/evil.spe
+;in=art/ant.spe
+color_palette=art/tints/ant/gray.spe
+in=art/ant.spe
+color_palette=art/tints/ant/green.spe
+in=art/ant.spe
+color_palette=art/tints/ant/mustard.spe
+in=art/ant.spe
+color_palette=art/tints/ant/orange.spe
+in=art/ant.spe
+color_palette=art/tints/ant/yellow.spe
+in=art/ant.spe
+color_palette=0
+
+in=art/ball.spe
+in=art/blowups.spe
+in=art/bold.spe
+in=art/boss.spe
+in=art/cloud.spe
+in=art/compass.spe
+in=art/consfnt.spe
+
+in=art/cop.spe
+in=art/coptop.spe
+
+;art/tints/cop
+color_palette=art/tints/cop/africa.spe
+in=art/cop.spe
+in=art/coptop.spe
+color_palette=art/tints/cop/blue.spe
+in=art/cop.spe
+in=art/coptop.spe
+color_palette=art/tints/cop/bright.spe
+in=art/cop.spe
+in=art/coptop.spe
+color_palette=art/tints/cop/darkblue.spe
+in=art/cop.spe
+in=art/coptop.spe
+color_palette=art/tints/cop/fire.spe
+in=art/cop.spe
+in=art/coptop.spe
+color_palette=art/tints/cop/gold.spe
+in=art/cop.spe
+in=art/coptop.spe
+;empty pallete, and it is not listed in people.lsp ???
+;color_palette=art/tints/cop/gray.spe
+;in=art/cop.spe
+;in=art/coptop.spe
+color_palette=art/tints/cop/land.spe
+in=art/cop.spe
+in=art/coptop.spe
+color_palette=art/tints/cop/olive.spe
+in=art/cop.spe
+in=art/coptop.spe
+color_palette=art/tints/cop/pinkish.spe
+in=art/cop.spe
+in=art/coptop.spe
+color_palette=art/tints/cop/purple.spe
+in=art/cop.spe
+in=art/coptop.spe
+color_palette=art/tints/cop/yellow.spe
+in=art/cop.spe
+in=art/coptop.spe
+color_palette=0
+
+in=art/credit.spe
+in=art/dev.spe
+in=art/door.spe
+in=art/exp1.spe
+in=art/flyer.spe
+in=art/fonts.spe
+in=art/frame.spe
+
+in=art/gun2.spe
+
+;art/tints/guns
+color_palette=art/tints/guns/blue.spe
+in=art/gun2.spe
+color_palette=art/tints/guns/green.spe
+in=art/gun2.spe
+color_palette=art/tints/guns/orange.spe
+in=art/gun2.spe
+color_palette=art/tints/guns/redish.spe
+in=art/gun2.spe
+color_palette=0
+
+in=art/help.spe
+in=art/icons.spe
+in=art/jug.spe
+in=art/keys.spe
+in=art/letters.spe
+in=art/loading.spe
+in=art/misc.spe
+in=art/missle.spe
+in=art/mon_cfg.spe
+in=art/pform.spe
+in=art/rob1.spe
+in=art/rob2.spe
+in=art/screen11.spe
+in=art/smoke.spe
+in=art/statbar.spe
+in=art/status.spe
+in=art/title.spe
+in=art/wait.spe
+
+;art/back
+
+in=art/back/alienb.spe
+in=art/back/backgrnd.spe
+in=art/back/cave.spe
+in=art/back/city.spe
+tilemap_columns=3
+tilemap_rows=50
+in=art/back/galien.spe
+tilemap_columns=5
+tilemap_rows=50
+in=art/back/green2.spe
+tilemap_columns=50
+tilemap_rows=3
+tilemap_fill=c
+in=art/back/intro.spe
+tilemap_columns=5
+tilemap_rows=50
+tilemap_fill=r
+in=art/back/tech.spe
+
+;art/chars
+
+in=art/chars/ammo.spe
+in=art/chars/block.spe
+in=art/chars/concus.spe
+in=art/chars/door.spe
+in=art/chars/lava.spe
+;in=art/chars/lavap.spe - missing size data
+in=art/chars/lightin.spe
+in=art/chars/mine.spe
+in=art/chars/platform.spe
+in=art/chars/push.spe
+group_max=3
+in=art/chars/sect.spe
+group_max=0
+in=art/chars/step.spe
+in=art/chars/tdoor.spe
+in=art/chars/teleport.spe
+
+;art/fore
+
+in=art/fore/alien.spe
+in=art/fore/cave.spe
+pong_the_bong=1
+in=art/fore/endgame.spe
+pong_the_bong=0
+in=art/fore/foregrnd.spe
+in=art/fore/techno.spe
+in=art/fore/techno2.spe
+in=art/fore/techno3.spe
+in=art/fore/techno4.spe
+tilemap_columns=10
+tilemap_rows=50
+tilemap_palette=800 801 802 803 884 885 886 887 860 861 805 806 807 808  888 889 890 891 862 863 810 811 812 813 892 893 894 895 864 865 815 816 817 818 896 897 898 899 866 867 820 821 822 823 900 901 902 903 868 0 825 826 0 828  904 905 906 907 870 0 0 831 832 0 908 909 910 911 0 0 0 836 837 0 912 913 914 915 0 0 840 841 842 843 916 917 918 919 874 0 845 846 847 848 920 924 922 923 876 0 850 851 852 853 924 925 926 927 878 0 855 856 857 858  928 929 930 931 880 0
+in=art/fore/trees.spe
+tilemap_palette=0
+tilemap_columns=5
+tilemap_rows=50
+in=art/fore/trees2.spe
+
+;not sure what was this doing in that folder, it is the player texture atlas ???
+in=art/tints/ant/evil.spe
+
+;ADDON ART
+
+;addon/aliens
+in=addon/aliens/aliens.spe
+in=addon/aliens/bactiles.spe
+in=addon/aliens/fortiles.spe
+
+;addon/bong
+pong_the_bong=1
+in=addon/bong/bong.spe
+pong_the_bong=0
+
+;addon/claudio
+in=addon/claudio/antship.spe
+in=addon/claudio/bigexp.spe
+in=addon/claudio/deepw1.spe
+in=addon/claudio/deepw2.spe
+in=addon/claudio/droid.spe
+in=addon/claudio/extiles.spe
+in=addon/claudio/fire.spe
+in=addon/claudio/lamp.spe
+in=addon/claudio/lava2.spe
+in=addon/claudio/mypanels.spe
+in=addon/claudio/nplatfor.spe
+tilemap_columns=2
+in=addon/claudio/pal2.spe
+tilemap_columns=5
+in=addon/claudio/pal21.spe
+tilemap_columns=3
+in=addon/claudio/pal5.spe
+tilemap_columns=5
+in=addon/claudio/pal81.spe
+in=addon/claudio/pal81f.spe
+in=addon/claudio/pal82.spe
+in=addon/claudio/pal82f.spe
+in=addon/claudio/pal90.spe
+in=addon/claudio/rob2.spe
+in=addon/claudio/skull.spe
+in=addon/claudio/spaced.spe
+in=addon/claudio/spaceh.spe
+in=addon/claudio/sswitch.spe
+in=addon/claudio/trex1.spe
+in=addon/claudio/umbrel3.spe
+in=addon/claudio/watem.spe
+
+;addon/example
+in=addon/example/example.spe
+
+;addon/leon
+in=addon/leon/lmisc.spe
+in=addon/leon/lnant.spe
+tilemap_rows=2
+tilemap_columns=50
+tilemap_fill=c
+in=addon/leon/lnewft.spe
+tilemap_rows=50
+tilemap_columns=5
+tilemap_fill=r
+in=addon/leon/lnewft2.spe
+in=addon/leon/rain.spe
+in=addon/leon/rain-old.spe
+
+;addon/newart
+tilemap_columns=3
+tilemap_rows=5
+tilemap_fill=c
+in=addon/newart/blcave.spe
+tilemap_columns=50
+tilemap_rows=8
+tilemap_fill=c
+in=addon/newart/frbsblue.spe
+tilemap_columns=1
+tilemap_rows=50
+in=addon/newart/stones.spe
+in=addon/newart/space.spe
+tilemap_columns=5
+tilemap_rows=50
+tilemap_fill=r
+in=addon/newart/final.spe
+in=addon/newart/frabs_1.spe
+in=addon/newart/frabs_2.spe
+in=addon/newart/mtile.spe
+
+;addon/pong
+pong_the_bong=1
+in=addon/pong/pong.spe
+pong_the_bong=0
+
+;addon/twist/art
+in=addon/twist/art/dray.spe
+in=addon/twist/art/fire.spe
+in=addon/twist/art/lavap.spe
+in=addon/twist/art/legs.spe
+in=addon/twist/art/mario.spe
+in=addon/twist/art/mtile.spe
+in=addon/twist/art/obj.spe
+in=addon/twist/art/palette.spe
+in=addon/twist/art/robs.spe
+in=addon/twist/art/title.spe
+in=addon/twist/art/weapons.spe
