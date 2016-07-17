@@ -27,7 +27,7 @@
 #ifdef WIN32
 #include <windows.h>
 #endif
-#include "Glee.h"
+#include "GLee.h"
 //Abuse linker->input:
 //	- opengl32.lib
 //	- GLee.lib

@@ -99,7 +99,7 @@ add_executable(abuse-tool
 	tool/AR_SPEC.cpp tool/AR_SPEC.h
 	tool/AR_Help.cpp tool/AR_Help.h)
 
-target_link_libraries(abuse-tool imlib)
+target_link_libraries(abuse-tool imlib ${OpenCV_LIBS})
 
 include_directories(
     ${abuse_SOURCE_DIR}/src

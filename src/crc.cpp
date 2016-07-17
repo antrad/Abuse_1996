@@ -12,6 +12,7 @@
 #   include "config.h"
 #endif
 
+#include <stdint.h>
 #include "crc.h"
 
 uint16_t calc_crc(void *buf, size_t len)
