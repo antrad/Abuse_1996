@@ -1,7 +1,7 @@
 INSTALL(FILES
     abuse.lsp
     edit.lsp
-    hardness.lsp
+    user/hardness.lsp
 DESTINATION ${ASSETDIR})
 
 # No idea what this was for
@@ -327,7 +327,7 @@ INSTALL(FILES
 DESTINATION ${ASSETDIR}/addon/twist)
 
 INSTALL(FILES
-    defaults.prp
+    user/defaults.prp
 DESTINATION ${ASSETDIR})
 
 # Check if we have the non-free data

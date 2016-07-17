@@ -802,9 +802,9 @@ bool AR_SPEC::AR_CreateTile(image *im, std::string path, palette *pal, palette *
 	
 	//only png supports this->alpha channel
 	if(this->image_format=="png" && this->alpha==AR_OCV_COLORTOALPHA)
-		ocv = cvCreateImage(cvSize(im->Size().x,im->Size().y),IPL_DEPTH_8U,4);
+		ocv = cvarrToMat(cvCreateImage(cvSize(im->Size().x,im->Size().y),IPL_DEPTH_8U,4));
 	else
-		ocv = cvCreateImage(cvSize(im->Size().x,im->Size().y),IPL_DEPTH_8U,3);
+		ocv = cvarrToMat(cvCreateImage(cvSize(im->Size().x,im->Size().y),IPL_DEPTH_8U,3));
 
 	int k = 0;
 	for(int i=0;i<ocv.rows;i++)
@@ -866,9 +866,9 @@ bool AR_SPEC::AR_CreateImage(std::vector<std::vector<int> > &m, int w, int h, st
 
 	//only png supports this->alpha channel
 	if(this->image_format=="png" && this->alpha==AR_OCV_COLORTOALPHA)
-		ocv = cvCreateImage(cvSize(w,h),IPL_DEPTH_8U,4);
+		ocv = cvarrToMat(cvCreateImage(cvSize(w,h),IPL_DEPTH_8U,4));
 	else
-		ocv = cvCreateImage(cvSize(w,h),IPL_DEPTH_8U,3);
+		ocv = cvarrToMat(cvCreateImage(cvSize(w,h),IPL_DEPTH_8U,3));
 
 	for(int i=0;i<ocv.rows;i++)
 	{
@@ -947,7 +947,7 @@ bool AR_SPEC::AR_SaveImage(Mat &ocv, std::string path)
 
 	if(this->image_format=="png")
 	{
-		vector<int> parameters;
+		std::vector<int> parameters;
 		parameters.push_back(CV_IMWRITE_PNG_COMPRESSION);
 		parameters.push_back(this->png_compression);
 
@@ -955,7 +955,7 @@ bool AR_SPEC::AR_SaveImage(Mat &ocv, std::string path)
 	}
 	else if(this->image_format=="jpeg" || this->image_format=="jpg" | this->image_format=="jpe" || this->image_format=="jp2")
 	{
-		vector<int> parameters;
+		std::vector<int> parameters;
 		parameters.push_back(CV_IMWRITE_JPEG_QUALITY);
 		parameters.push_back(this->jpeg_quality);
 

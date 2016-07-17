@@ -16,6 +16,7 @@
 
 #include <cstring>
 #include <cstdio>
+#include <cstdlib>
 
 #include "common.h"
 #include "specs.h"

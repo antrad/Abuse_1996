@@ -12,6 +12,7 @@
 #   include "config.h"
 #endif
 
+#include <stdint.h>
 #include "specache.h"
 
 spec_directory_cache sd_cache;
